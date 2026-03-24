@@ -1,7 +1,33 @@
 import Image from "next/image";
 import Link from "next/link";
+import { getPublicCompanies, type PublicCompany } from "@/lib/api";
 
-export default function Footer() {
+const FOOTER_LOGO_SLOTS = 4;
+
+function companySlug(c: PublicCompany): string {
+  const s = c.slug?.trim();
+  if (s) return encodeURIComponent(s);
+  return encodeURIComponent(c.id);
+}
+
+function companyLogoUrl(c: PublicCompany): string {
+  return (c.headerImage?.trim() || c.profileImage?.trim() || "");
+}
+
+export default async function Footer() {
+  let topCompanies: PublicCompany[] = [];
+  try {
+    const all = await getPublicCompanies();
+    topCompanies = all.slice(0, FOOTER_LOGO_SLOTS);
+  } catch {
+    topCompanies = [];
+  }
+
+  const slots: (PublicCompany | null)[] = Array.from(
+    { length: FOOTER_LOGO_SLOTS },
+    (_, i) => topCompanies[i] ?? null
+  );
+
   return (
     <footer className="bg-secondary text-white py-16" id="contact">
       <div className="max-w-7xl mx-auto px-4">
@@ -113,23 +139,44 @@ export default function Footer() {
           <p className="text-center text-white/60 text-sm mb-6">
             Our Sponsors & Partners
           </p>
-          <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-60">
-            <div
-              className="h-8 w-24 bg-white/30 rounded"
-              data-alt="Sponsor Logo 1"
-            />
-            <div
-              className="h-8 w-24 bg-white/30 rounded"
-              data-alt="Sponsor Logo 2"
-            />
-            <div
-              className="h-8 w-24 bg-white/30 rounded"
-              data-alt="Sponsor Logo 3"
-            />
-            <div
-              className="h-8 w-24 bg-white/30 rounded"
-              data-alt="Sponsor Logo 4"
-            />
+          <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-90">
+            {slots.map((c, i) => {
+              const image = c ? companyLogoUrl(c) : "";
+              const box = (
+                <div className="relative flex h-10 w-28 items-center justify-center rounded-md bg-white/95 px-2 py-1 shadow-sm">
+                  {image ? (
+                    <Image
+                      src={image}
+                      alt={c ? `${c.companyName} logo` : "Partner"}
+                      width={112}
+                      height={40}
+                      className="max-h-8 w-auto max-w-full object-contain object-center"
+                    />
+                  ) : (
+                    <div
+                      className="h-6 w-20 rounded bg-neutral-200/80"
+                      aria-hidden
+                    />
+                  )}
+                </div>
+              );
+              if (!c) {
+                return (
+                  <div key={`footer-partner-slot-${i}`} className="shrink-0">
+                    {box}
+                  </div>
+                );
+              }
+              return (
+                <Link
+                  key={c.id}
+                  href={`/company/${companySlug(c)}`}
+                  className="shrink-0 transition-opacity hover:opacity-100"
+                >
+                  {box}
+                </Link>
+              );
+            })}
           </div>
         </div>
         <div className="text-center mt-12 text-xs text-white/50">

@@ -42,8 +42,8 @@ export default function ExhibitorsPage() {
       </header>
 
       <div className="bg-background-light px-4 pb-10 dark:bg-background-dark sm:px-6 lg:px-8 lg:pb-12">
-        <div className="mb-6 flex flex-wrap items-center gap-4 rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
-          <div className="relative min-w-[280px] flex-1">
+        <div className="mb-6 flex flex-col gap-4 rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="relative min-w-0 w-full flex-1 sm:min-w-[280px]">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-slate-400">
               search
             </span>
@@ -58,8 +58,8 @@ export default function ExhibitorsPage() {
               className="w-full rounded-lg border-none bg-background-light py-2 pl-10 pr-4 text-sm transition-all focus:ring-2 focus:ring-primary/50 dark:bg-background-dark-softer dark:text-white"
             />
           </div>
-          <div className="flex gap-2">
-            <select className="cursor-pointer rounded-lg border-none bg-background-light px-4 py-2 text-sm focus:ring-2 focus:ring-primary/50 dark:bg-background-dark-softer dark:text-white">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
+            <select className="w-full min-w-0 cursor-pointer rounded-lg border-none bg-background-light px-4 py-2 text-sm focus:ring-2 focus:ring-primary/50 dark:bg-background-dark-softer dark:text-white sm:w-auto">
               <option value="">All statuses</option>
               <option>Confirmed</option>
               <option>Pending</option>
@@ -68,7 +68,7 @@ export default function ExhibitorsPage() {
           </div>
           <button
             type="button"
-            className="p-2 text-slate-400 dark:text-white/40 transition-colors hover:text-primary"
+            className="self-start p-2 text-slate-400 dark:text-white/40 transition-colors hover:text-primary sm:self-center"
             title="Filters"
           >
             <span className="material-symbols-outlined">filter_list</span>

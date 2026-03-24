@@ -192,7 +192,7 @@ export default function AdminDashboardPage() {
             <p className="text-slate-500 dark:text-white/50">Real-time performance and floor management metrics.</p>
           </div>
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:gap-4">
-            <div className="relative w-full sm:w-auto">
+            <div className="relative hidden w-full sm:w-auto md:block">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
                 search
               </span>
@@ -202,13 +202,6 @@ export default function AdminDashboardPage() {
                 className="w-full min-w-0 rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white sm:w-64"
               />
             </div>
-            <button
-              type="button"
-              className="relative rounded-full p-2 transition-colors hover:bg-slate-100 dark:hover:bg-background-dark-softer"
-            >
-              <span className="material-symbols-outlined text-slate-600 dark:text-white/70">notifications</span>
-              <span className="absolute right-2 top-2 size-2 rounded-full border-2 border-background-light bg-primary dark:border-background-dark" />
-            </button>
             <ThemeToggle />
           </div>
         </div>

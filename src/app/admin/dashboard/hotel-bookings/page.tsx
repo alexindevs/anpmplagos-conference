@@ -199,8 +199,8 @@ export default function HotelBookingsPage() {
           </div>
         )}
 
-        <div className="mb-6 flex flex-wrap items-center gap-4 rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
-          <div className="relative min-w-[280px] flex-1">
+        <div className="mb-6 flex flex-col gap-4 rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="relative min-w-0 w-full flex-1 sm:min-w-[280px]">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-slate-400">
               search
             </span>
@@ -212,11 +212,11 @@ export default function HotelBookingsPage() {
               className="w-full rounded-lg border-none bg-background-light py-2 pl-10 pr-4 text-sm transition-all focus:ring-2 focus:ring-primary/50 dark:bg-background-dark-softer dark:text-white"
             />
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
             <select
               value={filterRoomType}
               onChange={(e) => setFilterRoomType(e.target.value)}
-              className="cursor-pointer rounded-lg border-none bg-background-light px-4 py-2 text-sm focus:ring-2 focus:ring-primary/50 dark:bg-background-dark-softer dark:text-white min-w-[160px]"
+              className="w-full min-w-0 cursor-pointer rounded-lg border-none bg-background-light px-4 py-2 text-sm focus:ring-2 focus:ring-primary/50 dark:bg-background-dark-softer dark:text-white sm:w-auto sm:min-w-[160px]"
             >
               <option value="">All room types</option>
               {roomTypeOptions.map((t) => (
@@ -228,7 +228,7 @@ export default function HotelBookingsPage() {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value as typeof filterStatus)}
-              className="cursor-pointer rounded-lg border-none bg-background-light px-4 py-2 text-sm focus:ring-2 focus:ring-primary/50 dark:bg-background-dark-softer dark:text-white"
+              className="w-full min-w-0 cursor-pointer rounded-lg border-none bg-background-light px-4 py-2 text-sm focus:ring-2 focus:ring-primary/50 dark:bg-background-dark-softer dark:text-white sm:w-auto"
             >
               <option value="">All statuses</option>
               <option value="available">Available</option>
@@ -238,7 +238,7 @@ export default function HotelBookingsPage() {
             <button
               type="button"
               onClick={() => void refetch()}
-              className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 dark:border-border-dark dark:text-white/70 dark:hover:bg-background-dark-softer"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 dark:border-border-dark dark:text-white/70 dark:hover:bg-background-dark-softer sm:w-auto"
             >
               Refresh
             </button>

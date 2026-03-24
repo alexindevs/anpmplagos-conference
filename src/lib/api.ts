@@ -941,6 +941,126 @@ export async function getAdminDashboardSummary(): Promise<AdminDashboardSummary>
   return apiFetch<AdminDashboardSummary>("/api/admin/dashboard/summary");
 }
 
+/** `GET /api/admin/registrations/summary` — see ADMIN-REGISTRATIONS-API.md */
+export interface AdminRegistrationsSummary {
+  members: number;
+  attendees: number;
+  companies: number;
+  speakers: number;
+  specialGuests: number;
+  totalRegistrations: number;
+}
+
+/** Row from `GET /api/admin/registrations` */
+export interface AdminRegistrationRow {
+  userId: string;
+  name: string;
+  email: string;
+  profileImage: string | null;
+  /** RegType, e.g. `member`, `attendee`, `company`, `speaker`, `special_guest` */
+  type: string;
+  registeredAt: string;
+  /** `pending_payment`, `registered`, `cancelled` */
+  status: string;
+  profileUrl: string | null;
+}
+
+/** `GET /api/admin/registrations` paginated response (`limit` not `pageSize`). */
+export interface AdminRegistrationsListResponse {
+  items: AdminRegistrationRow[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export async function getAdminRegistrationsSummary(): Promise<AdminRegistrationsSummary> {
+  return apiFetch<AdminRegistrationsSummary>("/api/admin/registrations/summary");
+}
+
+export async function getAdminRegistrations(
+  query: { page?: number; limit?: number } = {}
+): Promise<AdminRegistrationsListResponse> {
+  const params: Record<string, string> = {};
+  if (query.page != null) params.page = String(query.page);
+  if (query.limit != null) params.limit = String(query.limit);
+  return apiFetch<AdminRegistrationsListResponse>("/api/admin/registrations", { params });
+}
+
+/**
+ * Fetches every page (max 100 per request) for client-side search / type / status filters.
+ * Avoid for very large directories; prefer server-side filters when the API adds them.
+ */
+export async function getAllAdminRegistrationsMerged(maxPages = 100): Promise<AdminRegistrationRow[]> {
+  const out: AdminRegistrationRow[] = [];
+  let page = 1;
+  const limit = 100;
+  for (;;) {
+    const res = await getAdminRegistrations({ page, limit });
+    out.push(...res.items);
+    if (page >= res.totalPages || res.items.length === 0) break;
+    page += 1;
+    if (page > maxPages) break;
+  }
+  return out;
+}
+
+/** `GET /api/gallery` / admin list — see GALLERY-API.md */
+export interface GalleryItem {
+  id: string;
+  imageUrl: string;
+  caption: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+function normalizeGalleryList(value: unknown): GalleryItem[] {
+  if (!Array.isArray(value)) return [];
+  return value as GalleryItem[];
+}
+
+/** Public: list all gallery items, newest first. */
+export async function getGallery(): Promise<GalleryItem[]> {
+  const raw = await apiFetch<unknown>("/api/gallery");
+  return normalizeGalleryList(raw);
+}
+
+/** Public: single item; throws `ApiError` with status 404 if missing. */
+export async function getGalleryItem(id: string): Promise<GalleryItem> {
+  return apiFetch<GalleryItem>(`/api/gallery/${encodeURIComponent(id)}`);
+}
+
+/** Admin: same list as public (convenience). */
+export async function getAdminGallery(): Promise<GalleryItem[]> {
+  const raw = await apiFetch<unknown>("/api/admin/gallery");
+  return normalizeGalleryList(raw);
+}
+
+export async function getAdminGalleryItem(id: string): Promise<GalleryItem> {
+  return apiFetch<GalleryItem>(`/api/admin/gallery/${encodeURIComponent(id)}`);
+}
+
+/** `POST /api/admin/gallery` — multipart field `image` (JPEG/PNG, max 5MB), optional `caption`. */
+export async function postAdminGallery(input: { image: File; caption?: string }): Promise<GalleryItem> {
+  const fd = new FormData();
+  fd.append("image", input.image);
+  if (input.caption != null && input.caption.trim() !== "") {
+    fd.append("caption", input.caption.trim());
+  }
+  return apiFetch<GalleryItem>("/api/admin/gallery", {
+    method: "POST",
+    body: fd,
+  });
+}
+
+export async function deleteAdminGalleryItem(
+  id: string
+): Promise<{ message: string; id: string }> {
+  return apiFetch<{ message: string; id: string }>(`/api/admin/gallery/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
 /** Summary row from `GET /api/companies/public` (directory index). */
 export interface PublicExhibitor {
   id: string;

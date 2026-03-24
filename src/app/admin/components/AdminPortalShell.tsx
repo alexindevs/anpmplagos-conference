@@ -137,7 +137,7 @@ export function AdminPortalShell({ children }: { children: React.ReactNode }) {
       }`;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-background-light md:flex-row dark:bg-background-dark">
+    <div className="relative flex min-h-[100dvh] flex-col overflow-x-hidden bg-background-light md:flex-row md:overflow-hidden dark:bg-background-dark">
       <div className="sticky top-0 z-30 flex shrink-0 items-center gap-3 border-b border-primary/10 bg-white px-4 py-3 dark:border-border-dark dark:bg-background-dark-soft md:hidden">
         <button
           type="button"
