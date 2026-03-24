@@ -164,7 +164,7 @@ export default function AboutPage() {
                 to solving the unique challenges of healthcare in Africa.
               </p>
             </div>
-            <div className="mt-8 grid grid-cols-2 gap-4 border-t border-[#e6dbdc] pt-8 md:grid-cols-4">
+            <div className="mt-8 grid grid-cols-1 gap-4 border-t border-[#e6dbdc] pt-8 sm:grid-cols-2 md:grid-cols-4">
               <div className="flex flex-col">
                 <span className="text-3xl font-black text-primary">1978</span>
                 <span className="text-sm text-[#896165]">Founded</span>

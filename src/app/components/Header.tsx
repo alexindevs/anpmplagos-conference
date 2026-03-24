@@ -3,11 +3,24 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { authSessionQueryKey, useAuthSession } from "@/hooks/use-auth-session";
 
 export default function Header() {
   const pathname = usePathname();
+  const queryClient = useQueryClient();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { data: user } = useAuthSession();
+  const prevPathname = useRef<string | null>(null);
+
+  // Header stays mounted across routes; re-check session when the user navigates (e.g. after auth elsewhere).
+  useEffect(() => {
+    if (prevPathname.current !== null && prevPathname.current !== pathname) {
+      void queryClient.invalidateQueries({ queryKey: authSessionQueryKey });
+    }
+    prevPathname.current = pathname;
+  }, [pathname, queryClient]);
 
   const linkClass = (path: string) =>
     pathname === path
@@ -15,6 +28,7 @@ export default function Header() {
       : "text-[#181112] text-sm font-medium hover:text-primary transition-colors";
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMenuOpen(false);
   }, [pathname]);
 
@@ -29,6 +43,31 @@ export default function Header() {
     };
   }, [menuOpen]);
 
+  /** Public `/company/:slug` profiles keep this header; portal routes use CompanyPortalShell. */
+  const isCompanyPortal =
+    pathname.startsWith("/company/dashboard") ||
+    pathname.startsWith("/company/select-booth") ||
+    pathname.startsWith("/company/marketing") ||
+    pathname.startsWith("/company/booth") ||
+    pathname.startsWith("/company/payment-callback") ||
+    pathname.startsWith("/company/hotel-room") ||
+    pathname.startsWith("/company/masterclasses") ||
+    pathname.startsWith("/company/panels") ||
+    pathname.startsWith("/company/presentations") ||
+    pathname.startsWith("/company/sessions/") ||
+    pathname.startsWith("/company/support");
+
+  /** Marketing header only: hide inside admin, company portal, and hotel booking (portal shell). */
+  const hideMarketingHeader =
+    pathname.startsWith("/admin") ||
+    isCompanyPortal ||
+    pathname.startsWith("/hotel-rooms") ||
+    pathname.startsWith("/support/");
+
+  if (hideMarketingHeader) {
+    return null;
+  }
+
   const navLinks = (
     <>
       <Link href="/" className={linkClass("/")}>
@@ -37,14 +76,20 @@ export default function Header() {
       <Link href="/about" className={linkClass("/about")}>
         About
       </Link>
+      <Link href="/speakers" className={linkClass("/speakers")}>
+        Speakers
+      </Link>
+      <Link href="/sponsors" className={linkClass("/sponsors")}>
+        Sponsors
+      </Link>
+      <Link href="/gallery" className={linkClass("/gallery")}>
+        Gallery
+      </Link>
       <Link
-            href="/speakers"
-            className={linkClass("/speakers")}
-          >
-            Speakers
-          </Link>
-      <Link href="/exhibition" className={linkClass("/exhibition")}>
-        Exhibition Booth
+        href="/#contact"
+        className="text-[#181112] text-sm font-medium hover:text-primary transition-colors"
+      >
+        Contact us
       </Link>
     </>
   );
@@ -67,19 +112,49 @@ export default function Header() {
         <nav className="hidden md:flex items-center gap-8">
           {navLinks}
         </nav>
-        <div className="hidden md:flex items-center gap-4">
-          <Link
-            href="/#contact"
-            className="text-[#181112] text-sm font-medium hover:text-primary transition-colors"
-          >
-            Contact
-          </Link>
-          <Link
-            href="/#register"
-            className="flex cursor-pointer items-center justify-center rounded-lg h-10 px-5 bg-primary text-white text-sm font-bold shadow-md hover:bg-red-700 transition-colors"
-          >
-            Register Now
-          </Link>
+        <div className="hidden md:flex items-center gap-3">
+          {user?.regType === "admin" ? (
+            <Link
+              href="/admin/dashboard"
+              className="flex cursor-pointer items-center justify-center rounded-lg h-10 px-5 border-2 border-primary text-primary text-sm font-bold hover:bg-primary/5 transition-colors"
+            >
+              Admin
+            </Link>
+          ) : null}
+          {user?.regType === "company" || user?.regType === "exhibitor" || user?.regType === "sponsor" ? (
+            <Link
+              href="/company/dashboard"
+              className="flex cursor-pointer items-center justify-center rounded-lg h-10 px-5 border-2 border-primary text-primary text-sm font-bold hover:bg-primary/5 transition-colors"
+            >
+              Company portal
+            </Link>
+          ) : null}
+          {!user ? (
+            <>
+              <Link
+                href="/login"
+                className="flex cursor-pointer items-center justify-center rounded-lg h-10 px-5 border-2 border-secondary text-secondary text-sm font-bold hover:bg-secondary/10 transition-colors"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/register"
+                className="flex cursor-pointer items-center justify-center rounded-lg h-10 px-5 bg-primary text-white text-sm font-bold shadow-md hover:bg-red-700 transition-colors"
+              >
+                Register Now
+              </Link>
+            </>
+          ) : user.regType !== "admin" &&
+            user.regType !== "company" &&
+            user.regType !== "exhibitor" &&
+            user.regType !== "sponsor" ? (
+            <Link
+              href="/register"
+              className="text-[#181112] text-sm font-medium hover:text-primary transition-colors"
+            >
+              My registration
+            </Link>
+          ) : null}
         </div>
         <button
           type="button"
@@ -95,7 +170,7 @@ export default function Header() {
 
       {/* Mobile menu */}
       <div
-        className={`md:hidden fixed inset-0 top-[65px] z-40 bg-[#ffffff] transition-opacity duration-200 ${
+        className={`md:hidden fixed inset-0 top-[65px] z-40 bg-background-light transition-opacity duration-200 ${
           menuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
         aria-hidden={!menuOpen}
@@ -123,27 +198,74 @@ export default function Header() {
             Speakers
           </Link>
           <Link
-            href="/exhibition"
-            className={`py-3 px-3 rounded-lg ${linkClass("/exhibition")}`}
+            href="/sponsors"
+            className={`py-3 px-3 rounded-lg ${linkClass("/sponsors")}`}
             onClick={() => setMenuOpen(false)}
           >
-            Exhibition Booth
+            Sponsors
+          </Link>
+          <Link
+            href="/gallery"
+            className={`py-3 px-3 rounded-lg ${linkClass("/gallery")}`}
+            onClick={() => setMenuOpen(false)}
+          >
+            Gallery
           </Link>
           <Link
             href="/#contact"
             className="py-3 px-3 rounded-lg text-[#181112] text-sm font-medium hover:text-primary hover:bg-gray-50 transition-colors"
             onClick={() => setMenuOpen(false)}
           >
-            Contact
+            Contact us
           </Link>
-          <div className="mt-4 pt-4 border-t border-[#f4f0f0]">
-            <Link
-              href="/#register"
-              className="flex cursor-pointer items-center justify-center rounded-lg h-12 px-5 bg-primary text-white text-sm font-bold shadow-md hover:bg-red-700 transition-colors"
-              onClick={() => setMenuOpen(false)}
-            >
-              Register Now
-            </Link>
+          <div className="mt-4 pt-4 border-t border-[#f4f0f0] flex flex-col gap-2">
+            {user?.regType === "admin" ? (
+              <Link
+                href="/admin/dashboard"
+                className="flex cursor-pointer items-center justify-center rounded-lg h-12 px-5 border-2 border-primary text-primary text-sm font-bold hover:bg-primary/5 transition-colors"
+                onClick={() => setMenuOpen(false)}
+              >
+                Admin
+              </Link>
+            ) : null}
+            {user?.regType === "company" || user?.regType === "exhibitor" || user?.regType === "sponsor" ? (
+              <Link
+                href="/company/dashboard"
+                className="flex cursor-pointer items-center justify-center rounded-lg h-12 px-5 border-2 border-primary text-primary text-sm font-bold hover:bg-primary/5 transition-colors"
+                onClick={() => setMenuOpen(false)}
+              >
+                Company portal
+              </Link>
+            ) : null}
+            {!user ? (
+              <>
+                <Link
+                  href="/login"
+                  className="flex cursor-pointer items-center justify-center rounded-lg h-12 px-5 border-2 border-secondary text-secondary text-sm font-bold hover:bg-secondary/10 transition-colors"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/register"
+                  className="flex cursor-pointer items-center justify-center rounded-lg h-12 px-5 bg-primary text-white text-sm font-bold shadow-md hover:bg-red-700 transition-colors"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Register Now
+                </Link>
+              </>
+            ) : user.regType !== "admin" &&
+              user.regType !== "company" &&
+              user.regType !== "exhibitor" &&
+              user.regType !== "sponsor" ? (
+              <Link
+                href="/register"
+                className="flex cursor-pointer items-center justify-center rounded-lg h-12 px-5 border border-[#e6e0e0] text-[#181112] text-sm font-bold hover:border-primary transition-colors"
+                onClick={() => setMenuOpen(false)}
+              >
+                My registration
+              </Link>
+            ) : null}
           </div>
         </nav>
       </div>

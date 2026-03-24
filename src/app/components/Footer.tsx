@@ -35,23 +35,23 @@ export default function Footer() {
                   href="/about"
                   className="hover:text-white hover:underline"
                 >
-                  About Conference
+                  About
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/#register"
+                  href="/gallery"
+                  className="hover:text-white hover:underline"
+                >
+                  Gallery
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/register"
                   className="hover:text-white hover:underline"
                 >
                   Register
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/#schedule"
-                  className="hover:text-white hover:underline"
-                >
-                  Schedule
                 </Link>
               </li>
             </ul>
