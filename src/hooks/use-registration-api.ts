@@ -42,8 +42,6 @@ interface CreateRegistrationPayload {
   primaryContactName: string;
   primaryContactPhone: string;
   representatives: { name: string; title: string; phone: string }[];
-  roleTitle: string;
-  credentials: string;
   profilePictures: File[];
 }
 
@@ -120,21 +118,6 @@ function buildRegistrationBody(payload: CreateRegistrationPayload): Record<strin
       primarySpecialty: payload.inMedicalField ? payload.primarySpecialty : undefined,
       hospitalOrg: payload.inMedicalField ? payload.hospitalOrg : undefined,
       occupation: !payload.inMedicalField ? payload.occupation : undefined,
-    };
-  }
-
-  if (apiRegType === "speaker" || apiRegType === "special-guest") {
-    return {
-      regType: apiRegType,
-      email: payload.email,
-      password: payload.password,
-      fullName: payload.fullName,
-      phone: payload.phone,
-      bio: payload.bio || undefined,
-      primarySpecialty: payload.primarySpecialty || undefined,
-      hospitalOrg: payload.hospitalOrg || undefined,
-      roleTitle: payload.roleTitle || undefined,
-      credentials: payload.credentials || undefined,
     };
   }
 

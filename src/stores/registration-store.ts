@@ -1,11 +1,6 @@
 import { create } from "zustand";
 
-export type RegType =
-  | "member"
-  | "non-member"
-  | "company"
-  | "speaker"
-  | "special-guest";
+export type RegType = "member" | "non-member" | "company";
 
 export interface Representative {
   name: string;
@@ -48,10 +43,6 @@ interface RegistrationState {
   primaryContactName: string;
   primaryContactPhone: string;
   representatives: Representative[];
-
-  // Speaker / Special guest
-  roleTitle: string;
-  credentials: string;
 
   // UI / Media
   profilePictures: File[];
@@ -97,9 +88,6 @@ interface RegistrationState {
   setIsDragging: (v: boolean) => void;
 
   reset: () => void;
-
-  setRoleTitle: (v: string) => void;
-  setCredentials: (v: string) => void;
 }
 
 const initialRepresentative: Representative = { name: "", title: "", phone: "" };
@@ -132,8 +120,6 @@ const initialState = {
   primaryContactName: "",
   primaryContactPhone: "",
   representatives: [initialRepresentative],
-  roleTitle: "",
-  credentials: "",
   profilePictures: [] as File[],
   isDragging: false,
 };
@@ -197,7 +183,4 @@ export const useRegistrationStore = create<RegistrationState>((set) => ({
   setIsDragging: (isDragging) => set({ isDragging }),
 
   reset: () => set(initialState),
-
-  setRoleTitle: (roleTitle) => set({ roleTitle }),
-  setCredentials: (credentials) => set({ credentials }),
 }));

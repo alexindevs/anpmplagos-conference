@@ -11,22 +11,19 @@ function companySlug(c: PublicCompany): string {
 }
 
 function companyLogoUrl(c: PublicCompany): string {
-  return (c.headerImage?.trim() || c.profileImage?.trim() || "");
+  return (c.profileImage?.trim() || c.headerImage?.trim() || "");
 }
 
 export default async function Footer() {
-  let topCompanies: PublicCompany[] = [];
+  let footerLogos: PublicCompany[] = [];
   try {
     const all = await getPublicCompanies();
-    topCompanies = all.slice(0, FOOTER_LOGO_SLOTS);
+    footerLogos = all
+      .filter((c) => companyLogoUrl(c))
+      .slice(0, FOOTER_LOGO_SLOTS);
   } catch {
-    topCompanies = [];
+    footerLogos = [];
   }
-
-  const slots: (PublicCompany | null)[] = Array.from(
-    { length: FOOTER_LOGO_SLOTS },
-    (_, i) => topCompanies[i] ?? null
-  );
 
   return (
     <footer className="bg-secondary text-white py-16" id="contact">
@@ -135,50 +132,35 @@ export default async function Footer() {
             </div>
           </div>
         </div>
-        <div className="border-t border-white/20 pt-8 mt-8">
-          <p className="text-center text-white/60 text-sm mb-6">
-            Our Sponsors & Partners
-          </p>
-          <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-90">
-            {slots.map((c, i) => {
-              const image = c ? companyLogoUrl(c) : "";
-              const box = (
-                <div className="relative flex h-10 w-28 items-center justify-center rounded-md bg-white/95 px-2 py-1 shadow-sm">
-                  {image ? (
-                    <Image
-                      src={image}
-                      alt={c ? `${c.companyName} logo` : "Partner"}
-                      width={112}
-                      height={40}
-                      className="max-h-8 w-auto max-w-full object-contain object-center"
-                    />
-                  ) : (
-                    <div
-                      className="h-6 w-20 rounded bg-neutral-200/80"
-                      aria-hidden
-                    />
-                  )}
-                </div>
-              );
-              if (!c) {
+        {footerLogos.length > 0 ? (
+          <div className="border-t border-white/20 pt-8 mt-8">
+            <p className="text-center text-white/60 text-sm mb-6">
+              Our Sponsors & Partners
+            </p>
+            <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-90">
+              {footerLogos.map((c) => {
+                const image = companyLogoUrl(c);
                 return (
-                  <div key={`footer-partner-slot-${i}`} className="shrink-0">
-                    {box}
-                  </div>
+                  <Link
+                    key={c.id}
+                    href={`/company/${companySlug(c)}`}
+                    className="shrink-0 transition-opacity hover:opacity-100"
+                  >
+                    <div className="relative flex h-10 w-28 items-center justify-center">
+                      <Image
+                        src={image}
+                        alt={`${c.companyName} logo`}
+                        width={112}
+                        height={40}
+                        className="max-h-8 w-auto max-w-full object-contain object-center"
+                      />
+                    </div>
+                  </Link>
                 );
-              }
-              return (
-                <Link
-                  key={c.id}
-                  href={`/company/${companySlug(c)}`}
-                  className="shrink-0 transition-opacity hover:opacity-100"
-                >
-                  {box}
-                </Link>
-              );
-            })}
+              })}
+            </div>
           </div>
-        </div>
+        ) : null}
         <div className="text-center mt-12 text-xs text-white/50">
           © 2026 Association of Nigerian Private Medical Practitioners. All
           rights reserved.

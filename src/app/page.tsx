@@ -296,60 +296,29 @@ export default function Home() {
           </div>
           <div className="flex flex-col p-6 bg-white rounded-xl border border-gray-200 hover:border-gray-300 transition-colors">
             <div className="mb-4">
-              <h3 className="text-lg font-bold text-gray-900">Speaker</h3>
-              <p className="text-sm text-gray-500">Invited conference speakers</p>
+              <h3 className="text-lg font-bold text-gray-900">Speakers &amp; special guests</h3>
+              <p className="text-sm text-gray-500">
+                Conference speakers and honoured guests are curated by the organisers — no separate registration here.
+              </p>
             </div>
             <div className="mb-6">
-              <span className="text-2xl sm:text-3xl font-bold text-[#181112]">Complimentary</span>
+              <span className="text-sm font-semibold text-[#896165]">Listed on our speakers page</span>
             </div>
             <ul className="flex-1 space-y-3 mb-8">
               <li className="flex items-start gap-2 text-sm text-gray-600">
                 <span className="material-symbols-outlined text-secondary text-[20px]">check_circle</span>
-                <span>Full access to all days</span>
+                <span>Keynote, featured, and special guest profiles</span>
               </li>
               <li className="flex items-start gap-2 text-sm text-gray-600">
                 <span className="material-symbols-outlined text-green-600 text-[20px]">check_circle</span>
-                <span>Speaker profile &amp; byline</span>
-              </li>
-              <li className="flex items-start gap-2 text-sm text-gray-600">
-                <span className="material-symbols-outlined text-green-600 text-[20px]">check_circle</span>
-                <span>Social Night entry</span>
+                <span>Full bios and links on each profile</span>
               </li>
             </ul>
             <Link
-              href="/register"
+              href="/speakers"
               className="block w-full py-2.5 rounded-lg border border-primary text-primary font-semibold hover:bg-primary hover:text-white transition-all text-center"
             >
-              Select
-            </Link>
-          </div>
-          <div className="flex flex-col p-6 bg-white rounded-xl border border-gray-200 hover:border-gray-300 transition-colors">
-            <div className="mb-4">
-              <h3 className="text-lg font-bold text-gray-900">Special Guest</h3>
-              <p className="text-sm text-gray-500">Invited dignitaries &amp; special guests</p>
-            </div>
-            <div className="mb-6">
-              <span className="text-2xl sm:text-3xl font-bold text-[#181112]">Complimentary</span>
-            </div>
-            <ul className="flex-1 space-y-3 mb-8">
-              <li className="flex items-start gap-2 text-sm text-gray-600">
-                <span className="material-symbols-outlined text-secondary text-[20px]">check_circle</span>
-                <span>Full access to all days</span>
-              </li>
-              <li className="flex items-start gap-2 text-sm text-gray-600">
-                <span className="material-symbols-outlined text-green-600 text-[20px]">check_circle</span>
-                <span>Special guest recognition</span>
-              </li>
-              <li className="flex items-start gap-2 text-sm text-gray-600">
-                <span className="material-symbols-outlined text-green-600 text-[20px]">check_circle</span>
-                <span>Social Night entry</span>
-              </li>
-            </ul>
-            <Link
-              href="/register"
-              className="block w-full py-2.5 rounded-lg border border-primary text-primary font-semibold hover:bg-primary hover:text-white transition-all text-center"
-            >
-              Select
+              View speakers
             </Link>
           </div>
           <div className="flex flex-col p-6 bg-white rounded-xl border border-gray-200 hover:border-gray-300 transition-colors">

@@ -81,7 +81,8 @@ export default function BoothManagementPage() {
       const t = boothTitle(b).toLowerCase();
       const hall = (b.hall || "").toLowerCase();
       const section = (b.floorSection || "").toLowerCase();
-      return t.includes(q) || hall.includes(q) || section.includes(q);
+      const tier = (b.tier || "").toLowerCase();
+      return t.includes(q) || hall.includes(q) || section.includes(q) || tier.includes(q);
     });
   }, [booths, search]);
 
@@ -207,7 +208,7 @@ export default function BoothManagementPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by title, hall, or section..."
+              placeholder="Search by title, tier, hall, or section..."
               className="w-full rounded-lg border-none bg-background-light py-2 pl-10 pr-4 text-sm transition-all focus:ring-2 focus:ring-primary/50 dark:bg-background-dark-softer dark:text-white"
             />
           </div>
@@ -273,6 +274,9 @@ export default function BoothManagementPage() {
                     Size
                   </th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
+                    Tier
+                  </th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
                     Price
                   </th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
@@ -286,13 +290,13 @@ export default function BoothManagementPage() {
               <tbody className="divide-y divide-primary/5 dark:divide-border-dark">
                 {isPending ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-slate-500 dark:text-white/50">
+                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500 dark:text-white/50">
                       Loading booths…
                     </td>
                   </tr>
                 ) : filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-slate-500 dark:text-white/50">
+                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500 dark:text-white/50">
                       {booths.length === 0
                         ? "No booths yet. Create one to get started."
                         : "No booths match your search."}
@@ -321,6 +325,9 @@ export default function BoothManagementPage() {
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600 dark:text-white/70">
                           {row.size?.trim() || "—"}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-slate-600 dark:text-white/70">
+                          {row.tier?.trim() || "—"}
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600 dark:text-white/70">
                           {formatKoboToNaira(row.price)}

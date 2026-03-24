@@ -5,12 +5,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { adminCreateBooth, ApiError, parseNairaInputToKobo } from "@/lib/api";
+import {
+  adminCreateBooth,
+  ApiError,
+  BOOTH_TIER_OPTIONS,
+  parseNairaInputToKobo,
+  type BoothTier,
+} from "@/lib/api";
 
 export default function AddNewBoothPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [title, setTitle] = useState("");
+  const [tier, setTier] = useState<BoothTier>(BOOTH_TIER_OPTIONS[0]);
   const [size, setSize] = useState("");
   const [priceNaira, setPriceNaira] = useState("");
   const [description, setDescription] = useState("");
@@ -44,6 +51,7 @@ export default function AddNewBoothPage() {
       await adminCreateBooth({
         name: title.trim(),
         size: size.trim(),
+        tier,
         price: priceKobo,
         description: description || null,
         isReserved: reserveOnCreate || undefined,
@@ -105,6 +113,27 @@ export default function AddNewBoothPage() {
                 placeholder="e.g. Premium corner booth A-12"
                 className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-[#181112] outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-slate-100"
               />
+            </div>
+            <div>
+              <label
+                htmlFor="booth-tier"
+                className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
+              >
+                Tier
+              </label>
+              <select
+                id="booth-tier"
+                required
+                value={tier}
+                onChange={(e) => setTier(e.target.value as BoothTier)}
+                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-[#181112] outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-slate-100"
+              >
+                {BOOTH_TIER_OPTIONS.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label

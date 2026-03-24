@@ -317,6 +317,16 @@ export async function deleteExhibitorProduct(id: string): Promise<{ success: boo
   });
 }
 
+/** Floor / sponsorship tier for a booth slot (admin create). */
+export type BoothTier = "Headliner" | "Platinum" | "Gold" | "Silver";
+
+export const BOOTH_TIER_OPTIONS: readonly BoothTier[] = [
+  "Headliner",
+  "Platinum",
+  "Gold",
+  "Silver",
+] as const;
+
 export type AdminCreateBoothInput = {
   /** Display title for the booth (maps to `name` on the API). */
   name: string;
@@ -325,6 +335,8 @@ export type AdminCreateBoothInput = {
   size: string;
   /** Price in kobo (e.g. ₦50,000 → 5_000_000). Sent as form field `price`. */
   price: number;
+  /** Sent as form field `tier`. */
+  tier: BoothTier;
   isReserved?: boolean;
   /** Optional image file; sent as multipart field `boothImage` (matches backend). */
   boothImageFile?: File | null;
@@ -358,6 +370,7 @@ export async function adminCreateBooth(input: AdminCreateBoothInput): Promise<Bo
   fd.append("name", input.name);
   fd.append("description", input.description ?? "");
   fd.append("size", input.size);
+  fd.append("tier", input.tier);
   fd.append("price", String(Math.round(input.price)));
   fd.append("isReserved", input.isReserved ? "true" : "false");
   if (input.boothImageFile) {
@@ -1059,6 +1072,196 @@ export async function deleteAdminGalleryItem(
   return apiFetch<{ message: string; id: string }>(`/api/admin/gallery/${encodeURIComponent(id)}`, {
     method: "DELETE",
   });
+}
+
+// ==================== Conference profiles (speakers / special guests) — SPEAKERS-API.md ====================
+
+export type ConferenceProfileKind = "speaker" | "special_guest";
+
+export type ConferenceHighlightType = "keynote" | "featured";
+
+/** Public list/detail and admin list row — see SPEAKERS-API.md */
+export interface ConferenceProfile {
+  id: string;
+  kind: ConferenceProfileKind;
+  slug: string;
+  name: string;
+  profilePicture: string;
+  role: string;
+  qualifications: string;
+  byline: string;
+  highlightType: string;
+  description: string;
+  websiteLink: string | null;
+  facebookLink: string | null;
+  xLink: string | null;
+  instagramLink: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function getPublicSpeakers(): Promise<ConferenceProfile[]> {
+  return apiFetch<ConferenceProfile[]>("/api/speakers");
+}
+
+export async function getPublicSpeakerBySlug(slug: string): Promise<ConferenceProfile | null> {
+  try {
+    return await apiFetch<ConferenceProfile>(`/api/speakers/${encodeURIComponent(slug)}`);
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 404) return null;
+    throw e;
+  }
+}
+
+export async function getPublicSpecialGuests(): Promise<ConferenceProfile[]> {
+  return apiFetch<ConferenceProfile[]>("/api/special-guests");
+}
+
+export async function getPublicSpecialGuestBySlug(slug: string): Promise<ConferenceProfile | null> {
+  try {
+    return await apiFetch<ConferenceProfile>(`/api/special-guests/${encodeURIComponent(slug)}`);
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 404) return null;
+    throw e;
+  }
+}
+
+export interface AdminConferenceProfileCreateInput {
+  image: File;
+  name: string;
+  role: string;
+  qualifications: string;
+  byline: string;
+  highlightType: ConferenceHighlightType;
+  description: string;
+  websiteLink?: string;
+  facebookLink?: string;
+  xLink?: string;
+  instagramLink?: string;
+}
+
+function appendConferenceProfileCreateFields(fd: FormData, input: AdminConferenceProfileCreateInput) {
+  fd.append("name", input.name.trim());
+  fd.append("role", input.role.trim());
+  fd.append("qualifications", input.qualifications.trim());
+  fd.append("byline", input.byline.trim());
+  fd.append("highlightType", input.highlightType);
+  fd.append("description", input.description.trim());
+  const opt = (v: string | undefined) => (v ?? "").trim();
+  fd.append("websiteLink", opt(input.websiteLink));
+  fd.append("facebookLink", opt(input.facebookLink));
+  fd.append("xLink", opt(input.xLink));
+  fd.append("instagramLink", opt(input.instagramLink));
+}
+
+export async function postAdminSpeaker(input: AdminConferenceProfileCreateInput): Promise<ConferenceProfile> {
+  const fd = new FormData();
+  fd.append("image", input.image);
+  appendConferenceProfileCreateFields(fd, input);
+  return apiFetch<ConferenceProfile>("/api/admin/speakers", {
+    method: "POST",
+    body: fd,
+  });
+}
+
+export async function postAdminSpecialGuest(
+  input: AdminConferenceProfileCreateInput
+): Promise<ConferenceProfile> {
+  const fd = new FormData();
+  fd.append("image", input.image);
+  appendConferenceProfileCreateFields(fd, input);
+  return apiFetch<ConferenceProfile>("/api/admin/special-guests", {
+    method: "POST",
+    body: fd,
+  });
+}
+
+/** Partial update; optional `image` replaces photo. Empty string on link fields clears (per API). */
+export type AdminConferenceProfilePatchInput = Partial<{
+  name: string;
+  role: string;
+  qualifications: string;
+  byline: string;
+  highlightType: ConferenceHighlightType;
+  description: string;
+  websiteLink: string;
+  facebookLink: string;
+  xLink: string;
+  instagramLink: string;
+  image: File;
+}>;
+
+function appendDefinedPatchFields(fd: FormData, patch: AdminConferenceProfilePatchInput) {
+  const entries: [keyof AdminConferenceProfilePatchInput, string | File | undefined][] = [
+    ["name", patch.name],
+    ["role", patch.role],
+    ["qualifications", patch.qualifications],
+    ["byline", patch.byline],
+    ["highlightType", patch.highlightType],
+    ["description", patch.description],
+    ["websiteLink", patch.websiteLink],
+    ["facebookLink", patch.facebookLink],
+    ["xLink", patch.xLink],
+    ["instagramLink", patch.instagramLink],
+  ];
+  for (const [key, val] of entries) {
+    if (val === undefined) continue;
+    if (key === "image") continue;
+    fd.append(key, typeof val === "string" ? val : String(val));
+  }
+  if (patch.image) fd.append("image", patch.image);
+}
+
+export async function patchAdminSpeaker(
+  id: string,
+  patch: AdminConferenceProfilePatchInput
+): Promise<ConferenceProfile> {
+  const fd = new FormData();
+  appendDefinedPatchFields(fd, patch);
+  return apiFetch<ConferenceProfile>(`/api/admin/speakers/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: fd,
+  });
+}
+
+export async function patchAdminSpecialGuest(
+  id: string,
+  patch: AdminConferenceProfilePatchInput
+): Promise<ConferenceProfile> {
+  const fd = new FormData();
+  appendDefinedPatchFields(fd, patch);
+  return apiFetch<ConferenceProfile>(`/api/admin/special-guests/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: fd,
+  });
+}
+
+export async function deleteAdminSpeaker(id: string): Promise<{ message: string; id: string }> {
+  return apiFetch<{ message: string; id: string }>(`/api/admin/speakers/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function deleteAdminSpecialGuest(id: string): Promise<{ message: string; id: string }> {
+  return apiFetch<{ message: string; id: string }>(`/api/admin/special-guests/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function getAdminSpeakers(): Promise<ConferenceProfile[]> {
+  return apiFetch<ConferenceProfile[]>("/api/admin/speakers");
+}
+
+export async function getAdminSpecialGuests(): Promise<ConferenceProfile[]> {
+  return apiFetch<ConferenceProfile[]>("/api/admin/special-guests");
+}
+
+export async function getAdminSpeakerById(id: string): Promise<ConferenceProfile> {
+  return apiFetch<ConferenceProfile>(`/api/admin/speakers/${encodeURIComponent(id)}`);
+}
+
+export async function getAdminSpecialGuestById(id: string): Promise<ConferenceProfile> {
+  return apiFetch<ConferenceProfile>(`/api/admin/special-guests/${encodeURIComponent(id)}`);
 }
 
 /** Summary row from `GET /api/companies/public` (directory index). */

@@ -25,22 +25,6 @@ const PLANS: { id: RegType; name: string; price: string; description: string; ic
   //   icon: "person",
   //   benefits: ["Full access to all days", "Conference materials", "Social Night Entry"],
   // },
-  // {
-  //   id: "speaker",
-  //   name: "Speaker",
-  //   price: "Complimentary",
-  //   description: "Invited conference speakers",
-  //   icon: "record_voice_over",
-  //   benefits: ["Full access to all days", "Speaker profile & byline", "Social Night Entry"],
-  // },
-  // {
-  //   id: "special-guest",
-  //   name: "Special Guest",
-  //   price: "Complimentary",
-  //   description: "Invited dignitaries & special guests",
-  //   icon: "star",
-  //   benefits: ["Full access to all days", "Special guest recognition", "Social Night Entry"],
-  // },
   {
     id: "company",
     name: "Company / Sponsor",
@@ -117,10 +101,6 @@ export default function RegisterPage() {
     setProfilePictures,
     setIsDragging,
     setSaved,
-    roleTitle,
-    credentials,
-    setRoleTitle,
-    setCredentials,
   } = useRegistrationStore();
 
   const createMutation = useCreateRegistration();
@@ -155,8 +135,6 @@ export default function RegisterPage() {
         primaryContactName,
         primaryContactPhone,
         representatives,
-        roleTitle,
-        credentials,
         profilePictures,
       },
       {
@@ -332,7 +310,7 @@ export default function RegisterPage() {
             </section>
 
         {/* Member-like: Personal details */}
-                {(regType === "member" || regType === "non-member" || regType === "speaker" || regType === "special-guest") && (
+                {(regType === "member" || regType === "non-member") && (
               <>
                 <section className="bg-white rounded-xl p-6 shadow-sm mx-4 border border-gray-100">
                   <h2 className="text-[#181112] text-[22px] font-bold leading-tight pb-6">
@@ -426,8 +404,7 @@ export default function RegisterPage() {
                   </section>
                 )}
 
-                {/* Professional info - member & speaker/guest */}
-                {(regType === "member" || regType === "speaker" || regType === "special-guest") && (
+                {regType === "member" && (
                   <section className="bg-white rounded-xl p-6 shadow-sm mx-4 border border-gray-100">
                     <h2 className="text-[#181112] text-[22px] font-bold leading-tight pb-6">
                       Professional Information
@@ -458,34 +435,6 @@ export default function RegisterPage() {
                           onChange={(e) => setHospitalOrg(e.target.value)}
                         />
                       </div>
-                      {(regType === "speaker" || regType === "special-guest") && (
-                        <>
-                          <div className="flex flex-col gap-2">
-                            <label className="text-sm font-medium text-gray-700">
-                              Role / byline
-                            </label>
-                            <input
-                              className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
-                              placeholder="e.g. Keynote Speaker, Special Guest"
-                              type="text"
-                              value={roleTitle}
-                              onChange={(e) => setRoleTitle(e.target.value)}
-                            />
-                          </div>
-                          <div className="flex flex-col gap-2 md:col-span-2">
-                            <label className="text-sm font-medium text-gray-700">
-                              Credentials / headline (optional)
-                            </label>
-                            <input
-                              className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
-                              placeholder="e.g. MBBS, FWACP; Medical Director, XYZ Clinic"
-                              type="text"
-                              value={credentials}
-                              onChange={(e) => setCredentials(e.target.value)}
-                            />
-                          </div>
-                        </>
-                      )}
                     </div>
                   </section>
                 )}
@@ -749,18 +698,12 @@ export default function RegisterPage() {
                 <p className="text-xs font-semibold text-gray-500 uppercase">Account</p>
                 <p className="text-[#181112]">{email || "—"}</p>
               </div>
-              {(regType === "member" || regType === "non-member" || regType === "speaker" || regType === "special-guest") && (
+              {(regType === "member" || regType === "non-member") && (
                 <>
                   <div>
                     <p className="text-xs font-semibold text-gray-500 uppercase">Personal Details</p>
                     <p className="text-[#181112]">{fullName || "—"}</p>
                     <p className="text-sm text-gray-600">{phone || "—"}</p>
-                    {(regType === "speaker" || regType === "special-guest") && (
-                      <>
-                        {roleTitle && <p className="text-sm text-gray-600">{roleTitle}</p>}
-                        {credentials && <p className="text-xs text-gray-500">{credentials}</p>}
-                      </>
-                    )}
                   </div>
                   {regType === "member" && hasSpouse && (
                     <div>
