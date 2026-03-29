@@ -1,6 +1,7 @@
 import Link from "next/link";
 import CountdownTimer from "./components/CountdownTimer";
 import HeroBackgroundCarousel from "./components/HeroBackgroundCarousel";
+import { FAQItem } from "./components/FAQItem";
 
 const HERO_IMAGES = [
   "https://lh3.googleusercontent.com/aida-public/AB6AXuD_kTd-14OPbdWSrY7rK7110uSZau7sXUvP1NIfInnznhVmlVCqwmtO7WiSB-m4udQlcmTw2mO6zKxmgasCK2xc44Qz5LQpCwX_CBD5Hq-ywnSWCHhK05XPI4Abj6FVMRdajOIWKRgNSAAeZuE2t4W5JTFI95RvCCPV42BvuT8MiMmT2H6pbU0KTcx9bezKfLd51JltcihIHnYscTFqichibiqblz0cQuF1vBk82FLpnt3rlwDL7mVwDWBQO6myXVKNfgTxcLpCQsRN",
@@ -47,8 +48,8 @@ export default function Home() {
           <p className="text-primary font-bold uppercase tracking-widest text-xs mb-3">
             Conference Theme
           </p>
-          <h2 className="font-serif text-[#181112] text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
-            Theme to be announced
+          <h2 className="font-serif text-[#181112] text-xl md:txt-2xl lg:text-4xl font-bold leading-tight">
+            Understanding Medical Negligence Laws: Facts & Myths
           </h2>
           <div className="w-24 h-1 bg-primary mx-auto mt-8 rounded-full" />
         </div>
@@ -211,7 +212,7 @@ export default function Home() {
       <section className="py-20 px-4 max-w-7xl mx-auto" id="register">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-[#181112] mb-4">
-            Registration Tiers
+            Register For The Conference
           </h2>
           <p className="text-gray-600">
             Choose the package that best suits your professional status.
@@ -384,14 +385,14 @@ export default function Home() {
           */}
           <div className="relative flex flex-col p-6 bg-white rounded-xl border-2 border-primary shadow-lg">
             <div className="mb-4">
-              <h3 className="text-lg font-bold text-primary">Company / Sponsor</h3>
+              <h3 className="text-xl font-bold text-primary">Sponsors</h3>
               <p className="text-sm text-gray-500">
-                Organizations and companies (booths, sponsorship, masterclasses, and panel sessions)
+                Organizations and companies
               </p>
             </div>
             <div className="mb-6">
-              <span className="text-xl sm:text-2xl font-bold text-[#181112] leading-tight">
-                Plans from portal
+              <span className="text-lg sm:text-2xl font-bold text-[#181112] leading-tight">
+                Starting from ₦1,500,000
               </span>
             </div>
             <ul className="flex-1 space-y-3 mb-8">
@@ -428,7 +429,7 @@ export default function Home() {
           <div className="w-full md:w-1/3 flex flex-col justify-center gap-6">
             <div>
               <h2 className="text-3xl font-bold text-[#181112] mb-2">
-                Venue & Location
+                Event Venue
               </h2>
               <p className="text-gray-600">
                 Join us at the heart of Lagos for this transformative event.
@@ -479,6 +480,40 @@ export default function Home() {
               className="h-full w-full border-0"
             />
           </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-20 px-4 max-w-4xl mx-auto" id="faq">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-[#181112] mb-4">
+            Frequently Asked Questions
+          </h2>
+          <p className="text-gray-600">
+            Everything you need to know about the conference.
+          </p>
+        </div>
+        <div className="space-y-4">
+          <FAQItem 
+            question="How do I register for the conference?"
+            answer="You can register directly on our website by clicking the &quot;Register Now&quot; button in the navigation bar. Choose the tier that best fits your professional status and follow the instructions to complete your registration and payment."
+          />
+          <FAQItem 
+            question="Can I register as an exhibitor or sponsor?"
+            answer="Yes! We have several sponsorship tiers (Headliner, Platinum, Gold, and Silver). You can view the details in the &quot;Sponsors&quot; section above and register through the same portal. Exhibitors also get booth placements at the venue."
+          />
+          <FAQItem 
+            question="Where is the conference being held?"
+            answer="The conference is taking place at the Welcome Centre Hotels, located at 70 International Airport Road, Ikeja, Lagos. You can find a map and directions in the &quot;Event Venue&quot; section above."
+          />
+          <FAQItem 
+            question="Where can I stay during the conference?"
+            answer="The conference is held at the Welcome Centre Hotels, which offers premium accommodation for delegates. You can book your stay directly through our portal after registration or contact the venue for special conference rates."
+          />
+          <FAQItem 
+            question="Will I receive a certificate of attendance?"
+            answer="Yes, all registered delegates who attend the conference will receive a digital certificate of attendance sent to their registered email address after the event concludes."
+          />
         </div>
       </section>
     </>

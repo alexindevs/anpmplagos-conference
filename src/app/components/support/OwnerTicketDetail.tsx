@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { ApiError, getMySupportTicket } from "@/lib/api";
 import { supportCategoryLabel, supportStatusLabel } from "@/lib/support-ticket-labels";
@@ -89,9 +90,8 @@ export function OwnerTicketDetail({
           <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             {data.screenshotUrls.map((url) => (
               <li key={url} className="overflow-hidden rounded-lg border border-slate-200">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <a href={url} target="_blank" rel="noopener noreferrer" className="block">
-                  <img src={url} alt="" className="max-h-64 w-full object-contain bg-slate-50" />
+                  <Image src={url} alt="" width={400} height={256} className="max-h-64 w-full object-contain bg-slate-50" />
                 </a>
               </li>
             ))}

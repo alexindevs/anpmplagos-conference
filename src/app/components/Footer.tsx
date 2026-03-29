@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { companyLogoImageUrl } from "@/lib/company-branding";
 import { getPublicCompanies, type PublicCompany } from "@/lib/api";
 
 const FOOTER_LOGO_SLOTS = 4;
@@ -11,7 +12,7 @@ function companySlug(c: PublicCompany): string {
 }
 
 function companyLogoUrl(c: PublicCompany): string {
-  return (c.profileImage?.trim() || c.headerImage?.trim() || "");
+  return companyLogoImageUrl(c) || c.headerImage?.trim() || "";
 }
 
 export default async function Footer() {
@@ -92,7 +93,7 @@ export default async function Footer() {
                 <span className="material-symbols-outlined text-base">
                   call
                 </span>
-                +234 800 ANPMP 00
+                +234 1 277 2700
               </li>
               <li className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-base">

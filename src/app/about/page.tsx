@@ -2,12 +2,12 @@ import Link from "next/link";
 
 const COMMITTEE = [
   {
-    name: "Dr. Kayode Olatunji",
+    name: "Dr. Tunji Akintade",
     role: "Chairman",
     credentials: "MBBS, FWACP",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuBEdi4YqV1iDQoXiDe3xdHIm8PkKuPwXUPM2nr-u-YUe3Qx-9wJHC8qR3newy6FdIBvVpiw5eFKnerl0gkICi7Pmoa5TAnyTSevZePHI9faK18FixoxMfcgwedUbI3EM6KLGck4C6jof6IwTQq-hBXy2LBDQMNXlR1Wol9ksw172jcK4QbVmKFqG6dls1bcayzgDrZoV6jZF7owDQM8YbyZ-A6s1XDAz5ft5MBOcEYiY3Lw2lwkRUgTHuLjxcL0L3p9DOZwcb2TAcFy",
-    alt: "Portrait of Dr. Kayode Olatunji in a white coat",
+    alt: "Portrait of Dr. Tunji Akintade in a white coat",
   },
   {
     name: "Dr. Sarah Adebayo",
@@ -55,20 +55,6 @@ export default function AboutPage() {
         >
           <div className="absolute inset-0 bg-white/90" />
           <div className="relative z-10 flex max-w-[960px] flex-1 flex-col items-center text-center">
-            <div className="mb-4 flex flex-wrap justify-center gap-2">
-              <Link
-                href="/"
-                className="text-sm font-medium leading-normal text-[#896165] hover:text-primary"
-              >
-                Home
-              </Link>
-              <span className="text-sm font-medium leading-normal text-[#896165]">
-                /
-              </span>
-              <span className="text-sm font-medium leading-normal text-primary">
-                About
-              </span>
-            </div>
             <h1 className="text-4xl font-black leading-tight tracking-[-0.033em] text-[#181112] md:text-5xl">
               About the Conference
             </h1>
@@ -95,9 +81,7 @@ export default function AboutPage() {
                   Our Mission
                 </h2>
                 <p className="text-base font-normal leading-relaxed text-[#5c4a4c]">
-                  To unify private practitioners for better healthcare delivery
-                  and advocacy across the nation. We strive to create an enabling
-                  environment for private medical practice to thrive.
+                 To represent and advocate for private medical practitioners in Nigeria by safeguarding their professional interests and welfare, while strengthening the private healthcare sector through active policy engagement, capacity building, and continuous professional development.
                 </p>
               </div>
             </div>
@@ -112,9 +96,7 @@ export default function AboutPage() {
                   Our Vision
                 </h2>
                 <p className="text-base font-normal leading-relaxed text-[#5c4a4c]">
-                  To be the leading voice for private medicine in Africa, setting
-                  standards for care and ethics. We envision a future where quality
-                  healthcare is accessible to every Nigerian.
+                  We envision a healthcare system where private medical practice delivers consistently high-quality, accessible, and patient-centered care across Nigeria. We aim to be the leading voice shaping a well-regulated, innovative, and globally aligned private healthcare sector.
                 </p>
               </div>
             </div>
@@ -142,26 +124,22 @@ export default function AboutPage() {
             </h2>
             <div className="space-y-6 text-lg leading-relaxed text-[#4a3a3c]">
               <p>
-                The Association of Nigerian Private Medical Practitioners
-                (ANPMP) was founded over four decades ago with a singular
-                purpose: to bridge the gap in healthcare delivery within the
-                private sector. From humble beginnings as a small collective of
-                doctors in Lagos, we have grown into a nationwide body
-                representing thousands of medical professionals.
+                Private medical practice in Nigeria dates back to the early 20th century, with independent practitioners establishing services outside government-owned hospitals as far back as 1909. As the sector grew, the need for a unified professional body became evident.
               </p>
               <p>
-                Throughout our history, ANPMP has been at the forefront of
-                policy advocacy, fighting for the rights of private
-                practitioners while ensuring that patient safety remains
-                paramount. We have successfully launched numerous initiatives
-                aimed at continuous professional development and have partnered
-                with international bodies to bring world-class training to
-                Nigerian soil.
+                Around 1921, private practitioners formally organized under the Association of General Medical Practitioners of Nigeria (AGMPN)—the earliest structured body representing private doctors in the country. This marked the beginning of coordinated advocacy and professional collaboration within Nigeria&apos;s private healthcare space.
               </p>
               <p>
-                Today, our annual conference stands as a testament to our
-                growth—a gathering of the brightest minds in medicine, dedicated
-                to solving the unique challenges of healthcare in Africa.
+                By the late 1980s, the evolution of medicine beyond general practice led to a broader, more inclusive structure. The association was reconstituted as the Association of General and Private Medical Practitioners of Nigeria (AGPMPN), reflecting the growing presence of specialists and diverse medical disciplines.
+              </p>
+              <p>
+                Over time, the organization transitioned into its current identity as the Association of Nigerian Private Medical Practitioners (ANPMP)—a national body representing all categories of private medical and dental practitioners, whether clinic owners or employed professionals.
+              </p>
+              <p>
+                Today, ANPMP operates through a structured system spanning national, zonal, and state levels, with governance anchored by its Annual General Meeting (AGM) and National Executive Council (NEC). The association plays a critical role in shaping healthcare policy, promoting continuing medical education, and fostering collaboration across the private health sector.
+              </p>
+              <p>
+                A key part of its legacy is its long-standing tradition of hosting Annual General Meetings and Scientific Conferences, which serve as platforms for knowledge exchange, policy dialogue, and professional development. Over the decades, these conferences have grown into major events within Nigeria&apos;s healthcare landscape.
               </p>
             </div>
             <div className="mt-8 grid grid-cols-1 gap-4 border-t border-[#e6dbdc] pt-8 sm:grid-cols-2 md:grid-cols-4">
@@ -170,11 +148,11 @@ export default function AboutPage() {
                 <span className="text-sm text-[#896165]">Founded</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-3xl font-black text-primary">5000+</span>
+                <span className="text-3xl font-black text-primary">2000+</span>
                 <span className="text-sm text-[#896165]">Members</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-3xl font-black text-primary">36</span>
+                <span className="text-3xl font-black text-primary">30+</span>
                 <span className="text-sm text-[#896165]">States Covered</span>
               </div>
               <div className="flex flex-col">

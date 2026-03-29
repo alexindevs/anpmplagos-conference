@@ -170,7 +170,7 @@ export function useCreateRegistration() {
 
         appendCompanyRepresentativesToFormData(fd, representatives);
 
-        // Company: [0]=Logo, [1]=Header (banner)
+        // Company multipart: `logo` and optional `headerImage` only (do not send `profileImage`).
         const [firstImage, secondImage] = payload.profilePictures;
         if (firstImage) fd.append("logo", firstImage);
         if (secondImage) fd.append("headerImage", secondImage);

@@ -3,6 +3,7 @@ import { Inter, Merriweather } from "next/font/google";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import { QueryProvider } from "./providers/query-provider";
+import { Toaster } from "./components/ui/toaster";
 import "./globals.css";
 
 const inter = Inter({
@@ -43,6 +44,7 @@ export default function RootLayout({
           <Header />
           {children}
           <Footer />
+          <Toaster />
         </QueryProvider>
       </body>
     </html>

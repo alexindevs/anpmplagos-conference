@@ -9,6 +9,7 @@ import {
   getAdminDashboardSummary,
   type AdminDashboardSummaryBooth,
 } from "@/lib/api";
+import { adminRegistrationAvatarUrl } from "@/lib/company-branding";
 import { ThemeToggle } from "./components/ThemeToggle";
 import {
   BoothCompanyHoverPopover,
@@ -316,12 +317,18 @@ export default function AdminDashboardPage() {
               ) : recent.length === 0 ? (
                 <p className="text-sm text-slate-500 dark:text-white/50">No recent sign-ups yet.</p>
               ) : (
-                recent.map((r) => (
+                recent.map((r) => {
+                  const avatarUrl = adminRegistrationAvatarUrl({
+                    type: r.regType,
+                    profileImage: r.profilePicture,
+                    logo: r.logo,
+                  });
+                  return (
                   <div key={`${r.userId}-${r.createdAt}`} className="flex gap-4">
                     <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 dark:bg-background-dark-softer">
-                      {r.profilePicture ? (
+                      {avatarUrl ? (
                         <Image
-                          src={r.profilePicture}
+                          src={avatarUrl}
                           alt=""
                           width={40}
                           height={40}
@@ -339,7 +346,8 @@ export default function AdminDashboardPage() {
                     </div>
                     <span className="material-symbols-outlined shrink-0 text-[20px] text-secondary">check_circle</span>
                   </div>
-                ))
+                  );
+                })
               )}
             </div>
             <Link

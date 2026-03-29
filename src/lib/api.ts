@@ -104,7 +104,12 @@ export interface ExhibitorProfile {
   boothPreference?: string;
   hotelBookingUrl?: string;
   tier?: string;
+  highestSponsorshipTier?: string | null;
+  effectiveDisplayTier?: string | null;
   headerImage?: string;
+  /** Company logo (Cloudinary URL). */
+  logo?: string;
+  /** @deprecated Prefer `logo`; may still be present on older API payloads */
   profileImage?: string;
   profileViews?: number;
   representatives?: ExhibitorRepresentative[];
@@ -117,7 +122,7 @@ export interface ExhibitorProfile {
 /** Dashboard aggregated stats */
 export interface ExhibitorDashboardStats {
   profileViews: number;
-  totalLeads: number;
+  totalMembers: number;
   inquiryRatePercent: number;
   whatsappProductClicks: number;
 }
@@ -155,7 +160,8 @@ export interface UpdateExhibitorProfileInput {
   primaryContactPhone?: string;
   hotelBookingUrl?: string;
   headerImage?: string;
-  profileImage?: string;
+  /** Company logo URL (JSON PATCH). Do not send `profileImage` for companies. */
+  logo?: string;
 }
 
 /** Create representative */
@@ -188,6 +194,11 @@ export interface UpdateProductInput {
   imageUrl?: string;
   linkUrl?: string;
   sortOrder?: number;
+}
+
+/** GET /api/companies/public/{slug}/products/{productId}/whatsapp */
+export async function getProductWhatsAppContact(slug: string, productId: string): Promise<{ redirectUrl: string }> {
+  return apiFetch<{ redirectUrl: string }>(`/api/companies/public/${slug}/products/${productId}/whatsapp`);
 }
 
 // ==================== Exhibitor Portal API Functions ====================
@@ -399,7 +410,7 @@ export interface RegistrationResponse {
 }
 
 export type SponsorStatus = "pending_pledge" | "pending_payment" | "active" | "cancelled";
-export type SponsorTier = "platinum" | "gold" | "silver" | "bronze" | "custom";
+export type SponsorTier = "headliner" | "platinum" | "gold" | "silver" | "custom";
 export type SessionStatus = "draft" | "published" | "cancelled";
 
 export interface PaginatedResponse<T> {
@@ -421,6 +432,7 @@ export interface SponsorSummary {
   sponsorAmount?: number;
   status: SponsorStatus;
   tier?: SponsorTier;
+  highestSponsorshipTier?: string | null;
   logo?: string;
   headerImage?: string;
   booth?: Booth | null;
@@ -448,8 +460,11 @@ export interface ExhibitorSummary {
   primaryContactPhone: string;
   boothPreference?: string;
   headerImage?: string;
-  profileImage?: string;
+  /** Company logo */
   logo?: string;
+  /** @deprecated Prefer `logo` */
+  profileImage?: string;
+  highestSponsorshipTier?: string | null;
   tier?: SponsorTier | string;
   sponsorAmount?: number;
   status?: string;
@@ -650,6 +665,8 @@ export interface AdminDashboardRecentRegistration {
   userId: string;
   name: string;
   profilePicture: string | null;
+  /** Company logo when API returns it separately from `profilePicture`. */
+  logo?: string | null;
   regType: string;
   regTypeLabel: string;
   createdAt: string;
@@ -970,6 +987,8 @@ export interface AdminRegistrationRow {
   name: string;
   email: string;
   profileImage: string | null;
+  /** Set for `company` rows when API returns it separately from `profileImage`. */
+  logo?: string | null;
   /** RegType, e.g. `member`, `attendee`, `company`, `speaker`, `special_guest` */
   type: string;
   registeredAt: string;
@@ -1279,6 +1298,8 @@ export interface PublicExhibitor {
   highestSponsorshipTier?: string | null;
   website?: string;
   headerImage?: string;
+  logo?: string;
+  /** @deprecated Prefer `logo` */
   profileImage?: string;
   booth?: Booth | null;
 }
@@ -1346,6 +1367,8 @@ export interface PublicExhibitorProfile {
   primaryContactPhone: string;
   description: string;
   headerImage: string | null;
+  logo: string | null;
+  /** @deprecated Prefer `logo` */
   profileImage: string | null;
   booth: PublicExhibitorProfileBooth | null;
   /** Normalized from API `representatives` (companies) or legacy `boothReps`. */
@@ -1385,6 +1408,8 @@ export async function getPublicExhibitorBySlug(
       description: rawDescription ?? "",
       boothReps: rawBoothReps ?? representatives ?? [],
       products: rawProducts ?? [],
+      logo: rest.logo ?? null,
+      profileImage: rest.profileImage ?? null,
     };
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) return null;
@@ -1410,7 +1435,7 @@ export async function getPublicSponsors(): Promise<PublicSponsor[]> {
     tagline: c.tagline,
     website: c.website,
     tier: (c.tier ?? c.effectiveDisplayTier ?? "custom") as SponsorTier,
-    logo: c.profileImage,
+    logo: c.logo?.trim() || c.profileImage?.trim() || undefined,
     headerImage: c.headerImage,
     booth: c.booth ?? undefined,
   }));

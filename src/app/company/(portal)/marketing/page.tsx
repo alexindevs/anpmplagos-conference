@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthSession } from "@/hooks/use-auth-session";
@@ -38,8 +39,7 @@ function CatalogCard({
     <div className="flex flex-col overflow-hidden rounded-xl border border-secondary/20 border-t-2 border-t-secondary/60 bg-white shadow-sm">
       <div className="aspect-16/10 bg-slate-100 relative">
         {img ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={img} alt="" className="absolute inset-0 size-full object-cover" />
+          <Image src={img} alt="" fill className="object-cover" />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-slate-300">
             <span className="material-symbols-outlined text-5xl">image</span>
@@ -102,8 +102,7 @@ function MySlotsTable({ rows, emptyLabel }: { rows: CompanyMarketingSlot[]; empt
               <tr key={slot.id} className="border-b border-slate-100 last:border-0">
                 <td className="py-2 px-3">
                   {img ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={img} alt="" className="size-10 rounded object-cover" />
+                    <Image src={img} alt="" width={40} height={40} className="size-10 rounded object-cover" />
                   ) : (
                     <div className="size-10 rounded bg-slate-100" />
                   )}
@@ -243,11 +242,10 @@ export default function CompanyMarketingPage() {
 
       {isCompany && (
         <div className="mb-8 rounded-xl border border-secondary/20 border-l-4 border-l-secondary bg-white p-4 shadow-sm">
-          <p className="text-xs font-bold uppercase text-slate-500">Your marketing spend (confirmed slots)</p>
+          <p className="text-xs font-bold uppercase text-slate-500">Your marketing spend</p>
           <p className="text-2xl font-black text-primary mt-1">{formatKoboToNaira(totalSpentKobo)}</p>
           <p className="text-[11px] text-slate-500 mt-1">
-            Total price of your confirmed advert and branding slots. Payments still processing are not included until they
-            complete.
+            Total price of your confirmed advert and branding slots.
           </p>
         </div>
       )}

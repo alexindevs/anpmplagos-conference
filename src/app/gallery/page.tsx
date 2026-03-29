@@ -72,8 +72,8 @@ export default async function GalleryPage() {
           <div>
             <h2 className="text-lg font-bold text-[#181112] md:text-xl">Photo highlights</h2>
             <p className="text-sm text-gray-600">
-              Photos from previous conferences. New images are added by the conference team as they become available.
-            </p>
+              Photos from previous conferences.
+              </p>
           </div>
 
           {images.length === 0 ? (

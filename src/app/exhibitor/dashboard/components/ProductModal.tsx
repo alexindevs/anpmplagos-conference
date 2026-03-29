@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createExhibitorProduct, updateExhibitorProduct, type ExhibitorProduct } from "@/lib/api";
 
@@ -185,11 +186,12 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
             </div>
             {showPreview ? (
               <div className="mt-3 relative w-full max-w-[200px] aspect-square rounded-lg border border-slate-200 overflow-hidden bg-slate-50">
-                {/* eslint-disable-next-line @next/next/no-img-element -- user upload or API URL */}
-                <img
+                <Image
                   src={imagePreviewUrl || existingImageUrl || ""}
                   alt=""
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  sizes="200px"
                 />
               </div>
             ) : null}

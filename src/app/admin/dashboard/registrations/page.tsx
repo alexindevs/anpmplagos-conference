@@ -11,6 +11,7 @@ import {
   type AdminRegistrationRow,
   type AdminRegistrationsListResponse,
 } from "@/lib/api";
+import { adminRegistrationAvatarUrl } from "@/lib/company-branding";
 
 const PAGE_SIZE = 20;
 
@@ -363,18 +364,19 @@ function RegistrationTableRow({ row }: { row: AdminRegistrationRow }) {
   const dateStr = Number.isFinite(registered.getTime())
     ? registered.toLocaleDateString("en-NG", { dateStyle: "medium" })
     : "—";
+  const avatarUrl = adminRegistrationAvatarUrl(row);
 
   return (
     <tr className="transition-colors hover:bg-primary/5 dark:hover:bg-background-dark-softer">
       <td className="px-6 py-4">
         <div className="flex items-start gap-3">
           <div className="relative mt-0.5 size-10 shrink-0 overflow-hidden rounded-full bg-slate-100 dark:bg-background-dark-softer">
-            {row.profileImage ? (
-              isProbablySameOriginOrAllowedForNextImage(row.profileImage) ? (
-                <Image src={row.profileImage} alt="" fill className="object-cover" sizes="40px" unoptimized={false} />
+            {avatarUrl ? (
+              isProbablySameOriginOrAllowedForNextImage(avatarUrl) ? (
+                <Image src={avatarUrl} alt="" fill className="object-cover" sizes="40px" unoptimized={false} />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={row.profileImage} alt="" className="size-full object-cover" />
+                <img src={avatarUrl} alt="" className="size-full object-cover" />
               )
             ) : (
               <span className="flex size-full items-center justify-center text-slate-400 dark:text-white/40">

@@ -97,13 +97,6 @@ export default async function SpeakersPage() {
         >
           <div className="absolute inset-0 bg-white/90" />
           <div className="relative z-10 flex max-w-[960px] flex-1 flex-col items-center text-center">
-            <div className="mb-4 flex flex-wrap justify-center gap-2">
-              <Link href="/" className="text-sm font-medium leading-normal text-[#896165] hover:text-primary">
-                Home
-              </Link>
-              <span className="text-sm font-medium leading-normal text-[#896165]">/</span>
-              <span className="text-sm font-medium leading-normal text-primary">Speakers</span>
-            </div>
             <h1 className="text-4xl font-black leading-tight tracking-[-0.033em] text-[#181112] md:text-5xl">
               Our Speakers
             </h1>
@@ -127,7 +120,7 @@ export default async function SpeakersPage() {
             <div className="mx-auto max-w-[720px] text-center">
               <p className="text-base font-normal leading-relaxed text-[#5c4a4c]">
                 Learn from clinicians, policymakers, and innovators who are advancing private medical practice in
-                Nigeria. Browse profiles for full bios and links.
+                Nigeria.
               </p>
             </div>
           </section>
