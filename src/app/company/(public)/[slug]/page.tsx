@@ -68,7 +68,7 @@ export default async function PublicCompanyProfilePage({
   const webHref = websiteHref(exhibitor.website);
   const paragraphs = descriptionParagraphs(exhibitor.description);
   const displayTier = (exhibitor.highestSponsorshipTier ?? exhibitor.effectiveDisplayTier ?? exhibitor.tier)?.trim();
-  const tierLabel = displayTier ? `${displayTier} Partner` : "Conference partner";
+  const tierLabel = displayTier ? `${displayTier.charAt(0).toUpperCase() + displayTier.slice(1)} Partner` : "Conference partner";
 
   const bannerStyle = exhibitor.headerImage
     ? { backgroundImage: `url("${exhibitor.headerImage}")` }
