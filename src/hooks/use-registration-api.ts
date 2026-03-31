@@ -150,30 +150,45 @@ export function useCreateRegistration() {
         throw new Error("Company description is required.");
       }
       const body = buildRegistrationBody(payload);
-      const isWithImages = payload.regType === "company" && payload.profilePictures.length > 0;
+      const hasImages = payload.profilePictures.length > 0;
+      const isCompany = payload.regType === "company";
 
-      if (isWithImages) {
+      if (hasImages) {
         const fd = new FormData();
-        const representatives =
-          "representatives" in body && Array.isArray(body.representatives)
-            ? (body.representatives as { name: string; title: string; phone: string }[])
-            : [];
-        const { representatives: _omit, ...rest } = body as Record<string, unknown> & {
-          representatives?: unknown;
-        };
+        
+        if (isCompany) {
+          const representatives =
+            "representatives" in body && Array.isArray(body.representatives)
+              ? (body.representatives as { name: string; title: string; phone: string }[])
+              : [];
+          const { representatives: _omit, ...rest } = body as Record<string, unknown> & {
+            representatives?: unknown;
+          };
 
-        Object.entries(rest).forEach(([key, value]) => {
-          if (value === undefined || value === null || value === "") return;
-          if (typeof value === "object") fd.append(key, JSON.stringify(value));
-          else fd.append(key, String(value));
-        });
+          Object.entries(rest).forEach(([key, value]) => {
+            if (value === undefined || value === null || value === "") return;
+            if (typeof value === "object") fd.append(key, JSON.stringify(value));
+            else fd.append(key, String(value));
+          });
 
-        appendCompanyRepresentativesToFormData(fd, representatives);
+          appendCompanyRepresentativesToFormData(fd, representatives);
 
-        // Company multipart: `logo` and optional `headerImage` only (do not send `profileImage`).
-        const [firstImage, secondImage] = payload.profilePictures;
-        if (firstImage) fd.append("logo", firstImage);
-        if (secondImage) fd.append("headerImage", secondImage);
+          // Company multipart: `logo` and optional `headerImage` only
+          const [firstImage, secondImage] = payload.profilePictures;
+          if (firstImage) fd.append("logo", firstImage);
+          if (secondImage) fd.append("headerImage", secondImage);
+        } else {
+          // Member/attendee with profile image
+          Object.entries(body).forEach(([key, value]) => {
+            if (value === undefined || value === null || value === "") return;
+            if (typeof value === "object") fd.append(key, JSON.stringify(value));
+            else fd.append(key, String(value));
+          });
+
+          // Add avatar for members/attendees
+          const [avatar] = payload.profilePictures;
+          if (avatar) fd.append("avatar", avatar);
+        }
 
         return apiFetch<RegistrationResponse>("/api/registrations", {
           method: "POST",

@@ -24,8 +24,8 @@ export default function Header() {
 
   const linkClass = (path: string) =>
     pathname === path
-      ? "text-primary text-sm font-medium transition-colors"
-      : "text-[#181112] text-sm font-medium hover:text-primary transition-colors";
+      ? "text-fresh-green text-sm font-semibold transition-colors border-b-2 border-fresh-green"
+      : "text-charcoal text-sm font-medium hover:text-fresh-green transition-colors border-b-2 border-transparent hover:border-fresh-green/30";
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -57,10 +57,12 @@ export default function Header() {
     pathname.startsWith("/company/sessions/") ||
     pathname.startsWith("/company/support");
 
-  /** Marketing header only: hide inside admin, company portal, and hotel booking (portal shell). */
+  /** Marketing header only: hide inside admin, company portal, member portal, attendee portal, and hotel booking (portal shell). */
   const hideMarketingHeader =
     pathname.startsWith("/admin") ||
     isCompanyPortal ||
+    pathname.startsWith("/member/") ||
+    pathname.startsWith("/attendee/") ||
     pathname.startsWith("/hotel-rooms") ||
     pathname.startsWith("/support/");
 
@@ -87,7 +89,7 @@ export default function Header() {
       </Link>
       <Link
         href="/#contact"
-        className="text-[#181112] text-sm font-medium hover:text-primary transition-colors"
+        className="text-charcoal text-sm font-medium hover:text-fresh-green transition-colors border-b-2 border-transparent hover:border-fresh-green/30"
       >
         Contact us
       </Link>
@@ -95,7 +97,7 @@ export default function Header() {
   );
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-sm border-b border-[#f4f0f0] shadow-sm">
+    <header className="sticky top-0 z-50 w-full bg-white/98 backdrop-blur-md border-b-2 border-mint-whisper shadow-sm">
       <div className="px-4 md:px-10 py-4 max-w-7xl mx-auto flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <Image
@@ -105,7 +107,7 @@ export default function Header() {
             height={40}
             className="h-8 w-auto object-contain md:h-10"
           />
-          <h2 className="text-[#181112] text-xl font-bold leading-tight tracking-tight">
+          <h2 className="text-charcoal text-xl font-bold leading-tight tracking-tight font-serif">
             ANPMP
           </h2>
         </Link>
@@ -116,41 +118,55 @@ export default function Header() {
           {user?.regType === "admin" ? (
             <Link
               href="/admin/dashboard"
-              className="flex cursor-pointer items-center justify-center rounded-lg h-10 px-5 border-2 border-primary text-primary text-sm font-bold hover:bg-primary/5 transition-colors"
+              className="flex cursor-pointer items-center justify-center rounded h-10 px-5 border-2 border-primary text-primary text-sm font-bold hover:bg-primary/5 transition-all"
             >
               Admin
             </Link>
           ) : null}
-          {user?.regType === "company" || user?.regType === "exhibitor" || user?.regType === "sponsor" ? (
+          {user?.regType === "company" ? (
             <Link
               href="/company/dashboard"
-              className="flex cursor-pointer items-center justify-center rounded-lg h-10 px-5 border-2 border-primary text-primary text-sm font-bold hover:bg-primary/5 transition-colors"
+              className="flex cursor-pointer items-center justify-center rounded h-10 px-5 border-2 border-primary text-primary text-sm font-bold hover:bg-primary/5 transition-all"
             >
               Company portal
+            </Link>
+          ) : user?.regType === "member" ? (
+            <Link
+              href="/member/dashboard"
+              className="flex cursor-pointer items-center justify-center rounded h-10 px-5 border-2 border-primary text-primary text-sm font-bold hover:bg-primary/5 transition-all"
+            >
+              Member Portal
+            </Link>
+          ) : user?.regType === "attendee" ? (
+            <Link
+              href="/attendee/dashboard"
+              className="flex cursor-pointer items-center justify-center rounded h-10 px-5 border-2 border-primary text-primary text-sm font-bold hover:bg-primary/5 transition-all"
+            >
+              Attendee Portal
             </Link>
           ) : null}
           {!user ? (
             <>
               <Link
                 href="/login"
-                className="flex cursor-pointer items-center justify-center rounded-lg h-10 px-5 border-2 border-secondary text-secondary text-sm font-bold hover:bg-secondary/10 transition-colors"
+                className="flex cursor-pointer items-center justify-center rounded h-10 px-5 border-2 border-deep-forest text-deep-forest text-sm font-bold hover:bg-deep-forest/10 transition-all"
               >
                 Log in
               </Link>
               <Link
                 href="/register"
-                className="flex cursor-pointer items-center justify-center rounded-lg h-10 px-5 bg-primary text-white text-sm font-bold shadow-md hover:bg-red-700 transition-colors"
+                className="flex cursor-pointer items-center justify-center rounded h-10 px-5 bg-primary text-white text-sm font-bold shadow-md hover:bg-red-700 hover:shadow-lg transition-all hover:-translate-y-0.5"
               >
                 Register Now
               </Link>
             </>
           ) : user.regType !== "admin" &&
             user.regType !== "company" &&
-            user.regType !== "exhibitor" &&
-            user.regType !== "sponsor" ? (
+            user.regType !== "member" &&
+            user.regType !== "attendee" ? (
             <Link
               href="/register"
-              className="text-[#181112] text-sm font-medium hover:text-primary transition-colors"
+              className="text-charcoal text-sm font-medium hover:text-fresh-green transition-colors"
             >
               My registration
             </Link>
@@ -159,7 +175,7 @@ export default function Header() {
         <button
           type="button"
           onClick={() => setMenuOpen((o) => !o)}
-          className="md:hidden flex size-10 items-center justify-center rounded-lg text-[#181112] hover:bg-gray-100 transition-colors"
+          className="md:hidden flex size-10 items-center justify-center rounded text-charcoal hover:bg-mint-whisper transition-colors"
           aria-label={menuOpen ? "Close menu" : "Open menu"}
         >
           <span className="material-symbols-outlined text-[28px]">
@@ -213,7 +229,7 @@ export default function Header() {
           </Link>
           <Link
             href="/#contact"
-            className="py-3 px-3 rounded-lg text-[#181112] text-sm font-medium hover:text-primary hover:bg-gray-50 transition-colors"
+            className="py-3 px-3 rounded text-charcoal text-sm font-medium hover:text-fresh-green hover:bg-mint-whisper transition-colors"
             onClick={() => setMenuOpen(false)}
           >
             Contact us
@@ -222,33 +238,49 @@ export default function Header() {
             {user?.regType === "admin" ? (
               <Link
                 href="/admin/dashboard"
-                className="flex cursor-pointer items-center justify-center rounded-lg h-12 px-5 border-2 border-primary text-primary text-sm font-bold hover:bg-primary/5 transition-colors"
+                className="flex cursor-pointer items-center justify-center rounded h-12 px-5 border-2 border-primary text-primary text-sm font-bold hover:bg-primary/5 transition-all"
                 onClick={() => setMenuOpen(false)}
               >
                 Admin
               </Link>
             ) : null}
-            {user?.regType === "company" || user?.regType === "exhibitor" || user?.regType === "sponsor" ? (
+            {user?.regType === "company" ? (
               <Link
                 href="/company/dashboard"
-                className="flex cursor-pointer items-center justify-center rounded-lg h-12 px-5 border-2 border-primary text-primary text-sm font-bold hover:bg-primary/5 transition-colors"
+                className="flex cursor-pointer items-center justify-center rounded h-12 px-5 border-2 border-primary text-primary text-sm font-bold hover:bg-primary/5 transition-all"
                 onClick={() => setMenuOpen(false)}
               >
                 Company portal
+              </Link>
+            ) : user?.regType === "member" ? (
+              <Link
+                href="/member/dashboard"
+                className="flex cursor-pointer items-center justify-center rounded h-12 px-5 border-2 border-primary text-primary text-sm font-bold hover:bg-primary/5 transition-all"
+                onClick={() => setMenuOpen(false)}
+              >
+                Member Portal
+              </Link>
+            ) : user?.regType === "attendee" ? (
+              <Link
+                href="/attendee/dashboard"
+                className="flex cursor-pointer items-center justify-center rounded h-12 px-5 border-2 border-primary text-primary text-sm font-bold hover:bg-primary/5 transition-all"
+                onClick={() => setMenuOpen(false)}
+              >
+                Attendee Portal
               </Link>
             ) : null}
             {!user ? (
               <>
                 <Link
                   href="/login"
-                  className="flex cursor-pointer items-center justify-center rounded-lg h-12 px-5 border-2 border-secondary text-secondary text-sm font-bold hover:bg-secondary/10 transition-colors"
+                  className="flex cursor-pointer items-center justify-center rounded h-12 px-5 border-2 border-deep-forest text-deep-forest text-sm font-bold hover:bg-deep-forest/10 transition-all"
                   onClick={() => setMenuOpen(false)}
                 >
                   Log in
                 </Link>
                 <Link
                   href="/register"
-                  className="flex cursor-pointer items-center justify-center rounded-lg h-12 px-5 bg-primary text-white text-sm font-bold shadow-md hover:bg-red-700 transition-colors"
+                  className="flex cursor-pointer items-center justify-center rounded h-12 px-5 bg-primary text-white text-sm font-bold shadow-md hover:bg-red-700 hover:shadow-lg transition-all"
                   onClick={() => setMenuOpen(false)}
                 >
                   Register Now
@@ -260,7 +292,7 @@ export default function Header() {
               user.regType !== "sponsor" ? (
               <Link
                 href="/register"
-                className="flex cursor-pointer items-center justify-center rounded-lg h-12 px-5 border border-[#e6e0e0] text-[#181112] text-sm font-bold hover:border-primary transition-colors"
+                className="flex cursor-pointer items-center justify-center rounded h-12 px-5 border border-mint-whisper text-charcoal text-sm font-bold hover:border-fresh-green transition-all"
                 onClick={() => setMenuOpen(false)}
               >
                 My registration

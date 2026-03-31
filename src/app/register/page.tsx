@@ -8,26 +8,25 @@ import { useRegistrationStore } from "@/stores/registration-store";
 import { useCreateRegistration, getSubmitErrorMessage } from "@/hooks/use-registration-api";
 
 const PLANS: { id: RegType; name: string; price: string; description: string; icon: string; benefits: string[] }[] = [
-  // Temporarily hidden: only company registration is open.
-  // {
-  //   id: "member",
-  //   name: "Member",
-  //   price: "₦40,000",
-  //   description: "Active ANPMP Lagos Members",
-  //   icon: "medical_services",
-  //   benefits: ["Full access to all days", "AGM Voting Rights", "Social Night Entry"],
-  // },
-  // {
-  //   id: "non-member",
-  //   name: "Non-Member",
-  //   price: "₦55,000",
-  //   description: "Other Medical Practitioners",
-  //   icon: "person",
-  //   benefits: ["Full access to all days", "Conference materials", "Social Night Entry"],
-  // },
+  {
+    id: "member",
+    name: "Member",
+    price: "₦40,000",
+    description: "Active ANPMP Lagos Members",
+    icon: "medical_services",
+    benefits: ["Full access to all days", "AGM Voting Rights", "Social Night Entry"],
+  },
+  {
+    id: "non-member",
+    name: "Non-Member",
+    price: "₦55,000",
+    description: "Other Medical Practitioners",
+    icon: "person",
+    benefits: ["Full access to all days", "Conference materials", "Social Night Entry"],
+  },
   {
     id: "company",
-    name: "Company / Sponsor",
+    name: "Sponsor",
     price: "Plans from portal",
     description: "Organizations and companies (booths, sponsorship plans, masterclasses, and panel sessions)",
     icon: "business",
@@ -86,6 +85,7 @@ export default function RegisterPage() {
     setSpousePhone,
     setPrimarySpecialty,
     setHospitalOrg,
+    setAnpmpId,
     setInMedicalField,
     setOccupation,
     setCompanyName,
@@ -161,7 +161,7 @@ export default function RegisterPage() {
               : "Your registration has been saved. You can log in with your email and password to complete payment and view your ticket."}
           </p>
           <div className="flex flex-col gap-3">
-            {regType === "company" && (
+            {regType === "company" ? (
               <Link
                 href="/company/dashboard"
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-white font-bold hover:bg-red-700 transition-colors shadow-lg"
@@ -169,10 +169,26 @@ export default function RegisterPage() {
                 <span className="material-symbols-outlined">business</span>
                 Access Company Portal
               </Link>
+            ) : regType === "member" ? (
+              <Link
+                href="/member/dashboard"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-white font-bold hover:bg-red-700 transition-colors shadow-lg"
+              >
+                <span className="material-symbols-outlined">account_circle</span>
+                Access Member Portal
+              </Link>
+            ) : (
+              <Link
+                href="/attendee/dashboard"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-white font-bold hover:bg-red-700 transition-colors shadow-lg"
+              >
+                <span className="material-symbols-outlined">person</span>
+                Access Attendee Portal
+              </Link>
             )}
             <Link
               href="/"
-              className={regType === "company" ? "text-sm text-gray-600 hover:text-primary transition-colors" : "inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-white font-bold hover:bg-red-700 transition-colors"}
+              className="text-sm text-gray-600 hover:text-primary transition-colors"
             >
               Return to Home
             </Link>
@@ -222,7 +238,7 @@ export default function RegisterPage() {
             <h2 className="text-[#181112] text-[22px] font-bold leading-tight px-4 pb-4">
               1. Select Registration Type
             </h2>
-            <div className="grid grid-cols-1 md:max-w-xl md:mx-auto gap-4 px-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-4">
               {PLANS.map((plan) => (
                 <label
                   key={plan.id}
@@ -282,7 +298,7 @@ export default function RegisterPage() {
           <div className="space-y-8">
             {/* Account (email + password) - all types */}
             <section className="bg-white rounded-xl p-6 shadow-sm mx-4 border border-gray-100">
-              <h2 className="text-[#181112] text-[22px] font-bold leading-tight pb-6">
+              <h2 className="text-charcoal text-[22px] font-bold leading-tight pb-6">
                 Account (for login)
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -410,6 +426,17 @@ export default function RegisterPage() {
                       Professional Information
                     </h2>
                     <div className="grid grid-cols-1 gap-6">
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-medium text-gray-700">ANPMP Membership ID</label>
+                        <input
+                          className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
+                          placeholder="ID-123456"
+                          type="text"
+                          value={anpmpId}
+                          onChange={(e) => setAnpmpId(e.target.value)}
+                        />
+                        <p className="text-xs text-gray-500">Your ANPMP membership ID (e.g., ID-123456)</p>
+                      </div>
                       <div className="flex flex-col gap-2">
                         <label className="text-sm font-medium text-gray-700">Primary Specialty</label>
                         <select

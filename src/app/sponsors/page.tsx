@@ -43,47 +43,47 @@ const TIER_CONFIGS: Record<string, TierConfig> = {
     id: "headliner",
     label: "Headliner Sponsors",
     icon: "campaign",
-    colorClass: "text-rose-600",
-    bgClass: "bg-rose-50/30",
-    borderClass: "border-l-rose-500",
-    badgeClass: "bg-rose-100 text-rose-700",
+    colorClass: "text-primary",
+    bgClass: "bg-mint-whisper",
+    borderClass: "border-l-primary",
+    badgeClass: "bg-primary text-white",
   },
   platinum: {
     id: "platinum",
     label: "Platinum Sponsors",
     icon: "workspace_premium",
-    colorClass: "text-slate-700",
-    bgClass: "bg-slate-50",
-    borderClass: "border-l-slate-400",
-    badgeClass: "bg-slate-200 text-slate-800",
+    colorClass: "text-medical-green",
+    bgClass: "bg-white",
+    borderClass: "border-l-medical-green",
+    badgeClass: "bg-primary text-white",
   },
   gold: {
     id: "gold",
     label: "Gold Sponsors",
     icon: "verified",
-    colorClass: "text-amber-600",
-    bgClass: "bg-amber-50/30",
-    borderClass: "border-l-amber-400",
-    badgeClass: "bg-amber-100 text-amber-700",
+    colorClass: "text-fresh-green",
+    bgClass: "bg-white",
+    borderClass: "border-l-fresh-green",
+    badgeClass: "bg-primary text-white",
   },
   silver: {
     id: "silver",
     label: "Silver Sponsors",
     icon: "stars",
-    colorClass: "text-gray-500",
-    bgClass: "bg-gray-50/50",
-    borderClass: "border-l-gray-300",
-    badgeClass: "bg-gray-100 text-gray-700",
+    colorClass: "text-charcoal",
+    bgClass: "bg-white",
+    borderClass: "border-l-charcoal/30",
+    badgeClass: "bg-primary/80 text-white",
   },
 };
 
 const ICON_PALETTES = [
-  { iconBg: "bg-secondary/10 dark:bg-secondary/20", iconColor: "text-secondary", icon: "storefront" as const },
-  { iconBg: "bg-green-50 dark:bg-green-900/20", iconColor: "text-green-600 dark:text-green-400", icon: "ecg_heart" as const },
-  { iconBg: "bg-purple-50 dark:bg-purple-900/20", iconColor: "text-purple-600 dark:text-purple-400", icon: "neurology" as const },
-  { iconBg: "bg-orange-50 dark:bg-orange-900/20", iconColor: "text-orange-600 dark:text-orange-400", icon: "medical_services" as const },
-  { iconBg: "bg-teal-50 dark:bg-teal-900/20", iconColor: "text-teal-600 dark:text-teal-400", icon: "vaccines" as const },
-  { iconBg: "bg-rose-50 dark:bg-rose-900/20", iconColor: "text-rose-600 dark:text-rose-400", icon: "bloodtype" as const },
+  { iconBg: "bg-medical-green/10", iconColor: "text-medical-green", icon: "storefront" as const },
+  { iconBg: "bg-fresh-green/10", iconColor: "text-fresh-green", icon: "ecg_heart" as const },
+  { iconBg: "bg-deep-forest/10", iconColor: "text-deep-forest", icon: "neurology" as const },
+  { iconBg: "bg-primary/10", iconColor: "text-primary", icon: "medical_services" as const },
+  { iconBg: "bg-secondary/10", iconColor: "text-secondary", icon: "vaccines" as const },
+  { iconBg: "bg-medical-green/10", iconColor: "text-medical-green", icon: "bloodtype" as const },
 ];
 
 function paletteForIndex(i: number) {
@@ -122,15 +122,14 @@ export default async function SponsorsPage() {
   });
 
   return (
-    <main className="flex min-h-screen w-full grow flex-col items-center">
-      <section className="flex w-full max-w-[1280px] flex-col gap-6 px-4 py-10 sm:px-10">
-        <div className="flex max-w-2xl flex-col gap-3">
-          <h1 className="text-4xl font-black leading-tight tracking-[-0.033em] text-[#181112]">
+    <main className="flex min-h-screen w-full grow flex-col">
+      <section className="bg-medical-green py-24 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-5xl md:text-6xl font-serif font-bold text-white mb-6">
             Our Sponsors
           </h1>
-          <p className="text-lg leading-normal text-[#896165]">
-            Meet the companies supporting the ANPMP community. Discover cutting-edge solutions from our
-            valued sponsors and partners.
+          <p className="text-xl text-white/90 leading-relaxed">
+            Partners supporting ANPMP Lagos 2026 and advancing private healthcare in Nigeria.
           </p>
         </div>
       </section>
@@ -152,10 +151,10 @@ export default async function SponsorsPage() {
               id: tierKey,
               label: tierKey.charAt(0).toUpperCase() + tierKey.slice(1) + " Partners",
               icon: "workspace_premium",
-              colorClass: "text-slate-500",
+              colorClass: "text-charcoal",
               bgClass: "bg-white",
-              borderClass: "border-l-primary/20",
-              badgeClass: "bg-slate-100 text-slate-600",
+              borderClass: "border-l-charcoal/20",
+              badgeClass: "bg-primary text-white",
             };
 
             return (
@@ -165,7 +164,7 @@ export default async function SponsorsPage() {
               >
                 <div className="mx-auto max-w-[1280px] px-4 sm:px-10">
                   <div className="mb-10 flex items-center gap-3">
-                    <div className={`rounded-full p-2.5 ${config.badgeClass.split(" ")[0]} ${config.colorClass}`}>
+                    <div className={`rounded-full p-2.5 ${config.bgClass === 'bg-white' ? 'bg-mint-whisper' : config.bgClass} ${config.colorClass}`}>
                       <span className="material-symbols-outlined text-2xl">{config.icon}</span>
                     </div>
                     <div>

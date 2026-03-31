@@ -38,7 +38,7 @@ export default function HotelRoomsPage() {
   } = useQuery({
     queryKey: HOTEL_ROOMS_ME_QUERY_KEY,
     queryFn: getMyBookedHotelRooms,
-    enabled: !sessionLoading && !!user && isCompany,
+    enabled: !sessionLoading && !!user,
     staleTime: 60 * 1000,
   });
 
@@ -92,7 +92,7 @@ export default function HotelRoomsPage() {
   return (
     <main className="flex-1 w-full min-h-0 overflow-y-auto bg-background-light">
       <section className="flex w-full max-w-[1280px] flex-col gap-6 px-4 py-10 sm:px-10 mx-auto">
-        <div className="flex max-w-3xl flex-col gap-3 border-l-4 border-primary bg-white p-6 shadow-sm rounded-r-lg">
+        <div className="flex flex-col gap-3 border-l-4 border-primary bg-white p-6 shadow-sm rounded-r-lg">
           <h1 className="text-4xl font-black leading-tight tracking-tight text-[#181112]">
             Conference hotel rooms
           </h1>
@@ -102,7 +102,7 @@ export default function HotelRoomsPage() {
           </p>
         </div>
 
-        {!sessionLoading && user && isCompany && (
+        {!sessionLoading && user && (
           <div className="rounded-xl border border-primary/15 bg-white shadow-sm overflow-hidden">
             <div className="border-b border-primary/10 bg-primary/5 px-4 py-4 sm:px-6">
               <h2 className="text-lg font-black text-[#181112] flex items-center gap-2">

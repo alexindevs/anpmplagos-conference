@@ -28,5 +28,16 @@ export function HotelRoomsShell({ children }: { children: React.ReactNode }) {
     return <CompanyPortalShell companyId={companyId}>{children}</CompanyPortalShell>;
   }
 
-  return <AttendeeHotelRoomsShell userEmail={user.email}>{children}</AttendeeHotelRoomsShell>;
+  const fullName = user.member?.fullName || user.attendee?.fullName || user.email;
+  const regType = user.regType === "member" ? "member" : "attendee";
+
+  return (
+    <AttendeeHotelRoomsShell 
+      userEmail={user.email} 
+      fullName={fullName}
+      regType={regType}
+    >
+      {children}
+    </AttendeeHotelRoomsShell>
+  );
 }
