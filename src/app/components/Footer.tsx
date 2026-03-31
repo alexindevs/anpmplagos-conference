@@ -39,7 +39,7 @@ export default async function Footer() {
                 height={48}
                 className="h-10 w-auto object-contain md:h-12"
               />
-              <h2 className="text-2xl font-serif font-bold">ANPMP</h2>
+              <h2 className="text-2xl font-serif font-bold">ANPMP Lagos</h2>
             </div>
             <p className="text-white/70 text-sm leading-relaxed">
               Since 1978, ANPMP has represented Nigeria&apos;s private medical practitioners — advocating for better policy, stronger practices, and professional excellence.

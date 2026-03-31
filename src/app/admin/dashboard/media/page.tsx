@@ -146,7 +146,7 @@ export default function MediaPage() {
 
         <div className="mb-10 rounded-xl border border-primary/5 bg-white p-6 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
           <h3 className="mb-4 text-lg font-bold text-[#181112] dark:text-white">Upload image</h3>
-          <form onSubmit={handleSubmitUpload} className="flex flex-col gap-4 sm:max-w-xl">
+          <form onSubmit={handleSubmitUpload} className="flex flex-col gap-4">
             <input
               ref={fileInputRef}
               type="file"

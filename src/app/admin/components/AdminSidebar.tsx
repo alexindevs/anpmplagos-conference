@@ -75,7 +75,7 @@ export function AdminSidebar({
         </div>
         {expanded ? (
           <div className="min-w-0">
-            <h1 className="truncate text-sm font-bold leading-tight text-[#181112] dark:text-white">ANPMP Admin</h1>
+            <h1 className="truncate text-sm font-bold leading-tight text-[#181112] dark:text-white">ANPMP Lagos Admin</h1>
             <p className="truncate text-xs font-medium text-primary">Conference 2026</p>
           </div>
         ) : null}

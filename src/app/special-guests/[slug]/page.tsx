@@ -10,9 +10,9 @@ const getProfile = cache(async (slug: string) => getPublicSpecialGuestBySlug(slu
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const p = await getProfile(slug);
-  if (!p) return { title: "Special guest - ANPMP Conference" };
+  if (!p) return { title: "Special guest - ANPMP Lagos Conference" };
   return {
-    title: `${p.name} | Special guests - ANPMP Conference`,
+    title: `${p.name} | Special guests - ANPMP Lagos Conference`,
     description: p.byline?.trim() || p.role || `Special guest: ${p.name}`,
   };
 }

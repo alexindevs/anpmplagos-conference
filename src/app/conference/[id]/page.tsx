@@ -85,7 +85,7 @@ export default function ConferencePage() {
       {/* Decorative Background Elements */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-20 left-10 text-[200px] text-white font-serif font-bold">
-          ANPMP
+          ANPMP Lagos
         </div>
         <div className="absolute bottom-20 right-10 text-[150px] text-white font-serif font-bold">
           2026

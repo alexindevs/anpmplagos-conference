@@ -80,7 +80,7 @@ export function AttendeeHotelRoomsShell({
                   <span className="material-symbols-outlined">bed</span>
                   Hotel rooms
                 </Link>
-                <Link href="/support" className={itemClass("/support")}>
+                <Link href="/member/support" className={itemClass("/member/support")}>
                   <span className="material-symbols-outlined">support</span>
                   Support
                 </Link>
@@ -99,7 +99,7 @@ export function AttendeeHotelRoomsShell({
                   <span className="material-symbols-outlined">bed</span>
                   Hotel rooms
                 </Link>
-                <Link href="/support" className={itemClass("/support")}>
+                <Link href="/attendee/support" className={itemClass("/attendee/support")}>
                   <span className="material-symbols-outlined">support</span>
                   Support
                 </Link>

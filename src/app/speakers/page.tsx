@@ -7,9 +7,9 @@ import {
 } from "@/lib/api";
 
 export const metadata = {
-  title: "Speakers - ANPMP Conference",
+  title: "Speakers - ANPMP Lagos Conference",
   description:
-    "Meet the keynote and featured speakers at the ANPMP Annual Conference. Leading voices in private medical practice and healthcare delivery.",
+    "Meet the keynote and featured speakers at the ANPMP Lagos Annual Conference. Leading voices in private medical practice and healthcare delivery.",
 };
 
 export const revalidate = 120;

@@ -63,8 +63,7 @@ export default function Header() {
     isCompanyPortal ||
     pathname.startsWith("/member/") ||
     pathname.startsWith("/attendee/") ||
-    pathname.startsWith("/hotel-rooms") ||
-    pathname.startsWith("/support/");
+    pathname.startsWith("/hotel-rooms");
 
   if (hideMarketingHeader) {
     return null;
@@ -108,7 +107,7 @@ export default function Header() {
             className="h-8 w-auto object-contain md:h-10"
           />
           <h2 className="text-charcoal text-xl font-bold leading-tight tracking-tight font-serif">
-            ANPMP
+            ANPMP Lagos
           </h2>
         </Link>
         <nav className="hidden md:flex items-center gap-8">
