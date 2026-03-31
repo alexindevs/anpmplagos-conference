@@ -94,7 +94,7 @@ export default function AddNewBoothPage() {
       <div className="bg-background-light p-4 dark:bg-background-dark sm:p-6 lg:p-8">
         <form
           onSubmit={handleSubmit}
-          className="mx-auto max-w-xl rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-border-dark dark:bg-background-dark-soft"
+          className="mx-auto w-full max-w-[80%] md:max-w-[50%] rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-border-dark dark:bg-background-dark-soft"
         >
           <div className="space-y-6">
             <div>

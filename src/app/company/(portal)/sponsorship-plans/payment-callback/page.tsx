@@ -59,7 +59,7 @@ function SponsorshipPaymentCallbackContent() {
 
   return (
     <main className="flex-1 px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
-      <div className="mx-auto max-w-md rounded-xl border border-secondary/20 bg-white p-8 shadow-sm text-center">
+      <div className="mx-auto w-full max-w-[80%] md:max-w-[50%] rounded-xl border border-secondary/20 bg-white p-8 shadow-sm text-center">
         {status === "verifying" && (
           <>
             <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-secondary/10">
@@ -147,7 +147,7 @@ export default function SponsorshipPaymentCallbackPage() {
   return (
     <Suspense fallback={
       <main className="flex-1 px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
-        <div className="mx-auto max-w-md rounded-xl border border-secondary/20 bg-white p-8 shadow-sm text-center">
+        <div className="mx-auto  w-full max-w-[80%] md:max-w-[50%] rounded-xl border border-secondary/20 bg-white p-8 shadow-sm text-center">
           <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-secondary/10">
             <div className="size-8 animate-spin rounded-full border-4 border-secondary/30 border-t-secondary" />
           </div>

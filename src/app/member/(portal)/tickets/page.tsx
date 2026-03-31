@@ -207,9 +207,6 @@ export default function MemberTicketsPage() {
 
                       {eventPasses?.hotelPass && (
                         <div className="space-y-2">
-                          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mt-4 mb-2">
-                            Hotel Reservations
-                          </p>
                           <button
                             type="button"
                             onClick={() => handleDownloadTicket(eventPasses.hotelPass?.qrCodeUrl, `hotel-pass-${fullName}.png`)}

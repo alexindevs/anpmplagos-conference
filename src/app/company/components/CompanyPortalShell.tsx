@@ -115,14 +115,10 @@ export function CompanyPortalShell({
               Sponsorship Plans
             </Link>
 
-            <button
-              type="button"
-              disabled
-              className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-slate-400 font-semibold cursor-not-allowed opacity-60"
-            >
+            <Link href="/company/tickets" className={itemClass("/company/tickets")}>
               <span className="material-symbols-outlined">receipt_long</span>
               Tickets
-            </button>
+            </Link>
 
             <Link href="/company/support" className={itemClass("/company/support")}>
               <span className="material-symbols-outlined">help</span>
@@ -133,7 +129,7 @@ export function CompanyPortalShell({
           <div className="space-y-3 border-t border-secondary/10 px-4 py-5">
             <div className="rounded-xl border border-secondary/20 bg-secondary/5 p-3">
               <p className="text-xs font-bold uppercase tracking-wider text-secondary">Company ID</p>
-              <p className="text-sm font-mono text-[#181112] mt-1">{companyId ? `#${companyId}` : "—"}</p>
+              <p className="text-xs font-mono text-[#181112] mt-1">{companyId ? `${companyId}` : "—"}</p>
             </div>
             <button
               type="button"

@@ -467,7 +467,7 @@ export default function ExhibitorDashboardPage() {
             <div className="rounded-xl border border-dashed border-secondary/25 bg-slate-50/80 py-10 text-center">
               <span className="material-symbols-outlined text-4xl text-slate-300">groups</span>
               <p className="text-sm font-bold text-[#181112] mt-2">No representatives added</p>
-              <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+              <p className="text-xs text-slate-500 mt-1 mx-auto">
                 Add staff members who will be present at your booth.
               </p>
             </div>
@@ -563,7 +563,7 @@ export default function ExhibitorDashboardPage() {
             <div className="rounded-xl border border-dashed border-secondary/25 bg-slate-50/80 py-10 text-center">
               <span className="material-symbols-outlined text-4xl text-slate-300">inventory_2</span>
               <p className="text-sm font-bold text-[#181112] mt-2">No products yet</p>
-              <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+              <p className="text-xs text-slate-500 mt-1 mx-auto">
                 When product management is enabled, you&apos;ll list services and equipment your booth offers here.
               </p>
             </div>

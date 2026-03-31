@@ -117,7 +117,7 @@ export default function AttendeeTicketsPage() {
         {isLoading ? (
           <div className="h-64 rounded-xl bg-slate-100 animate-pulse" />
         ) : (
-          <div className="max-w-2xl">
+          <div className="">
             {isPaid ? (
               <div className="rounded-xl border-2 border-green-500 bg-white p-8 shadow-lg">
                 <div className="flex items-center justify-center mb-6">
@@ -202,9 +202,6 @@ export default function AttendeeTicketsPage() {
 
                       {eventPasses?.hotelPass && (
                         <div className="space-y-2">
-                          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mt-4 mb-2">
-                            Hotel Reservations
-                          </p>
                           <button
                             type="button"
                             onClick={() => handleDownloadTicket(eventPasses.hotelPass?.qrCodeUrl, `hotel-pass-${fullName}.png`)}

@@ -57,7 +57,7 @@ export function AddRoomSlotsModal({ open, onClose, isSubmitting, onSubmit }: Add
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-room-slots-title"
-        className="w-full max-w-md rounded-xl border border-slate-200 bg-white shadow-xl dark:border-border-dark dark:bg-background-dark-soft"
+        className=" w-full max-w-[80%] md:max-w-[50%] rounded-xl border border-slate-200 bg-white shadow-xl dark:border-border-dark dark:bg-background-dark-soft"
       >
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-border-dark">
           <h3 id="add-room-slots-title" className="text-lg font-bold text-[#181112] dark:text-white">

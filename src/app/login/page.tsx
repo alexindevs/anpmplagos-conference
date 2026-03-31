@@ -60,7 +60,7 @@ export default function LoginPage() {
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute -right-24 top-1/4 size-[420px] rounded-full bg-primary/6 blur-3xl"
+        className="pointer-events-none absolute -right-24 top-1/4 size-105 rounded-full bg-primary/6 blur-3xl"
         aria-hidden
       />
       <div
@@ -68,7 +68,7 @@ export default function LoginPage() {
         aria-hidden
       />
 
-      <div className="relative w-full max-w-[50%]">
+      <div className="relative w-[80%] md:w-[50%] max-w-137.5">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-2xl border-2 border-secondary/30 bg-secondary/10 shadow-sm">
             <span className="material-symbols-outlined text-4xl text-secondary">lock</span>

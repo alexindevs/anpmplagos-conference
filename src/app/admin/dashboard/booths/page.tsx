@@ -404,7 +404,7 @@ export default function BoothManagementPage() {
           aria-modal="true"
           aria-labelledby="assign-booth-title"
         >
-          <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-border-dark dark:bg-background-dark-soft">
+          <div className=" w-full max-w-[80%] md:max-w-[50%] rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-border-dark dark:bg-background-dark-soft">
             <h3 id="assign-booth-title" className="text-lg font-black text-[#181112] dark:text-white">
               Assign company to booth
             </h3>

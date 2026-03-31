@@ -104,7 +104,7 @@ export default function MemberSupportNewPage() {
       <div className="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <form
           onSubmit={handleSubmit}
-          className="mx-auto max-w-2xl space-y-6 rounded-xl border border-primary/20 bg-white p-6 shadow-sm"
+          className="mx-auto w-full max-w-[80%] md:max-w-[50%] space-y-6 rounded-xl border border-primary/20 bg-white p-6 shadow-sm"
         >
           {formError ? (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{formError}</div>

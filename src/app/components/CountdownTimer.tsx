@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 
 const TARGET = new Date("2026-09-25T00:00:00").getTime();
 
@@ -18,14 +18,46 @@ function pad(n: number) {
 }
 
 export default function CountdownTimer() {
-  const [remaining, setRemaining] = useState(() => getRemaining(Date.now()));
+  const [remaining, setRemaining] = useState<ReturnType<typeof getRemaining> | null>(null);
 
-  useEffect(() => {
-    const id = setInterval(() => {
-      setRemaining(getRemaining(Date.now()));
-    }, 1000);
+  useLayoutEffect(() => {
+    const updateRemaining = () => setRemaining(getRemaining(Date.now()));
+    
+    updateRemaining();
+    const id = setInterval(updateRemaining, 1000);
     return () => clearInterval(id);
   }, []);
+
+  if (!remaining) {
+    return (
+      <div className="flex flex-wrap justify-center gap-6 md:gap-12">
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-[3px] border-primary flex items-center justify-center bg-white shadow-sm">
+            <span className="text-2xl md:text-3xl font-black text-[#181112]">--</span>
+          </div>
+          <span className="text-sm font-medium text-gray-600 uppercase tracking-wide">Days</span>
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-[3px] border-primary flex items-center justify-center bg-white shadow-sm">
+            <span className="text-2xl md:text-3xl font-black text-[#181112]">--</span>
+          </div>
+          <span className="text-sm font-medium text-gray-600 uppercase tracking-wide">Hours</span>
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-[3px] border-primary flex items-center justify-center bg-white shadow-sm">
+            <span className="text-2xl md:text-3xl font-black text-[#181112]">--</span>
+          </div>
+          <span className="text-sm font-medium text-gray-600 uppercase tracking-wide">Minutes</span>
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-[3px] border-primary flex items-center justify-center bg-white shadow-sm">
+            <span className="text-2xl md:text-3xl font-black text-[#181112]">--</span>
+          </div>
+          <span className="text-sm font-medium text-gray-600 uppercase tracking-wide">Seconds</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-wrap justify-center gap-6 md:gap-12">

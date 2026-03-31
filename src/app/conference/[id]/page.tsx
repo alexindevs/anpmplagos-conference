@@ -58,7 +58,7 @@ export default function ConferencePage() {
   if (error || !data) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-deep-forest via-medical-green to-fresh-green flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-white/10 backdrop-blur-lg border border-white/20 p-8 text-center">
+        <div className=" w-full max-w-[80%] md:max-w-[50%] bg-white/10 backdrop-blur-lg border border-white/20 p-8 text-center">
           <span className="material-symbols-outlined text-6xl text-white/60 mb-4">
             {viewLimitReached ? "visibility_off" : "error"}
           </span>

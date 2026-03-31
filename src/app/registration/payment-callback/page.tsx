@@ -28,7 +28,7 @@ function PaymentCallbackContent() {
   if (!effectiveRef) {
     return (
       <main className="flex flex-1 justify-center items-center py-16 px-4">
-        <div className="max-w-md w-full text-center">
+        <div className=" w-full max-w-[80%] md:max-w-[50%] text-center">
           <span className="material-symbols-outlined text-6xl text-red-600 mb-4">error</span>
           <h1 className="text-3xl font-black text-[#181112] mb-4">Invalid Payment Link</h1>
           <p className="text-gray-600 mb-6">
@@ -48,7 +48,7 @@ function PaymentCallbackContent() {
   if (isLoading) {
     return (
       <main className="flex flex-1 justify-center items-center py-16 px-4">
-        <div className="max-w-md w-full text-center">
+        <div className=" w-full max-w-[80%] md:max-w-[50%] text-center">
           <div className="mb-6 flex justify-center">
             <div className="size-16 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
           </div>
@@ -64,7 +64,7 @@ function PaymentCallbackContent() {
   if (isError) {
     return (
       <main className="flex flex-1 justify-center items-center py-16 px-4">
-        <div className="max-w-md w-full text-center">
+        <div className=" w-full max-w-[80%] md:max-w-[50%] text-center">
           <span className="material-symbols-outlined text-6xl text-red-600 mb-4">error</span>
           <h1 className="text-3xl font-black text-[#181112] mb-4">Verification Failed</h1>
           <p className="text-gray-600 mb-6">
@@ -91,7 +91,7 @@ function PaymentCallbackContent() {
 
   return (
     <main className="flex flex-1 justify-center py-16 px-4">
-      <div className="max-w-2xl w-full">
+      <div className="w-full max-w-[80%] md:max-w-[50%]">
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
           {/* Status icon */}
           <div className="flex justify-center mb-6">
@@ -146,8 +146,8 @@ function PaymentCallbackContent() {
             <div className="bg-gray-50 rounded-lg p-6 mb-6 space-y-4">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase">Reference</p>
-                  <p className="text-sm font-mono text-[#181112] break-all">{payment.reference}</p>
+                  <p className="text-sm font-semibold text-gray-500 uppercase">Reference</p>
+                  <p className="text-xs font-mono text-[#181112] break-all">{payment.reference}</p>
                 </div>
                 <span
                   className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase ${
@@ -249,7 +249,7 @@ function PaymentCallbackContent() {
 function PaymentCallbackFallback() {
   return (
     <main className="flex flex-1 justify-center items-center py-16 px-4">
-      <div className="max-w-md w-full text-center">
+      <div className=" w-full max-w-[80%] md:max-w-[50%] text-center">
         <div className="mb-6 flex justify-center">
           <div className="size-16 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
         </div>

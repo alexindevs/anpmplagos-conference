@@ -49,7 +49,7 @@ function CompanyHotelRoomPaymentCallbackContent() {
   if (!reference) {
     return (
       <main className="flex flex-1 justify-center items-center py-16 px-4">
-        <div className="max-w-md w-full text-center">
+        <div className=" w-full max-w-[80%] md:max-w-[50%] text-center">
           <span className="material-symbols-outlined text-6xl text-red-600 mb-4">error</span>
           <h1 className="text-3xl font-black text-[#181112] mb-4">Invalid payment link</h1>
           <p className="text-gray-600 mb-6">
@@ -69,7 +69,7 @@ function CompanyHotelRoomPaymentCallbackContent() {
   if (verifying) {
     return (
       <main className="flex flex-1 justify-center items-center py-16 px-4">
-        <div className="max-w-md w-full text-center">
+        <div className=" w-full max-w-[80%] md:max-w-[50%] text-center">
           <div className="mb-6 flex justify-center">
             <div className="size-16 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
           </div>
@@ -85,7 +85,7 @@ function CompanyHotelRoomPaymentCallbackContent() {
   if (isError) {
     return (
       <main className="flex flex-1 justify-center items-center py-16 px-4">
-        <div className="max-w-md w-full text-center">
+        <div className=" w-full max-w-[80%] md:max-w-[50%] text-center">
           <span className="material-symbols-outlined text-6xl text-red-600 mb-4">error</span>
           <h1 className="text-3xl font-black text-[#181112] mb-4">Verification failed</h1>
           <p className="text-gray-600 mb-6">
@@ -115,7 +115,7 @@ function CompanyHotelRoomPaymentCallbackContent() {
 
   return (
     <main className="flex flex-1 justify-center py-16 px-4">
-      <div className="max-w-2xl w-full">
+      <div className="w-full max-w-[80%] md:max-w-[50%]">
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
           <div className="flex justify-center mb-6">
             {isSuccess && (
@@ -270,7 +270,7 @@ function CompanyHotelRoomPaymentCallbackContent() {
 function PaymentCallbackSuspenseFallback() {
   return (
     <main className="flex flex-1 justify-center items-center py-16 px-4">
-      <div className="max-w-md w-full text-center">
+      <div className=" w-full max-w-[80%] md:max-w-[50%] text-center">
         <div className="mb-6 flex justify-center">
           <div className="size-16 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
         </div>

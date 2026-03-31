@@ -114,7 +114,7 @@ export default function AttendeeDashboardPage() {
             </div>
 
             {/* Professional Information */}
-            {attendeeProfile && (
+            {/* {attendeeProfile && (
               <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h2 className="text-lg font-bold text-charcoal mb-4">Professional Information</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -143,7 +143,7 @@ export default function AttendeeDashboardPage() {
                   ) : null}
                 </div>
               </div>
-            )}
+            )} */}
 
             {/* Quick Actions */}
             <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
