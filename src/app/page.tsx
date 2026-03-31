@@ -17,15 +17,15 @@ export default function Home() {
         <HeroBackgroundCarousel images={HERO_IMAGES} />
         <div className="relative z-10 flex flex-col items-center text-center px-4 max-w-4xl mx-auto animate-fade-in-up">
           <span className="inline-block py-1 px-3 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-semibold tracking-wider mb-4 border border-white/30 uppercase">
-            AGM / Scientific Conference
+            ANPMP Lagos
           </span>
           <h1 className="text-white text-4xl md:text-6xl font-black leading-tight tracking-tight mb-4 drop-shadow-lg">
-            ANPMP Lagos Annual General Conference
+             Annual General Meeting & Scientific Conference
           </h1>
           <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8 text-white/90 text-lg md:text-xl font-medium mb-8">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined">calendar_month</span>
-              <span>September 15–16, 2026</span>
+              <span>September 15-16, 2026</span>
             </div>
             <div className="hidden md:block w-1.5 h-1.5 rounded-full bg-primary" />
             <div className="flex items-center gap-2">
