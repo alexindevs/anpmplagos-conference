@@ -1,0 +1,313 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useAuthSession } from "@/hooks/use-auth-session";
+import { getMyRegistration, formatKoboToNaira, initializeRegistrationPayment, getMyEventPasses, generateConferencePass, generateHotelPass, getMyBookedHotelRooms, ApiError } from "@/lib/api";
+import { MemberPortalShell } from "../../components/MemberPortalShell";
+import Link from "next/link";
+
+const PRICE_MEMBER = 4000000; // 40,000 NGN in kobo
+const PRICE_NON_MEMBER = 5500000; // 55,000 NGN in kobo
+
+export default function MemberTicketsPage() {
+  const { data: user } = useAuthSession();
+  const [isInitializingPayment, setIsInitializingPayment] = useState(false);
+  const [isGeneratingPasses, setIsGeneratingPasses] = useState(false);
+
+  const { data: registration, isLoading } = useQuery({
+    queryKey: ["member", "registration"],
+    queryFn: getMyRegistration,
+    enabled: !!user,
+  });
+
+  const isMember = registration?.user?.regType === "member";
+  const profile = registration?.member || registration?.attendee;
+  const fullName = profile?.fullName || user?.member?.fullName || user?.attendee?.fullName || "Member";
+  const userId = user?.id || "";
+
+  const ticketPrice = isMember ? PRICE_MEMBER : PRICE_NON_MEMBER;
+  const isPaid = registration?.payment?.status === "success";
+  const isPending = registration?.user?.registrationStatus === "pending_payment";
+
+  const { data: eventPasses, refetch: refetchPasses } = useQuery({
+    queryKey: ["member", "event-passes"],
+    queryFn: getMyEventPasses,
+    enabled: !!user && isPaid,
+  });
+
+  const { data: hotelBookings = [] } = useQuery({
+    queryKey: ["member", "hotel-bookings"],
+    queryFn: getMyBookedHotelRooms,
+    enabled: !!user && isPaid,
+  });
+
+  const handleCompletePayment = async () => {
+    if (!userId) {
+      toast.error("User ID not found. Please try logging in again.");
+      return;
+    }
+    setIsInitializingPayment(true);
+    try {
+      const paymentData = await initializeRegistrationPayment(userId);
+      window.location.href = paymentData.authorizationUrl;
+    } catch (error) {
+      console.error("Payment initialization failed:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to initialize payment. Please try again.";
+      toast.error(errorMessage);
+      setIsInitializingPayment(false);
+    }
+  };
+
+  useEffect(() => {
+    const generatePassesIfNeeded = async () => {
+      console.log("Pass generation check:", { isPaid, userId, isGeneratingPasses, hotelBookingsCount: hotelBookings.length, eventPasses });
+      
+      if (!isPaid || !userId || isGeneratingPasses) return;
+      
+      const needsConferencePass = !eventPasses?.conferencePass;
+      const needsHotelPass = hotelBookings.length > 0 && !eventPasses?.hotelPass;
+      
+      console.log("Pass needs:", { needsConferencePass, needsHotelPass });
+      
+      if (!needsConferencePass && !needsHotelPass) return;
+
+      setIsGeneratingPasses(true);
+      try {
+        if (needsConferencePass) {
+          console.log("Generating conference pass...");
+          await generateConferencePass(userId);
+        }
+        if (needsHotelPass) {
+          console.log("Generating hotel pass...");
+          await generateHotelPass(userId);
+        }
+        await refetchPasses();
+        console.log("Passes generated successfully");
+      } catch (error) {
+        console.error("Pass generation error:", error);
+        if (error instanceof ApiError && error.status !== 400) {
+          console.error("Failed to generate passes:", error);
+        }
+      } finally {
+        setIsGeneratingPasses(false);
+      }
+    };
+
+    generatePassesIfNeeded();
+  }, [isPaid, userId, eventPasses, hotelBookings, refetchPasses]);
+
+  const handleDownloadTicket = (url: string | undefined, filename: string) => {
+    if (!url) {
+      toast.error("Ticket not available yet. Please refresh the page.");
+      return;
+    }
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+  };
+
+  return (
+    <MemberPortalShell userId={userId} fullName={fullName}>
+      <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <div className="mb-6 border-l-4 border-primary pl-4">
+          <h1 className="text-2xl font-black text-[#181112]">My Conference Ticket</h1>
+          <p className="text-sm text-slate-500 mt-1">View and manage your conference registration</p>
+        </div>
+
+        {isLoading ? (
+          <div className="h-64 rounded-xl bg-slate-100 animate-pulse" />
+        ) : (
+          <div className="">
+            {isPaid ? (
+              <div className="rounded-xl border-2 border-green-500 bg-white p-8 shadow-lg">
+                <div className="flex items-center justify-center mb-6">
+                  <div className="rounded-full bg-green-100 p-4">
+                    <span className="material-symbols-outlined text-4xl text-green-600">check_circle</span>
+                  </div>
+                </div>
+
+                <h2 className="text-2xl font-black text-center text-[#181112] mb-2">
+                  ANPMP Lagos Conference 2026
+                </h2>
+                <p className="text-center text-slate-500 mb-6">Official Conference Ticket</p>
+
+                <div className="border-t border-b border-slate-200 py-6 my-6">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Attendee</p>
+                      <p className="mt-1 text-lg font-bold text-[#181112]">{profile?.fullName}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Registration Type</p>
+                      <p className="mt-1 text-lg font-bold text-[#181112]">
+                        {isMember ? "ANPMP Member" : "Non-Member"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Ticket Price</p>
+                      <p className="mt-1 text-lg font-bold text-primary">{formatKoboToNaira(ticketPrice)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Status</p>
+                      <p className="mt-1 inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-bold text-green-700">
+                        CONFIRMED
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {registration?.payment && (
+                  <div className="rounded-lg bg-slate-50 p-4 mb-6">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Payment Details</p>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-slate-500">Reference:</span>
+                        <span className="ml-2 font-mono font-semibold">{registration.payment.reference}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500">Paid:</span>
+                        <span className="ml-2 font-semibold">
+                          {registration.payment.paidAt
+                            ? new Date(registration.payment.paidAt).toLocaleDateString()
+                            : "—"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-6">
+                  <div className="border-t border-slate-200 pt-6">
+                    <h3 className="text-lg font-black text-[#181112] mb-4 flex items-center gap-2">
+                      <span className="material-symbols-outlined text-fresh-green">qr_code_2</span>
+                      Download Your Tickets
+                    </h3>
+                    
+                    <div className="space-y-3">
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadTicket(eventPasses?.conferencePass?.qrCodeUrl, `conference-ticket-${fullName}.png`)}
+                        disabled={!eventPasses?.conferencePass?.qrCodeUrl || isGeneratingPasses}
+                        className="w-full flex items-center justify-between gap-4 p-4 bg-gradient-to-r from-fresh-green to-medical-green text-white font-bold shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="material-symbols-outlined text-2xl">confirmation_number</span>
+                          <div className="text-left">
+                            <p className="font-black">Conference Ticket</p>
+                            <p className="text-xs text-white/80 font-normal">
+                              {isGeneratingPasses ? "Generating..." : "QR Code for Entry"}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="material-symbols-outlined">download</span>
+                      </button>
+
+                      {eventPasses?.hotelPass && (
+                        <div className="space-y-2">
+                          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mt-4 mb-2">
+                            Hotel Reservations
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadTicket(eventPasses.hotelPass?.qrCodeUrl, `hotel-pass-${fullName}.png`)}
+                            disabled={!eventPasses.hotelPass?.qrCodeUrl}
+                            className="w-full flex items-center justify-between gap-4 p-4 bg-gradient-to-r from-primary to-red-700 text-white font-bold shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="material-symbols-outlined text-2xl">hotel</span>
+                              <div className="text-left">
+                                <p className="font-black">Hotel Pass</p>
+                                <p className="text-xs text-white/80 font-normal">All Hotel Reservations</p>
+                              </div>
+                            </div>
+                            <span className="material-symbols-outlined">download</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="text-center pt-4 border-t border-slate-200">
+                    <p className="text-sm text-slate-500">
+                      Please present these tickets at the conference registration desk and hotel check-in.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : isPending ? (
+              <div className="rounded-xl border-2 border-secondary bg-mint-whisper/40 p-8 shadow-lg">
+                <div className="flex items-center justify-center mb-6">
+                  <div className="rounded-full bg-secondary/10 p-4">
+                    <span className="material-symbols-outlined text-4xl text-secondary">pending</span>
+                  </div>
+                </div>
+
+                <h2 className="text-2xl font-black text-center text-[#181112] mb-2">
+                  Payment Pending
+                </h2>
+                <p className="text-center text-slate-500 mb-6">
+                  Complete your payment to confirm your registration
+                </p>
+
+                <div className="border-t border-b border-slate-200 py-6 my-6">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Attendee</p>
+                      <p className="mt-1 text-lg font-bold text-[#181112]">{profile?.fullName}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Amount Due</p>
+                      <p className="mt-1 text-lg font-bold text-primary">{formatKoboToNaira(ticketPrice)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <button
+                    type="button"
+                    onClick={handleCompletePayment}
+                    disabled={isInitializingPayment}
+                    className="w-full rounded-lg bg-primary px-6 py-3 font-bold text-white shadow-lg hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {isInitializingPayment ? (
+                      <>
+                        <span className="inline-block size-5 animate-spin rounded-full border-2 border-white/30 border-t-white mr-2 align-middle" />
+                        Initializing...
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined mr-2 align-middle">payments</span>
+                        Complete Payment
+                      </>
+                    )}
+                  </button>
+                  <p className="text-xs text-center text-slate-500">
+                    You will be redirected to our secure payment provider.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-slate-200 bg-white p-8 text-center">
+                <span className="material-symbols-outlined text-4xl text-slate-300 mb-4">help</span>
+                <h2 className="text-xl font-black text-[#181112] mb-2">Registration Status Unknown</h2>
+                <p className="text-slate-500 mb-4">
+                  We couldn&apos;t determine your registration status. Please contact support for assistance.
+                </p>
+                <Link
+                  href="/member/support"
+                  className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 font-bold text-slate-700 hover:bg-slate-200 transition-colors"
+                >
+                  <span className="material-symbols-outlined">support</span>
+                  Contact Support
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+    </MemberPortalShell>
+  );
+}

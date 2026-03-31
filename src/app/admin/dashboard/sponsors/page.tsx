@@ -17,7 +17,7 @@ const STATUS_OPTIONS: SponsorStatus[] = [
   "cancelled",
 ];
 
-const TIER_OPTIONS: SponsorTier[] = ["platinum", "gold", "silver", "bronze", "custom"];
+const TIER_OPTIONS: SponsorTier[] = ["headliner", "platinum", "gold", "silver", "custom"];
 
 export default function SponsorsPage() {
   const [page, setPage] = useState(1);
@@ -161,7 +161,7 @@ export default function SponsorsPage() {
                     </td>
                     <td className="px-6 py-4 text-sm text-[#181112] dark:text-white/70">{row.primaryContactName}</td>
                     <td className="px-6 py-4 text-sm text-slate-600 dark:text-white/70">{formatKoboToNaira(row.sponsorAmount)}</td>
-                    <td className="px-6 py-4 text-sm text-[#181112] dark:text-white/70">{row.tier ?? "custom"}</td>
+                    <td className="px-6 py-4 text-sm text-[#181112] dark:text-white/70">{row.highestSponsorshipTier ?? row.tier ?? "custom"}</td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-secondary/10 text-secondary dark:bg-secondary/20 dark:text-secondary">
                         {row.status.replaceAll("_", " ")}

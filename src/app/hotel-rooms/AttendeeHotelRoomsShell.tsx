@@ -13,14 +13,20 @@ import { useAuthStore } from "@/stores/auth-store";
 export function AttendeeHotelRoomsShell({
   children,
   userEmail,
+  fullName,
+  regType,
 }: {
   children: React.ReactNode;
   userEmail?: string;
+  fullName?: string;
+  regType?: "member" | "attendee";
 }) {
   const pathname = usePathname();
   const queryClient = useQueryClient();
   const clearUser = useAuthStore((s) => s.clearUser);
   const [loggingOut, setLoggingOut] = useState(false);
+
+  const isMember = regType === "member";
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -45,7 +51,7 @@ export function AttendeeHotelRoomsShell({
 
   return (
     <ResponsivePortalShell
-      mobileTitle="Hotel booking"
+      mobileTitle={isMember ? "Member Portal" : "Attendee Portal"}
       sidebarClassName="border-r border-primary/10 bg-white"
       sidebar={
         <>
@@ -53,29 +59,60 @@ export function AttendeeHotelRoomsShell({
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-primary text-2xl">hotel</span>
               <div className="min-w-0">
-                <p className="text-sm font-bold text-[#181112] leading-tight">Hotel booking</p>
+                <p className="text-sm font-bold text-charcoal leading-tight">Hotel booking</p>
                 <p className="text-xs text-slate-500 truncate">ANPMP Lagos Conference 2026</p>
               </div>
             </div>
           </div>
 
           <nav className="flex-1 space-y-2 px-3 py-4">
-            <Link href="/" className={itemClass("/")}>
-              <span className="material-symbols-outlined">home</span>
-              Home
-            </Link>
-            <Link href="/hotel-rooms" className={itemClass("/hotel-rooms")}>
-              <span className="material-symbols-outlined">bed</span>
-              Hotel rooms
-            </Link>
+            {isMember ? (
+              <>
+                <Link href="/member/dashboard" className={itemClass("/member/dashboard")}>
+                  <span className="material-symbols-outlined">account_circle</span>
+                  Profile
+                </Link>
+                <Link href="/member/tickets" className={itemClass("/member/tickets")}>
+                  <span className="material-symbols-outlined">confirmation_number</span>
+                  My Ticket
+                </Link>
+                <Link href="/hotel-rooms" className={itemClass("/hotel-rooms")}>
+                  <span className="material-symbols-outlined">bed</span>
+                  Hotel rooms
+                </Link>
+                <Link href="/support" className={itemClass("/support")}>
+                  <span className="material-symbols-outlined">support</span>
+                  Support
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/attendee/dashboard" className={itemClass("/attendee/dashboard")}>
+                  <span className="material-symbols-outlined">account_circle</span>
+                  Profile
+                </Link>
+                <Link href="/attendee/tickets" className={itemClass("/attendee/tickets")}>
+                  <span className="material-symbols-outlined">confirmation_number</span>
+                  My Ticket
+                </Link>
+                <Link href="/hotel-rooms" className={itemClass("/hotel-rooms")}>
+                  <span className="material-symbols-outlined">bed</span>
+                  Hotel rooms
+                </Link>
+                <Link href="/support" className={itemClass("/support")}>
+                  <span className="material-symbols-outlined">support</span>
+                  Support
+                </Link>
+              </>
+            )}
           </nav>
 
           <div className="space-y-3 border-t border-primary/10 px-4 py-5">
-            {userEmail ? (
-              <p className="truncate px-1 text-xs text-slate-500" title={userEmail}>
-                Signed in as <span className="font-semibold text-[#181112]">{userEmail}</span>
-              </p>
-            ) : null}
+            <div className="px-1">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Account</p>
+              <p className="text-sm font-medium text-charcoal mt-1">{fullName || userEmail || "User"}</p>
+              {isMember && <p className="text-xs text-slate-500">ANPMP Member</p>}
+            </div>
             <button
               type="button"
               onClick={() => void handleLogout()}

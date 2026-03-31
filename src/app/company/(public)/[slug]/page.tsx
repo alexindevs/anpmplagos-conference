@@ -3,7 +3,9 @@ import Link from "next/link";
 import { cache } from "react";
 import { notFound } from "next/navigation";
 import { getPublicExhibitorBySlug, type PublicExhibitorProfile } from "@/lib/api";
+import { companyLogoImageUrl } from "@/lib/company-branding";
 import ExhibitorViewTracker from "./ExhibitorViewTracker";
+import { WhatsAppButton } from "./components/WhatsAppButton";
 
 export const dynamic = "force-dynamic";
 
@@ -65,12 +67,13 @@ export default async function PublicCompanyProfilePage({
 
   const webHref = websiteHref(exhibitor.website);
   const paragraphs = descriptionParagraphs(exhibitor.description);
-  const displayTier = (exhibitor.effectiveDisplayTier ?? exhibitor.tier)?.trim();
+  const displayTier = (exhibitor.highestSponsorshipTier ?? exhibitor.effectiveDisplayTier ?? exhibitor.tier)?.trim();
   const tierLabel = displayTier ? `${displayTier} partner` : "Conference partner";
 
   const bannerStyle = exhibitor.headerImage
     ? { backgroundImage: `url("${exhibitor.headerImage}")` }
     : undefined;
+  const logoUrl = companyLogoImageUrl(exhibitor);
 
   return (
     <main className="mx-auto w-full max-w-[1280px] flex-1 px-4 py-6 sm:px-10 sm:py-10">
@@ -87,10 +90,10 @@ export default async function PublicCompanyProfilePage({
         </div>
         <div className="relative -mt-12 px-6 sm:-mt-16 sm:px-10">
           <div className="relative z-10 inline-block overflow-hidden rounded-lg border border-[#e6e0e0] bg-white shadow-md">
-            {exhibitor.profileImage ? (
+            {logoUrl ? (
               <div
                 className="h-24 w-24 bg-cover bg-center bg-no-repeat sm:h-32 sm:w-32"
-                style={{ backgroundImage: `url("${exhibitor.profileImage}")` }}
+                style={{ backgroundImage: `url("${logoUrl}")` }}
                 data-alt={`${exhibitor.companyName} logo`}
               />
             ) : (
@@ -176,19 +179,20 @@ export default async function PublicCompanyProfilePage({
                       ) : (
                         <div className="mb-4 flex-1" />
                       )}
-                      {product.linkUrl?.trim() ? (
-                        <a
-                          href={product.linkUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center text-sm font-medium text-primary hover:text-red-700"
-                        >
-                          Learn more
-                          <span className="material-symbols-outlined ml-1 text-[16px]">open_in_new</span>
-                        </a>
-                      ) : (
-                        <span className="text-xs text-[#896165]">No external link</span>
-                      )}
+                      <div className="flex items-center gap-3">
+                        {product.linkUrl?.trim() ? (
+                          <a
+                            href={product.linkUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center text-sm font-medium text-primary hover:text-red-700"
+                          >
+                            Learn more
+                            <span className="material-symbols-outlined ml-1 text-[16px]">open_in_new</span>
+                          </a>
+                        ) : null}
+                        <WhatsAppButton slug={slug} productId={product.id} />
+                      </div>
                     </div>
                   </div>
                 ))}

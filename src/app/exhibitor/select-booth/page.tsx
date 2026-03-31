@@ -23,14 +23,14 @@ import { useAuthSession } from "@/hooks/use-auth-session";
 
 /** Lower = higher tier (displayed first). Unknown tiers sort last. */
 const TIER_RANK: Record<string, number> = {
-  platinum: 0,
-  "platinum tier": 0,
-  gold: 1,
-  "gold tier": 1,
-  silver: 2,
-  "silver tier": 2,
-  bronze: 3,
-  "bronze tier": 3,
+  headliner: 0,
+  "headliner tier": 0,
+  platinum: 1,
+  "platinum tier": 1,
+  gold: 2,
+  "gold tier": 2,
+  silver: 3,
+  "silver tier": 3,
 };
 
 function tierRank(tier: string | null | undefined): number {

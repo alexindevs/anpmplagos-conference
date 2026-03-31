@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { companyLogoImageUrl } from "@/lib/company-branding";
 import { getPublicCompanies, type PublicCompany } from "@/lib/api";
 
 const FOOTER_LOGO_SLOTS = 4;
@@ -11,7 +12,7 @@ function companySlug(c: PublicCompany): string {
 }
 
 function companyLogoUrl(c: PublicCompany): string {
-  return (c.profileImage?.trim() || c.headerImage?.trim() || "");
+  return companyLogoImageUrl(c) || c.headerImage?.trim() || "";
 }
 
 export default async function Footer() {
@@ -26,11 +27,11 @@ export default async function Footer() {
   }
 
   return (
-    <footer className="bg-secondary text-white py-16" id="contact">
+    <footer className="bg-deep-forest text-white py-20" id="contact">
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-1 md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-3 mb-6">
               <Image
                 src="/anpmp-logo.jpg"
                 alt="ANPMP"
@@ -38,15 +39,14 @@ export default async function Footer() {
                 height={48}
                 className="h-10 w-auto object-contain md:h-12"
               />
-              <h2 className="text-2xl font-bold">ANPMP</h2>
+              <h2 className="text-2xl font-serif font-bold">ANPMP</h2>
             </div>
-            <p className="text-white/80 text-sm leading-relaxed">
-              The Association of Nigerian Private Medical Practitioners.
-              Committed to enhancing healthcare delivery across the nation.
+            <p className="text-white/70 text-sm leading-relaxed">
+              Since 1978, ANPMP has represented Nigeria&apos;s private medical practitioners — advocating for better policy, stronger practices, and professional excellence.
             </p>
           </div>
           <div>
-            <h3 className="text-lg font-bold mb-4">Quick Links</h3>
+            <h3 className="text-lg font-bold mb-6">Quick Links</h3>
             <ul className="space-y-2 text-sm text-white/80">
               <li>
                 <Link href="/" className="hover:text-white hover:underline">
@@ -80,8 +80,8 @@ export default async function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-bold mb-4">Contact Us</h3>
-            <ul className="space-y-3 text-sm text-white/80">
+            <h3 className="text-lg font-bold mb-6">Contact Us</h3>
+            <ul className="space-y-3 text-sm text-white/70">
               <li className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-base">
                   mail
@@ -92,7 +92,7 @@ export default async function Footer() {
                 <span className="material-symbols-outlined text-base">
                   call
                 </span>
-                +234 800 ANPMP 00
+                +234 1 277 2700
               </li>
               <li className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-base">
@@ -103,10 +103,10 @@ export default async function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-bold mb-4">Follow Us</h3>
-            <div className="flex gap-4">
+            <h3 className="text-lg font-bold mb-6">Follow Us</h3>
+            <div className="flex gap-3">
               <a
-                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                className="w-10 h-10 bg-white/10 flex items-center justify-center hover:bg-fresh-green transition-all"
                 href="#"
               >
                 <span className="material-symbols-outlined text-xl">
@@ -114,7 +114,7 @@ export default async function Footer() {
                 </span>
               </a>
               <a
-                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                className="w-10 h-10 bg-white/10 flex items-center justify-center hover:bg-fresh-green transition-all"
                 href="#"
               >
                 <span className="material-symbols-outlined text-xl">
@@ -122,7 +122,7 @@ export default async function Footer() {
                 </span>
               </a>
               <a
-                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                className="w-10 h-10 bg-white/10 flex items-center justify-center hover:bg-fresh-green transition-all"
                 href="#"
               >
                 <span className="material-symbols-outlined text-xl">
@@ -161,9 +161,8 @@ export default async function Footer() {
             </div>
           </div>
         ) : null}
-        <div className="text-center mt-12 text-xs text-white/50">
-          © 2026 Association of Nigerian Private Medical Practitioners. All
-          rights reserved.
+        <div className="text-center mt-12 text-sm text-white/50 font-mono">
+          © 2026 Association of Nigerian Private Medical Practitioners. All rights reserved.
         </div>
       </div>
     </footer>

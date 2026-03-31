@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ApiError,
@@ -123,8 +124,7 @@ function SlotsTable({
                   <tr key={row.id} className="hover:bg-primary/5 dark:hover:bg-background-dark-softer">
                     <td className="px-4 py-3">
                       {img ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={img} alt="" className="size-12 rounded-lg object-cover border border-slate-100" />
+                        <Image src={img} alt="" width={48} height={48} className="size-12 rounded-lg object-cover border border-slate-100" />
                       ) : (
                         <div className="size-12 rounded-lg bg-slate-100 dark:bg-background-dark-softer" />
                       )}

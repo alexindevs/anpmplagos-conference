@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useReducer } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13,6 +14,7 @@ import {
   getExhibitorRepresentatives,
   deleteExhibitorProduct,
   deleteExhibitorRepresentative,
+  getExhibitorProfile,
 } from "@/lib/api";
 import { boothPrimaryName, boothSizeTierLine } from "@/lib/booth-display";
 import {
@@ -144,6 +146,26 @@ export default function ExhibitorDashboardPage() {
     retry: false,
   });
 
+  // Fetch company profile to check tier
+  const {
+    data: profile,
+    isPending: profileLoading,
+  } = useQuery({
+    queryKey: ["exhibitor", "profile", "tier-check"],
+    queryFn: getExhibitorProfile,
+    enabled: Boolean(exhibitorId) && !meLoading,
+    retry: false,
+  });
+
+  // Determine if user can add products (Gold tier or higher)
+  const canAddProducts = useMemo(() => {
+    if (!profile) return false;
+    const tier = (profile.highestSponsorshipTier ?? profile.effectiveDisplayTier ?? profile.tier ?? "").trim().toLowerCase();
+    if (!tier) return false;
+    // Allowed tiers: headliner, platinum, gold
+    return ["headliner", "platinum", "gold"].includes(tier);
+  }, [profile]);
+
   const deleteProductMutation = useMutation({
     mutationFn: deleteExhibitorProduct,
     onSuccess: () => {
@@ -185,7 +207,7 @@ export default function ExhibitorDashboardPage() {
 
   const stats = dashboardData?.stats ?? {
     profileViews: 0,
-    totalLeads: 0,
+    totalMembers: 0,
     inquiryRatePercent: 0,
     whatsappProductClicks: 0,
   };
@@ -256,9 +278,9 @@ export default function ExhibitorDashboardPage() {
                 ) : (
                   <>
                     <p className="text-2xl font-black text-[#181112] mt-2">
-                      {stats.totalLeads.toLocaleString()}
+                      {stats.totalMembers.toLocaleString()}
                     </p>
-                    {stats.totalLeads > 0 && (
+                    {stats.totalMembers > 0 && (
                       <p className="text-xs text-green-700 mt-2">
                         {stats.inquiryRatePercent.toFixed(1)}% inquiry rate
                       </p>
@@ -351,14 +373,27 @@ export default function ExhibitorDashboardPage() {
                 <button
                   type="button"
                   onClick={() => dispatchModal({ type: "OPEN_ADD_PRODUCT" })}
-                  className="w-full flex items-center justify-between rounded-lg bg-slate-50 border border-primary/10 px-4 py-3 hover:bg-primary/5 transition-colors"
+                  disabled={!canAddProducts}
+                  className={`w-full flex items-center justify-between rounded-lg px-4 py-3 transition-colors ${
+                    canAddProducts
+                      ? "bg-slate-50 border border-primary/10 hover:bg-primary/5"
+                      : "bg-slate-100 border border-slate-200 cursor-not-allowed opacity-60"
+                  }`}
+                  title={canAddProducts ? "Add a new product" : "Upgrade to Gold or higher tier to add products"}
                 >
-                  <span className="flex items-center gap-2 font-bold text-slate-700">
-                    <span className="material-symbols-outlined text-primary">add</span>
+                  <span className={`flex items-center gap-2 font-bold ${canAddProducts ? "text-slate-700" : "text-slate-500"}`}>
+                    <span className={`material-symbols-outlined ${canAddProducts ? "text-primary" : "text-slate-400"}`}>add</span>
                     Add New Product
                   </span>
-                  <span className="material-symbols-outlined text-slate-400">chevron_right</span>
+                  <span className={`material-symbols-outlined ${canAddProducts ? "text-slate-400" : "text-slate-300"}`}>
+                    {canAddProducts ? "chevron_right" : "lock"}
+                  </span>
                 </button>
+                {!canAddProducts && !profileLoading && (
+                  <p className="text-xs text-amber-600 mt-2">
+                    Product creation is available for Gold tier sponsors and above.
+                  </p>
+                )}
                 <button
                   type="button"
                   onClick={() => dispatchModal({ type: "OPEN_ADD_REPRESENTATIVE" })}
@@ -542,12 +577,7 @@ export default function ExhibitorDashboardPage() {
                   >
                     <div className="shrink-0">
                       {img ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={img}
-                          alt=""
-                          className="size-16 sm:size-20 rounded-lg object-cover border border-primary/10 bg-slate-100"
-                        />
+                        <Image src={img} alt="" width={80} height={80} className="size-16 sm:size-20 rounded-lg object-cover border border-primary/10 bg-slate-100" />
                       ) : (
                         <div className="size-16 sm:size-20 rounded-lg border border-dashed border-primary/20 bg-slate-50 flex items-center justify-center text-slate-400">
                           <span className="material-symbols-outlined text-2xl">image</span>

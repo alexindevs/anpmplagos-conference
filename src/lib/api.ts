@@ -104,7 +104,12 @@ export interface ExhibitorProfile {
   boothPreference?: string;
   hotelBookingUrl?: string;
   tier?: string;
+  highestSponsorshipTier?: string | null;
+  effectiveDisplayTier?: string | null;
   headerImage?: string;
+  /** Company logo (Cloudinary URL). */
+  logo?: string;
+  /** @deprecated Prefer `logo`; may still be present on older API payloads */
   profileImage?: string;
   profileViews?: number;
   representatives?: ExhibitorRepresentative[];
@@ -117,7 +122,7 @@ export interface ExhibitorProfile {
 /** Dashboard aggregated stats */
 export interface ExhibitorDashboardStats {
   profileViews: number;
-  totalLeads: number;
+  totalMembers: number;
   inquiryRatePercent: number;
   whatsappProductClicks: number;
 }
@@ -155,7 +160,8 @@ export interface UpdateExhibitorProfileInput {
   primaryContactPhone?: string;
   hotelBookingUrl?: string;
   headerImage?: string;
-  profileImage?: string;
+  /** Company logo URL (JSON PATCH). Do not send `profileImage` for companies. */
+  logo?: string;
 }
 
 /** Create representative */
@@ -188,6 +194,11 @@ export interface UpdateProductInput {
   imageUrl?: string;
   linkUrl?: string;
   sortOrder?: number;
+}
+
+/** GET /api/companies/public/{slug}/products/{productId}/whatsapp */
+export async function getProductWhatsAppContact(slug: string, productId: string): Promise<{ redirectUrl: string }> {
+  return apiFetch<{ redirectUrl: string }>(`/api/companies/public/${slug}/products/${productId}/whatsapp`);
 }
 
 // ==================== Exhibitor Portal API Functions ====================
@@ -399,7 +410,7 @@ export interface RegistrationResponse {
 }
 
 export type SponsorStatus = "pending_pledge" | "pending_payment" | "active" | "cancelled";
-export type SponsorTier = "platinum" | "gold" | "silver" | "bronze" | "custom";
+export type SponsorTier = "headliner" | "platinum" | "gold" | "silver" | "custom";
 export type SessionStatus = "draft" | "published" | "cancelled";
 
 export interface PaginatedResponse<T> {
@@ -421,6 +432,7 @@ export interface SponsorSummary {
   sponsorAmount?: number;
   status: SponsorStatus;
   tier?: SponsorTier;
+  highestSponsorshipTier?: string | null;
   logo?: string;
   headerImage?: string;
   booth?: Booth | null;
@@ -448,8 +460,11 @@ export interface ExhibitorSummary {
   primaryContactPhone: string;
   boothPreference?: string;
   headerImage?: string;
-  profileImage?: string;
+  /** Company logo */
   logo?: string;
+  /** @deprecated Prefer `logo` */
+  profileImage?: string;
+  highestSponsorshipTier?: string | null;
   tier?: SponsorTier | string;
   sponsorAmount?: number;
   status?: string;
@@ -650,6 +665,8 @@ export interface AdminDashboardRecentRegistration {
   userId: string;
   name: string;
   profilePicture: string | null;
+  /** Company logo when API returns it separately from `profilePicture`. */
+  logo?: string | null;
   regType: string;
   regTypeLabel: string;
   createdAt: string;
@@ -970,6 +987,8 @@ export interface AdminRegistrationRow {
   name: string;
   email: string;
   profileImage: string | null;
+  /** Set for `company` rows when API returns it separately from `profileImage`. */
+  logo?: string | null;
   /** RegType, e.g. `member`, `attendee`, `company`, `speaker`, `special_guest` */
   type: string;
   registeredAt: string;
@@ -1279,6 +1298,8 @@ export interface PublicExhibitor {
   highestSponsorshipTier?: string | null;
   website?: string;
   headerImage?: string;
+  logo?: string;
+  /** @deprecated Prefer `logo` */
   profileImage?: string;
   booth?: Booth | null;
 }
@@ -1346,6 +1367,8 @@ export interface PublicExhibitorProfile {
   primaryContactPhone: string;
   description: string;
   headerImage: string | null;
+  logo: string | null;
+  /** @deprecated Prefer `logo` */
   profileImage: string | null;
   booth: PublicExhibitorProfileBooth | null;
   /** Normalized from API `representatives` (companies) or legacy `boothReps`. */
@@ -1385,6 +1408,8 @@ export async function getPublicExhibitorBySlug(
       description: rawDescription ?? "",
       boothReps: rawBoothReps ?? representatives ?? [],
       products: rawProducts ?? [],
+      logo: rest.logo ?? null,
+      profileImage: rest.profileImage ?? null,
     };
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) return null;
@@ -1410,7 +1435,7 @@ export async function getPublicSponsors(): Promise<PublicSponsor[]> {
     tagline: c.tagline,
     website: c.website,
     tier: (c.tier ?? c.effectiveDisplayTier ?? "custom") as SponsorTier,
-    logo: c.profileImage,
+    logo: c.logo?.trim() || c.profileImage?.trim() || undefined,
     headerImage: c.headerImage,
     booth: c.booth ?? undefined,
   }));
@@ -1422,6 +1447,7 @@ export interface SponsorshipPlanCatalogItem {
   priceInKobo: number;
   tier: string;
   perks?: string[];
+  isActive?: boolean;
 }
 
 export async function getSponsorshipPlans(): Promise<SponsorshipPlanCatalogItem[]> {
@@ -2045,4 +2071,223 @@ export async function respondToSupportTicket(
       body: JSON.stringify({ responseText: responseText.trim() }),
     }
   );
+}
+
+// ==================== Member/Attendee Registration APIs ====================
+
+export interface MemberRegistrationInput {
+  regType: "member";
+  email: string;
+  password: string;
+  fullName: string;
+  phone: string;
+  anpmpId: string;
+  bio?: string;
+  hasSpouse: boolean;
+  spouseName?: string;
+  spouseEmail?: string;
+  spousePhone?: string;
+  primarySpecialty: string;
+  hospitalOrg: string;
+  avatar?: File | null;
+}
+
+export interface NonMemberRegistrationInput {
+  regType: "non-member";
+  email: string;
+  password: string;
+  fullName: string;
+  phone: string;
+  bio?: string;
+  inMedicalField: boolean;
+  primarySpecialty?: string;
+  hospitalOrg?: string;
+  occupation?: string;
+  avatar?: File | null;
+}
+
+export type IndividualRegistrationInput = MemberRegistrationInput | NonMemberRegistrationInput;
+
+export interface IndividualRegistrationResponse {
+  id: string;
+  status: string;
+  createdAt: string;
+  message: string;
+}
+
+export interface MemberProfile {
+  id: string;
+  userId: string;
+  fullName: string;
+  phone: string;
+  anpmpId: string;
+  bio?: string | null;
+  hasSpouse: boolean;
+  spouseName?: string | null;
+  spouseEmail?: string | null;
+  spousePhone?: string | null;
+  primarySpecialty: string;
+  hospitalOrg: string;
+  avatar?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AttendeeProfile {
+  id: string;
+  userId: string;
+  fullName: string;
+  phone: string;
+  bio?: string | null;
+  inMedicalField: boolean;
+  primarySpecialty?: string | null;
+  hospitalOrg?: string | null;
+  occupation?: string | null;
+  avatar?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type IndividualProfile = MemberProfile | AttendeeProfile;
+
+export interface RegistrationPaymentInitializeResponse {
+  reference: string;
+  authorizationUrl: string;
+  accessCode: string;
+  amount: number;
+  baseAmount: number;
+}
+
+export async function createIndividualRegistration(
+  input: IndividualRegistrationInput
+): Promise<IndividualRegistrationResponse> {
+  const fd = new FormData();
+  fd.append("regType", input.regType);
+  fd.append("email", input.email);
+  fd.append("password", input.password);
+  fd.append("fullName", input.fullName);
+  fd.append("phone", input.phone);
+  if (input.bio) fd.append("bio", input.bio);
+
+  if (input.regType === "member") {
+    fd.append("anpmpId", input.anpmpId);
+    fd.append("hasSpouse", input.hasSpouse ? "true" : "false");
+    if (input.hasSpouse) {
+      if (input.spouseName) fd.append("spouseName", input.spouseName);
+      if (input.spouseEmail) fd.append("spouseEmail", input.spouseEmail);
+      if (input.spousePhone) fd.append("spousePhone", input.spousePhone);
+    }
+    fd.append("primarySpecialty", input.primarySpecialty);
+    fd.append("hospitalOrg", input.hospitalOrg);
+  } else {
+    fd.append("inMedicalField", input.inMedicalField ? "true" : "false");
+    if (input.inMedicalField) {
+      if (input.primarySpecialty) fd.append("primarySpecialty", input.primarySpecialty);
+      if (input.hospitalOrg) fd.append("hospitalOrg", input.hospitalOrg);
+    }
+    if (input.occupation) fd.append("occupation", input.occupation);
+  }
+
+  if (input.avatar) {
+    fd.append("avatar", input.avatar);
+  }
+
+  return apiFetch<IndividualRegistrationResponse>("/api/registrations", {
+    method: "POST",
+    body: fd,
+  });
+}
+
+export async function initializeRegistrationPayment(userId: string): Promise<RegistrationPaymentInitializeResponse> {
+  return apiFetch<RegistrationPaymentInitializeResponse>("/api/payments/registration", {
+    method: "POST",
+    body: JSON.stringify({ userId }),
+  });
+}
+
+export async function getMyRegistration(): Promise<{
+  id: string;
+  status: string;
+  user: {
+    id: string;
+    email: string;
+    regType: "member" | "attendee" | "non-member";
+    registrationStatus: string;
+  };
+  member?: MemberProfile;
+  attendee?: AttendeeProfile;
+  payment?: {
+    reference: string;
+    status: string;
+    paidAt: string | null;
+  };
+}> {
+  return apiFetch("/api/registrations/me");
+}
+
+export async function verifyRegistrationPayment(reference: string): Promise<{
+  success: boolean;
+  payment: Payment;
+  paystackData: Record<string, unknown>;
+}> {
+  return apiFetch(`/api/payments/paystack/verify/${encodeURIComponent(reference)}`);
+}
+
+// ==================== Event Pass API ====================
+
+export interface ConferencePassData {
+  avatar: string;
+  name: string;
+  ticketType: "member" | "attendee" | "company";
+  bio: string;
+  qrCodeUrl: string;
+  viewCount: number;
+}
+
+export interface HotelBooking {
+  hotelName: string;
+  rooms: { roomType: string }[];
+}
+
+export interface HotelPassData {
+  name: string;
+  avatar: string;
+  hotels: HotelBooking[];
+  qrCodeUrl: string;
+}
+
+export interface EventPassSummary {
+  conferencePass: {
+    qrCodeUrl: string;
+    viewCount: number;
+    createdAt: string;
+  } | null;
+  hotelPass: {
+    qrCodeUrl: string;
+    createdAt: string;
+  } | null;
+}
+
+export async function generateConferencePass(userId: string): Promise<{ qrCodeUrl: string }> {
+  return apiFetch<{ qrCodeUrl: string }>(`/api/event-pass/conference/${userId}`, {
+    method: "POST",
+  });
+}
+
+export async function getConferencePassData(userId: string): Promise<ConferencePassData> {
+  return apiFetch<ConferencePassData>(`/api/event-pass/conference/${userId}`);
+}
+
+export async function generateHotelPass(userId: string): Promise<{ qrCodeUrl: string }> {
+  return apiFetch<{ qrCodeUrl: string }>(`/api/event-pass/hotel/${userId}`, {
+    method: "POST",
+  });
+}
+
+export async function getHotelPassData(userId: string): Promise<HotelPassData> {
+  return apiFetch<HotelPassData>(`/api/event-pass/hotel/${userId}`);
+}
+
+export async function getMyEventPasses(): Promise<EventPassSummary> {
+  return apiFetch<EventPassSummary>("/api/event-pass");
 }

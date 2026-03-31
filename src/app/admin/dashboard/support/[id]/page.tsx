@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -141,9 +142,8 @@ export default function AdminSupportTicketDetailPage() {
             <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
               {data.screenshotUrls.map((url) => (
                 <li key={url} className="overflow-hidden rounded-lg border border-slate-200 dark:border-border-dark">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <a href={url} target="_blank" rel="noopener noreferrer" className="block">
-                    <img src={url} alt="" className="max-h-64 w-full bg-slate-50 object-contain dark:bg-background-dark" />
+                    <Image src={url} alt="" width={400} height={256} className="max-h-64 w-full bg-slate-50 object-contain dark:bg-background-dark" />
                   </a>
                 </li>
               ))}

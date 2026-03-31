@@ -68,7 +68,6 @@ export default function CompanySupportPage() {
                   <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Status</th>
                   <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Submitted</th>
                   <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-slate-500">
-                    View
                   </th>
                 </tr>
               </thead>

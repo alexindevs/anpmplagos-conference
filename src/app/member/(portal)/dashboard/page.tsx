@@ -1,0 +1,259 @@
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+import { useAuthSession } from "@/hooks/use-auth-session";
+import { getMyRegistration, formatKoboToNaira, type MemberProfile, type AttendeeProfile } from "@/lib/api";
+import { MemberPortalShell } from "../../components/MemberPortalShell";
+import Image from "next/image";
+
+const PRICE_MEMBER = 4000000; // 40,000 NGN in kobo
+const PRICE_NON_MEMBER = 5500000; // 55,000 NGN in kobo
+
+export default function MemberDashboardPage() {
+  const { data: user } = useAuthSession();
+
+  const { data: registration, isLoading } = useQuery({
+    queryKey: ["member", "registration"],
+    queryFn: getMyRegistration,
+    enabled: !!user,
+  });
+
+  const profile = registration?.member || registration?.attendee;
+  const isMember = registration?.user?.regType === "member";
+  const memberProfile = profile as MemberProfile | undefined;
+  const attendeeProfile = profile as AttendeeProfile | undefined;
+
+  const fullName = profile?.fullName || user?.member?.fullName || user?.attendee?.fullName || "Member";
+  const userId = user?.id || "";
+
+  const ticketPrice = isMember ? PRICE_MEMBER : PRICE_NON_MEMBER;
+  const isPaid = registration?.payment?.status === "success";
+  const isPending = registration?.user?.registrationStatus === "pending_payment";
+
+  const avatarUrl = profile?.avatar
+    ? profile.avatar.startsWith("http")
+      ? profile.avatar
+      : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}${profile.avatar}`
+    : null;
+
+  return (
+    <MemberPortalShell userId={userId} fullName={fullName}>
+      <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <div className="mb-6 border-l-4 border-primary pl-4">
+          <h1 className="text-2xl font-black text-[#181112]">Welcome, {fullName}</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            {isMember ? "ANPMP Member" : "Conference Attendee"} · {registration?.user?.email}
+          </p>
+        </div>
+
+        {isLoading ? (
+          <div className="space-y-4">
+            <div className="h-32 rounded-xl bg-slate-100 animate-pulse" />
+            <div className="h-64 rounded-xl bg-slate-100 animate-pulse" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Registration Status */}
+            <div className="lg:col-span-2 space-y-6">
+              <section className="rounded-xl border border-primary/20 bg-white p-6 shadow-sm">
+                <h2 className="text-lg font-black text-[#181112] mb-4 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">badge</span>
+                  Registration Status
+                </h2>
+
+                <div className="flex items-center gap-4 mb-6">
+                  <div className={`rounded-full p-3 ${isPaid ? "bg-secondary/10" : isPending ? "bg-mint-whisper" : "bg-slate-100"}`}>
+                    <span className={`material-symbols-outlined text-2xl ${isPaid ? "text-secondary" : isPending ? "text-secondary" : "text-slate-500"}`}>
+                      {isPaid ? "check_circle" : isPending ? "pending" : "hourglass_empty"}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-bold text-[#181112]">
+                      {isPaid ? "Registration Complete" : isPending ? "Payment Pending" : "Processing"}
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      {isPaid
+                        ? "Your registration is confirmed. View your ticket below."
+                        : isPending
+                        ? "Complete payment to confirm your registration."
+                        : "Your registration is being processed."}
+                    </p>
+                  </div>
+                </div>
+
+                {!isPaid && (
+                  <div className="rounded-lg bg-mint-whisper border border-secondary/20 p-4 mb-4">
+                    <p className="text-sm text-secondary">
+                      <span className="font-bold">Payment required.</span> Your registration will be confirmed after payment.
+                    </p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Registration Type</p>
+                    <p className="mt-1 text-lg font-black text-[#181112]">{isMember ? "Member" : "Non-Member"}</p>
+                  </div>
+                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-primary">Ticket Price</p>
+                    <p className="mt-1 text-lg font-black text-primary">{formatKoboToNaira(ticketPrice)}</p>
+                  </div>
+                </div>
+              </section>
+
+              {/* Profile Information */}
+              <section className="rounded-xl border border-primary/20 bg-white p-6 shadow-sm">
+                <h2 className="text-lg font-black text-[#181112] mb-4 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">person</span>
+                  Profile Information
+                </h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Full Name</p>
+                    <p className="mt-1 text-sm font-semibold text-[#181112]">{profile?.fullName || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Phone</p>
+                    <p className="mt-1 text-sm font-semibold text-[#181112]">{profile?.phone || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Email</p>
+                    <p className="mt-1 text-sm font-semibold text-[#181112]">{registration?.user?.email || "—"}</p>
+                  </div>
+                  {isMember && memberProfile && (
+                    <>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">ANPMP ID</p>
+                        <p className="mt-1 text-sm font-semibold text-[#181112]">{memberProfile.anpmpId || "—"}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Primary Specialty</p>
+                        <p className="mt-1 text-sm font-semibold text-[#181112]">{memberProfile.primarySpecialty ? memberProfile.primarySpecialty.charAt(0).toUpperCase() + memberProfile.primarySpecialty.slice(1) : "—"}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Hospital/Organization</p>
+                        <p className="mt-1 text-sm font-semibold text-[#181112]">{memberProfile.hospitalOrg || "—"}</p>
+                      </div>
+                    </>
+                  )}
+                  {!isMember && attendeeProfile && (
+                    <>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Medical Field</p>
+                        <p className="mt-1 text-sm font-semibold text-[#181112]">
+                          {attendeeProfile.inMedicalField ? "Yes" : "No"}
+                        </p>
+                      </div>
+                      {attendeeProfile.inMedicalField && (
+                        <>
+                          <div>
+                            <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Primary Specialty</p>
+                            <p className="mt-1 text-sm font-semibold text-[#181112]">{attendeeProfile.primarySpecialty || "—"}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Hospital/Organization</p>
+                            <p className="mt-1 text-sm font-semibold text-[#181112]">{attendeeProfile.hospitalOrg || "—"}</p>
+                          </div>
+                        </>
+                      )}
+                      {!attendeeProfile.inMedicalField && (
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Occupation</p>
+                          <p className="mt-1 text-sm font-semibold text-[#181112]">{attendeeProfile.occupation || "—"}</p>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {profile?.bio && (
+                  <div className="mt-4 pt-4 border-t border-slate-200">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Bio</p>
+                    <p className="mt-1 text-sm text-slate-600">{profile.bio}</p>
+                  </div>
+                )}
+              </section>
+
+              {/* Spouse Information (Members only) */}
+              {isMember && memberProfile?.hasSpouse && (
+                <section className="rounded-xl border border-primary/20 bg-white p-6 shadow-sm">
+                  <h2 className="text-lg font-black text-[#181112] mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary">group</span>
+                    Spouse Information
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Name</p>
+                      <p className="mt-1 text-sm font-semibold text-[#181112]">{memberProfile.spouseName || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Email</p>
+                      <p className="mt-1 text-sm font-semibold text-[#181112]">{memberProfile.spouseEmail || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Phone</p>
+                      <p className="mt-1 text-sm font-semibold text-[#181112]">{memberProfile.spousePhone || "—"}</p>
+                    </div>
+                  </div>
+                </section>
+              )}
+            </div>
+
+            {/* Sidebar */}
+            <aside className="space-y-6">
+              {/* Profile Photo */}
+              <section className="rounded-xl border border-primary/20 bg-white p-6 shadow-sm">
+                <h2 className="text-sm font-black text-[#181112] mb-4">Profile Photo</h2>
+                {avatarUrl ? (
+                  <div className="flex justify-center">
+                    <Image
+                      src={avatarUrl}
+                      alt={fullName}
+                      width={150}
+                      height={150}
+                      className="rounded-xl object-cover border border-slate-200"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex justify-center">
+                    <div className="flex size-32 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50">
+                      <span className="material-symbols-outlined text-4xl text-slate-300">person</span>
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              {/* Quick Actions */}
+              <section className="rounded-xl border border-primary/20 bg-white p-6 shadow-sm">
+                <h2 className="text-sm font-black text-[#181112] mb-4">Quick Actions</h2>
+                <div className="space-y-3">
+                  <a
+                    href="/member/tickets"
+                    className="flex w-full items-center justify-between rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 transition-colors hover:bg-primary/10"
+                  >
+                    <span className="flex items-center gap-2 font-bold text-primary">
+                      <span className="material-symbols-outlined">confirmation_number</span>
+                      View Ticket
+                    </span>
+                    <span className="material-symbols-outlined text-primary">chevron_right</span>
+                  </a>
+                  <a
+                    href="/hotel-rooms"
+                    className="flex w-full items-center justify-between rounded-lg border border-slate-200 px-4 py-3 transition-colors hover:bg-slate-50"
+                  >
+                    <span className="flex items-center gap-2 font-bold text-slate-700">
+                      <span className="material-symbols-outlined text-slate-500">hotel</span>
+                      Book Hotel
+                    </span>
+                    <span className="material-symbols-outlined text-slate-400">chevron_right</span>
+                  </a>
+                </div>
+              </section>
+            </aside>
+          </div>
+        )}
+      </main>
+    </MemberPortalShell>
+  );
+}

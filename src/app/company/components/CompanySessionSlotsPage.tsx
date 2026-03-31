@@ -200,7 +200,7 @@ export function CompanySessionSlotsPage({
           </div>
         ) : catalog.length === 0 ? (
           <div className="rounded-xl border border-dashed border-slate-200 bg-white px-6 py-10 text-center text-sm text-slate-600">
-            <span className={`material-symbols-outlined text-5xl text-slate-300 mb-3 block`}>{icon}</span>
+            <span className={`material-symbols-outlined text-5xl text-slate-300 mr-3 block`}>{icon}</span>
             There are no open slots in this category right now.
           </div>
         ) : (

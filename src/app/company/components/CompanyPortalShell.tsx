@@ -110,13 +110,18 @@ export function CompanyPortalShell({
               Marketing
             </Link>
 
+            <Link href="/company/sponsorship-plans" className={itemClass("/company/sponsorship-plans")}>
+              <span className="material-symbols-outlined">workspace_premium</span>
+              Sponsorship Plans
+            </Link>
+
             <button
               type="button"
               disabled
               className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-slate-400 font-semibold cursor-not-allowed opacity-60"
             >
               <span className="material-symbols-outlined">receipt_long</span>
-              Invoices
+              Tickets
             </button>
 
             <Link href="/company/support" className={itemClass("/company/support")}>
