@@ -162,6 +162,7 @@ export default function ExhibitorDashboardPage() {
   const canAddProducts = useMemo(() => {
     if (!profile) return false;
     const tier = (profile.highestSponsorshipTier ?? profile.effectiveDisplayTier ?? profile.tier ?? "").trim().toLowerCase();
+    console.log(tier)
     if (!tier) return false;
     // Allowed tiers: headliner, platinum, gold
     return ["headliner", "platinum", "gold"].includes(tier);

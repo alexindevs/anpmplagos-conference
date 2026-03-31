@@ -68,7 +68,7 @@ export default async function PublicCompanyProfilePage({
   const webHref = websiteHref(exhibitor.website);
   const paragraphs = descriptionParagraphs(exhibitor.description);
   const displayTier = (exhibitor.highestSponsorshipTier ?? exhibitor.effectiveDisplayTier ?? exhibitor.tier)?.trim();
-  const tierLabel = displayTier ? `${displayTier} partner` : "Conference partner";
+  const tierLabel = displayTier ? `${displayTier} Partner` : "Conference partner";
 
   const bannerStyle = exhibitor.headerImage
     ? { backgroundImage: `url("${exhibitor.headerImage}")` }
@@ -115,7 +115,7 @@ export default async function PublicCompanyProfilePage({
               </span>
             </div>
             {exhibitor.tagline?.trim() ? (
-              <p className="max-w-2xl text-sm text-[#896165] sm:text-base">{exhibitor.tagline}</p>
+              <p className="text-sm text-[#896165] sm:text-base">{exhibitor.tagline}</p>
             ) : null}
           </div>
           <div className="mb-2 hidden sm:block">
