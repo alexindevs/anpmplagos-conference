@@ -123,7 +123,7 @@ function BoothCardReadonly({
     (primaryContactName?.trim() || primaryContactPhone?.trim());
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-xl border-2 border-secondary/25 bg-white shadow-sm">
+    <div className="flex flex-col min-w-full overflow-hidden rounded-xl border-2 border-secondary/25 bg-white shadow-sm">
       {img ? <BoothCardImage src={img} alt={`${headline} booth`} /> : null}
       <div className="flex flex-col p-6 flex-1 min-h-0">
         <div className="flex items-start justify-between mb-3 gap-2">
@@ -397,7 +397,7 @@ export default function SelectBoothPage() {
                     </span>
                   ) : null}
                 </p>
-                <div className="max-w-md">
+                <div className="w-auto md:max-w-100">
                   <BoothCardReadonly booth={myBooth} badge="Yours" />
                 </div>
               </section>

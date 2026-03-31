@@ -49,9 +49,9 @@ export async function generateMetadata({
 }) {
   const { slug } = await params;
   const exhibitor = await getProfile(slug);
-  if (!exhibitor) return { title: "Partner - ANPMP Conference" };
+  if (!exhibitor) return { title: "Partner - ANPMP Lagos Conference" };
   return {
-    title: `${exhibitor.companyName} | ANPMP Sponsors`,
+    title: `${exhibitor.companyName} | ANPMP Lagos Sponsors`,
     description: exhibitor.tagline ?? exhibitor.description.slice(0, 160),
   };
 }

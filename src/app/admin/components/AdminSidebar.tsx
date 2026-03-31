@@ -14,6 +14,7 @@ const NAV = [
   { href: "/admin/dashboard/guests", label: "Guests", icon: "record_voice_over" },
   { href: "/admin/dashboard/hotel-bookings", label: "Hotel Bookings", icon: "night_shelter" },
   { href: "/admin/dashboard/companies", label: "Companies", icon: "business" },
+  { href: "/admin/dashboard/sponsorship-plans", label: "Sponsorship Plans", icon: "workspace_premium" },
   { href: "/admin/dashboard/marketing", label: "Marketing", icon: "campaign" },
   { href: "/admin/dashboard/media", label: "Media", icon: "perm_media" },
   { href: "/admin/dashboard/masterclasses", label: "Masterclasses", icon: "school" },
@@ -74,7 +75,7 @@ export function AdminSidebar({
         </div>
         {expanded ? (
           <div className="min-w-0">
-            <h1 className="truncate text-sm font-bold leading-tight text-[#181112] dark:text-white">ANPMP Admin</h1>
+            <h1 className="truncate text-sm font-bold leading-tight text-[#181112] dark:text-white">ANPMP Lagos Admin</h1>
             <p className="truncate text-xs font-medium text-primary">Conference 2026</p>
           </div>
         ) : null}

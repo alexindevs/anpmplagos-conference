@@ -16,6 +16,12 @@ function redirectAfterLogin(u: AuthUser): string {
   if (isAdminUser(u)) return "/admin/dashboard";
   if (u.regType === "company" || u.regType === "exhibitor" || u.regType === "sponsor")
     return "/company/dashboard";
+  if (u.regType === "member") {
+    return "/member/dashboard";
+  }
+  if (u.regType === "attendee") {
+    return "/attendee/dashboard";
+  }
   return "/register";
 }
 
@@ -58,16 +64,16 @@ export default function LoginPage() {
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute -left-16 bottom-0 size-[320px] rounded-full bg-secondary/8 blur-3xl"
+        className="pointer-events-none absolute -left-16 bottom-0 size-80 rounded-full bg-secondary/8 blur-3xl"
         aria-hidden
       />
 
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full max-w-[50%]">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-2xl border-2 border-secondary/30 bg-secondary/10 shadow-sm">
             <span className="material-symbols-outlined text-4xl text-secondary">lock</span>
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-[#181112]">
+          <h1 className="text-3xl font-black tracking-tight text-charcoal">
             <span className="text-primary">Log in</span>
             <span className="text-secondary"> to your account</span>
           </h1>

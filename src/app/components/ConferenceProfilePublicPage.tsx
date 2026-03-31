@@ -47,18 +47,7 @@ export default function ConferenceProfilePublicPage({
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
       <section className="relative border-b border-[#e6dbdc] bg-white">
         <div className="flex flex-1 justify-center px-4 py-10 md:px-40 md:py-12">
-          <div className="relative z-10 flex w-full max-w-[960px] flex-1 flex-col">
-            <div className="mb-6 flex flex-wrap items-center gap-2 text-sm font-medium text-[#896165]">
-              <Link href="/" className="hover:text-primary">
-                Home
-              </Link>
-              <span>/</span>
-              <Link href={listHref} className="hover:text-primary">
-                {listLabel}
-              </Link>
-              <span>/</span>
-              <span className="text-primary">{profile.name}</span>
-            </div>
+          <div className="relative z-10 flex w-full max-w-240 flex-1 flex-col">
             <div className="flex flex-col gap-8 md:flex-row md:items-start">
               <div className="relative mx-auto size-40 shrink-0 overflow-hidden rounded-full border-2 border-[#e6dbdc] bg-gray-100 md:mx-0 md:size-44">
                 {profile.profilePicture ? (

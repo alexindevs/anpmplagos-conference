@@ -124,7 +124,7 @@ export default function AdminPage() {
 
   return (
     <main className="flex min-h-[calc(100vh-80px)] flex-col items-center justify-center bg-gray-50 px-4 py-12">
-      <div className="w-full max-w-md space-y-8 rounded-2xl bg-white p-8 shadow-lg border border-gray-100">
+      <div className="w-[80%] md:w-[50%] max-w-[550px] space-y-8 rounded-2xl bg-white p-8 shadow-lg border border-gray-100">
         <div className="text-center">
           <h2 className="text-3xl font-black tracking-tight text-[#181112]">
             {mode === "login" && "Admin Login"}

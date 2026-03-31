@@ -1,26 +1,32 @@
 import type { Metadata } from "next";
-import { Inter, Merriweather } from "next/font/google";
+import { DM_Serif_Display, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import { QueryProvider } from "./providers/query-provider";
 import { Toaster } from "./components/ui/toaster";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const dmSerifDisplay = DM_Serif_Display({
+  variable: "--font-dm-serif",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "900"],
+  weight: ["400"],
 });
 
-const merriweather = Merriweather({
-  variable: "--font-merriweather",
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
-  weight: ["400", "700"],
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+const jetBrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "ANPMP Conference Landing Page",
-  description: "ANPMP Conference Landing Page",
+  title: "ANPMP Lagos Conference Landing Page",
+  description: "ANPMP Lagos Conference Landing Page",
 };
 
 export default function RootLayout({
@@ -38,7 +44,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} ${merriweather.variable} font-display bg-background-light dark:bg-background-dark text-[#181112] antialiased`}
+        className={`${dmSerifDisplay.variable} ${plusJakartaSans.variable} ${jetBrainsMono.variable} font-display bg-background-light dark:bg-background-dark text-[#181112] antialiased`}
       >
         <QueryProvider>
           <Header />

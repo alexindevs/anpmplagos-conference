@@ -68,7 +68,7 @@ export function CompanyPortalShell({
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-2xl text-secondary">medical_services</span>
               <div className="min-w-0">
-                <p className="text-sm font-bold text-[#181112] leading-tight">ANPMP Company Portal</p>
+                <p className="text-sm font-bold text-[#181112] leading-tight">ANPMP Lagos Company Portal</p>
                 <p className="text-xs text-slate-500 truncate">ANPMP Lagos Conference 2026</p>
               </div>
             </div>
@@ -110,13 +110,18 @@ export function CompanyPortalShell({
               Marketing
             </Link>
 
+            <Link href="/company/sponsorship-plans" className={itemClass("/company/sponsorship-plans")}>
+              <span className="material-symbols-outlined">workspace_premium</span>
+              Sponsorship Plans
+            </Link>
+
             <button
               type="button"
               disabled
               className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-slate-400 font-semibold cursor-not-allowed opacity-60"
             >
               <span className="material-symbols-outlined">receipt_long</span>
-              Invoices
+              Tickets
             </button>
 
             <Link href="/company/support" className={itemClass("/company/support")}>
