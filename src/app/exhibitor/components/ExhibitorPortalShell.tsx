@@ -54,7 +54,7 @@ export function ExhibitorPortalShell({
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-primary text-2xl">medical_services</span>
               <div className="min-w-0">
-                <p className="text-sm font-bold text-[#181112] leading-tight">ANPMP Exhibitor Portal</p>
+                <p className="text-sm font-bold text-[#181112] leading-tight">ANPMP Lagos Exhibitor Portal</p>
                 <p className="text-xs text-slate-500 truncate">ANPMP Lagos Conference 2026</p>
               </div>
             </div>

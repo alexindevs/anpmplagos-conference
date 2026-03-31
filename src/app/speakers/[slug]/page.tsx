@@ -10,9 +10,9 @@ const getProfile = cache(async (slug: string) => getPublicSpeakerBySlug(slug));
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const p = await getProfile(slug);
-  if (!p) return { title: "Speaker - ANPMP Conference" };
+  if (!p) return { title: "Speaker - ANPMP Lagos Conference" };
   return {
-    title: `${p.name} | Speakers - ANPMP Conference`,
+    title: `${p.name} | Speakers - ANPMP Lagos Conference`,
     description: p.byline?.trim() || p.role || `Speaker: ${p.name}`,
   };
 }

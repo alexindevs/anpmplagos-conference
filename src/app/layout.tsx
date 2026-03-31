@@ -25,8 +25,8 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ANPMP Conference Landing Page",
-  description: "ANPMP Conference Landing Page",
+  title: "ANPMP Lagos Conference Landing Page",
+  description: "ANPMP Lagos Conference Landing Page",
 };
 
 export default function RootLayout({

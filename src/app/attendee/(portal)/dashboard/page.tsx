@@ -160,7 +160,7 @@ export default function AttendeeDashboardPage() {
                   </div>
                 </a>
                 <a
-                  href="/support"
+                  href="/attendee/support"
                   className="flex items-center gap-3 p-4 rounded-lg border border-slate-200 hover:border-primary hover:bg-primary/5 transition-colors"
                 >
                   <span className="material-symbols-outlined text-primary">support</span>

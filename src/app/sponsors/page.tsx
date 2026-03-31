@@ -4,9 +4,9 @@ import { companyLogoImageUrl } from "@/lib/company-branding";
 import { getPublicCompanies, type PublicCompany } from "@/lib/api";
 
 export const metadata = {
-  title: "Our Sponsors - ANPMP Conference",
+  title: "Our Sponsors - ANPMP Lagos Conference",
   description:
-    "Connect with our conference sponsors. Discover cutting-edge solutions and industry leaders supporting the ANPMP community.",
+    "Connect with our conference sponsors. Discover cutting-edge solutions and industry leaders supporting the ANPMP Lagos community.",
 };
 
 /** Stable slug for links — list items should include `slug`; fall back to id only if needed. */

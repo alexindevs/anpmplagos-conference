@@ -36,7 +36,7 @@ const COMMITTEE = [
 ];
 
 export const metadata = {
-  title: "About the Conference - ANPMP",
+  title: "About the Conference - ANPMP Lagos",
   description:
     "Advancing Private Healthcare in Nigeria through collaboration, innovation, and shared expertise.",
 };
@@ -48,7 +48,7 @@ export default function AboutPage() {
       <section className="relative bg-medical-green py-24 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-5xl md:text-6xl font-serif font-bold text-white mb-6">
-            About ANPMP
+            About ANPMP Lagos
           </h1>
           <p className="text-xl text-white/90 leading-relaxed">
             Since 1978, representing Nigeria&apos;s private medical practitioners.
@@ -110,7 +110,7 @@ export default function AboutPage() {
               </span>
             </div>
             <h2 className="text-4xl md:text-5xl font-serif font-bold text-charcoal">
-              History of ANPMP
+              History of ANPMP Lagos
             </h2>
             <div className="space-y-6 text-lg leading-relaxed text-charcoal">
               <p>
