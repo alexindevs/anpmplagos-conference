@@ -328,14 +328,14 @@ export async function deleteExhibitorProduct(id: string): Promise<{ success: boo
   });
 }
 
-/** Floor / sponsorship tier for a booth slot (admin create). */
-export type BoothTier = "Headliner" | "Platinum" | "Gold" | "Silver";
+/** Floor / sponsorship tier for a booth slot (admin create). Matches backend enum casing. */
+export type BoothTier = "headliner" | "platinum" | "gold" | "silver";
 
 export const BOOTH_TIER_OPTIONS: readonly BoothTier[] = [
-  "Headliner",
-  "Platinum",
-  "Gold",
-  "Silver",
+  "headliner",
+  "platinum",
+  "gold",
+  "silver",
 ] as const;
 
 export type AdminCreateBoothInput = {

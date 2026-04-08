@@ -130,7 +130,7 @@ export default function AddNewBoothPage() {
               >
                 {BOOTH_TIER_OPTIONS.map((t) => (
                   <option key={t} value={t}>
-                    {t}
+                    {t.charAt(0).toUpperCase() + t.slice(1)}
                   </option>
                 ))}
               </select>
@@ -191,7 +191,7 @@ export default function AddNewBoothPage() {
                 htmlFor="boothImage"
                 className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
               >
-                Booth image (optional)
+                Booth image
               </label>
               <input
                 id="boothImage"
@@ -204,7 +204,7 @@ export default function AddNewBoothPage() {
                 }}
               />
               {imagePreviewUrl && (
-                <div className="relative mt-3 h-40 w-full max-w-xs overflow-hidden rounded-lg border border-slate-200 bg-slate-50 dark:border-border-dark dark:bg-background-dark-softer">
+                <div className="relative mt-3 h-40 w-full max-w-[200px] overflow-hidden rounded-lg border border-slate-200 bg-slate-50 dark:border-border-dark dark:bg-background-dark-softer">
                   <Image
                     src={imagePreviewUrl}
                     alt="Booth preview"

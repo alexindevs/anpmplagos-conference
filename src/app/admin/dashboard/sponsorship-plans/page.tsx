@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   formatKoboToNaira,
@@ -34,6 +34,21 @@ interface PlanFormData {
   isActive: boolean;
 }
 
+function normalizePerksForForm(plan: SponsorshipPlanCatalogItem | null | undefined): string[] {
+  const cleaned = (plan?.perks ?? []).map((p) => p.trim()).filter(Boolean);
+  return cleaned.length > 0 ? cleaned : [""];
+}
+
+function planFormDefaults(plan: SponsorshipPlanCatalogItem | null | undefined): PlanFormData {
+  return {
+    name: plan?.name ?? "",
+    priceInKobo: plan?.priceInKobo ?? 0,
+    tier: plan?.tier ?? "silver",
+    perks: normalizePerksForForm(plan),
+    isActive: plan == null || plan.isActive !== false,
+  };
+}
+
 function PlanModal({
   isOpen,
   onClose,
@@ -47,13 +62,12 @@ function PlanModal({
   onSave: (data: PlanFormData) => void;
   isSaving: boolean;
 }) {
-  const [form, setForm] = useState<PlanFormData>({
-    name: plan?.name ?? "",
-    priceInKobo: plan?.priceInKobo ?? 0,
-    tier: plan?.tier ?? "silver",
-    perks: plan?.perks ?? [""],
-    isActive: true,
-  });
+  const [form, setForm] = useState<PlanFormData>(() => planFormDefaults(plan));
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setForm(planFormDefaults(plan));
+  }, [isOpen, plan]);
 
   if (!isOpen) return null;
 
@@ -65,7 +79,7 @@ function PlanModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-border-dark dark:bg-background-dark-soft">
+      <div className="w-full max-w-[80%] md:max-w-[50%] rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-border-dark dark:bg-background-dark-soft">
         <h2 className="text-xl font-black text-[#181112] dark:text-white mb-4">
           {plan ? "Edit Sponsorship Plan" : "Create Sponsorship Plan"}
         </h2>
@@ -107,6 +121,19 @@ function PlanModal({
                 placeholder="e.g., 500000"
               />
             </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              id="plan-is-active"
+              type="checkbox"
+              checked={form.isActive}
+              onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
+              className="size-4 rounded border-slate-300 text-primary focus:ring-primary/30"
+            />
+            <label htmlFor="plan-is-active" className="text-sm font-medium text-slate-700 dark:text-white/70">
+              Plan is active (visible for purchase)
+            </label>
           </div>
 
           <div>
@@ -205,13 +232,17 @@ export default function AdminSponsorshipPlansPage() {
       const url = editingPlan
         ? `/api/admin/sponsorship-plans/${editingPlan.id}`
         : "/api/admin/sponsorship-plans";
-      const method = editingPlan ? "PUT" : "POST";
-      
+      const method = editingPlan ? "PATCH" : "POST";
+      const payload = {
+        ...data,
+        perks: data.perks.map((p) => p.trim()).filter(Boolean),
+      };
+
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
       
       if (!res.ok) {

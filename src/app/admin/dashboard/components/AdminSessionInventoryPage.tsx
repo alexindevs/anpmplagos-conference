@@ -371,7 +371,7 @@ export function AdminSessionInventoryPage({ config }: { config: AdminSessionInve
           onClick={(e) => e.target === e.currentTarget && closeModal()}
         >
           <div
-            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-border-dark dark:bg-background-dark-soft"
+            className="max-h-[90vh] w-full max-w-[80%] md:max-w-[50%] overflow-y-auto rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-border-dark dark:bg-background-dark-soft"
             role="dialog"
             aria-modal="true"
           >

@@ -88,7 +88,7 @@ export function CreateMarketingSlotModal({ open, kind, isSubmitting, onClose, on
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" role="dialog" aria-modal="true">
-      <div className="w-full max-w-lg rounded-xl border border-primary/10 bg-white shadow-xl dark:border-border-dark dark:bg-background-dark-soft">
+      <div className="w-full max-w-[80%] md:max-w-[50%] rounded-xl border border-primary/10 bg-white shadow-xl dark:border-border-dark dark:bg-background-dark-soft">
         <div className="border-b border-primary/10 px-6 py-4 dark:border-border-dark">
           <h3 className="text-lg font-black text-[#181112] dark:text-white">New {label}</h3>
         </div>

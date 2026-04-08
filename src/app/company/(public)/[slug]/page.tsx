@@ -76,7 +76,7 @@ export default async function PublicCompanyProfilePage({
   const logoUrl = companyLogoImageUrl(exhibitor);
 
   return (
-    <main className="mx-auto w-full max-w-[1280px] flex-1 px-4 py-6 sm:px-10 sm:py-10">
+    <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-10 sm:py-10">
       <ExhibitorViewTracker slug={slug} />
 
       {/* Hero / Profile Header */}

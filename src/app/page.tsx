@@ -21,7 +21,7 @@ export default function Home() {
               ANPMP Lagos
             </span>
             <h1 className="text-white text-5xl md:text-6xl lg:text-7xl font-serif font-bold leading-[1.1] tracking-tight mb-6">
-               Annual General Meeting & Scientific Conference
+               2026 Annual General Meeting & Scientific Conference
             </h1>
             <p className="text-white/90 text-xl md:text-2xl font-serif italic mb-8 leading-relaxed">
               Where Nigeria&apos;s Private Practitioners Lead
