@@ -1,39 +1,107 @@
+import Image from "next/image";
 import Link from "next/link";
 
+/** Local Organizing Committee — AGM / conference 2026. Photos: `/public`. */
 const COMMITTEE = [
   {
     name: "Dr. Tunji Akintade",
-    role: "Chairman",
-    credentials: "MBBS, FWACP",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBEdi4YqV1iDQoXiDe3xdHIm8PkKuPwXUPM2nr-u-YUe3Qx-9wJHC8qR3newy6FdIBvVpiw5eFKnerl0gkICi7Pmoa5TAnyTSevZePHI9faK18FixoxMfcgwedUbI3EM6KLGck4C6jof6IwTQq-hBXy2LBDQMNXlR1Wol9ksw172jcK4QbVmKFqG6dls1bcayzgDrZoV6jZF7owDQM8YbyZ-A6s1XDAz5ft5MBOcEYiY3Lw2lwkRUgTHuLjxcL0L3p9DOZwcb2TAcFy",
-    alt: "Portrait of Dr. Tunji Akintade in a white coat",
+    role: "Chairman, Conference Organizing Committee",
+    assignments: "Leads the overall LOC for the conference.",
+    image: "/tunji-akintade.jpeg",
+    alt: "Dr. Tunji Akintade",
   },
   {
-    name: "Dr. Sarah Adebayo",
-    role: "Secretary General",
-    credentials: "MD, MPH",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCflIeMbqXHCoZzr5qVEA5Be-Z33CfPVIbialbcVb2uF5h9IqY6kTry_BVU_h5v2KI2tGiaxiMNYB8pnilYw5T42A4XKMBTjzekvZDQl3inkcZvlQ-PgISle_vxsEtlGXQJINf1y2-9b-mGgiqXr3kZgGi6LwfIDoTym4TAjmaUjOausTa2wNs6v3CWBS57bgaHpExcYoNf_Fmges6M9yuj3EtNH-NH2jbf2R3NVJBKIe-0GO2kwbadngqfJzAZWJxhV6WqRKjBTpLD",
-    alt: "Portrait of Dr. Sarah Adebayo smiling professionally",
+    name: "Dr. Emma Onyenuche",
+    role: "1st Vice Chairman, ANPMP Lagos",
+    assignments: "Member, Scientific Conference sub-committee.",
+    image: "/dr-emma-onyenuche.jpeg",
+    alt: "Dr. Emma Onyenuche",
   },
   {
-    name: "Dr. Emeka Okonkwo",
-    role: "Treasurer",
-    credentials: "MBBS, FMCP",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBIOdYH3Lbaz7AjaN9_Ll7Zr84jDrS_UhM_mHcoqTH8fY5i0_52rT06jDsEc6c7Lg4ypak2AjB9g_0uKuH_pJjoyS8mG8G9uoXgVSEDK2CEjC304PwV3lopKIA4fCeQtXNxD3e-NPSfttgR0fU2vqIuj364NNE1t4vEZCR1jrdpEa1i6Wosy1cxipSMcRkEAbeOGJWdafd-ImITdnAG5bLHYXGli444DMZitVKj8jJphuwhv7HdkP-UsAvO0g0KhzhuHswFjpp4SKTu",
-    alt: "Portrait of Dr. Emeka Okonkwo in a suit",
+    name: "Dr. Chinedum Eluogu",
+    role: "2nd Vice Chairman, ANPMP Lagos",
+    assignments: "Consultant cardiologist. Registration committee.",
+    image: "/dr-chinedum-eluogu.jpeg",
+    alt: "Dr. Chinedum Eluogu",
   },
   {
-    name: "Dr. Zainab Ahmed",
-    role: "Public Relations",
-    credentials: "MBBS, FWACS",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuC5hdL0vIHNhuaSJvJ0-c8LSJrguZoD02Ja8sNbTPeLj7RW5PfcfZy-rg1NA-fXEgFRkd4Z_mLIwuuNJTBzw-G3BiGWTiU2VVG34ZH0rsIcvAeaEYmGkfDxdn-mOsdD6fNGpFCP7d0HCzbS_rfUS494NE3-p0iBn2ZhcT6f4AHmaYOMr9qmqwbi78O4nL5o6UTD0gnIFYp9a3lElZDUOWCy7EmMSBAjVymbrv_YServdljLBGhK3JMTQdL-DhF2-I3TWw_DsmJUBEbl",
-    alt: "Portrait of Dr. Zainab Ahmed with a stethoscope",
+    name: "Dr. Oluwaseun Olusola",
+    role: "General Secretary, ANPMP Lagos · Secretary, 2026 COC",
+    assignments: "Chairperson, Scientific Sub-Committee.",
+    image: "/dr-oluwaseun-olusola.jpeg",
+    alt: "Dr. Oluwaseun Olusola",
   },
-];
+  {
+    name: "Dr. Veronica Oluyemisi Nyamali",
+    role: "State Treasurer · Chair, Finance & Fundraising",
+    assignments: "Electoral sub-committee.",
+    image: "/dr-veronica-o-nyamali.jpeg",
+    alt: "Dr. Veronica Oluyemisi Nyamali",
+  },
+  {
+    name: "Dr. Olawale Oladubu",
+    role: "Assistant Secretary, ANPMP Lagos · Chair, Registration",
+    assignments: "Registration sub-committee for the AGM / conference.",
+    image: "/dr-olawale-oladubu.jpeg",
+    alt: "Dr. Olawale Oladubu",
+  },
+  {
+    name: "Dr. Ayelaje O. J.",
+    role: "Social & Welfare Secretary, ANPMP · Chair, Social & Welfare",
+    assignments: "Social and welfare sub-committee for the conference.",
+    image: "/dr-ayelaje-o-j.jpeg",
+    alt: "Dr. Ayelaje O. J.",
+  },
+  {
+    name: "Dr. Austine Aipoh",
+    role: "Chairman, Electoral Sub-Committee",
+    assignments: "Scientific & Registration sub-committees.",
+    image: "/dr-austine-aipoh.jpeg",
+    alt: "Dr. Austine Aipoh",
+  },
+  {
+    name: "Dr. Mojeed Olayemi Jaiyeola",
+    role: "Chairman, Shomolu/Bariga Zone",
+    assignments: "Fundraising & Registration sub-committees.",
+    image: "/dr-mojeed-olayemi-jaiyeola.jpeg",
+    alt: "Dr. Mojeed Olayemi Jaiyeola",
+  },
+  {
+    name: "Dr. Folarin A. Olasogba",
+    role: "Member, Scientific & Publicity Sub-Committees",
+    assignments: "Conference organizing committee.",
+    image: "/dr-folarin-a-olasogba.jpeg",
+    alt: "Dr. Folarin A. Olasogba",
+  },
+  {
+    name: "Dr. Nwobu Olufunke Omotayo",
+    role: "Member, Local Organizing Committee",
+    assignments: "Fundraising committee.",
+    image: "/dr-omotayo-olofunke-nwobu.jpeg",
+    alt: "Dr. Nwobu Olufunke Omotayo",
+  },
+  {
+    name: "Dr. Olawunmi Abiodun Otusanya",
+    role: "Member, Local Organizing Committee",
+    assignments: "Fundraising committee.",
+    image: "/olawunmi-abiodun.jpeg",
+    alt: "Dr. Olawunmi Abiodun Otusanya",
+  },
+  {
+    name: "Dr. Obasi Ugochukwu",
+    role: "Member, Local Organizing Committee",
+    assignments: "Fundraising committee.",
+    image: "/obasi-ugochukwu.jpeg",
+    alt: "Dr. Obasi Ugochukwu",
+  },
+  {
+    name: "Dr. M. Westerhoff",
+    role: "Member, Local Organizing Committee",
+    assignments: "Conference organizing committee.",
+    image: "/dr-m-westerhoff.jpeg",
+    alt: "Dr. M. Westerhoff",
+  },
+] as const;
 
 export const metadata = {
   title: "About the Conference - ANPMP Lagos",
@@ -162,29 +230,36 @@ export default function AboutPage() {
               Organizing Committee
             </h2>
             <p className="text-warm-gray text-lg">
-              Meet the team making this conference happen.
+              Local Organizing Committee for the AGM &amp; scientific conference.
             </p>
           </div>
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {COMMITTEE.map((member) => (
               <div
                 key={member.name}
                 className="flex flex-col items-center gap-4 p-6 bg-white border-l-4 border-fresh-green shadow-sm hover:shadow-lg transition-all"
               >
-                <div className="size-32 overflow-hidden rounded-full border-4 border-mint-whisper bg-gray-100">
-                  <div
-                    className="h-full w-full bg-cover bg-center"
-                    style={{ backgroundImage: `url('${member.image}')` }}
-                    data-alt={member.alt}
+                <div className="relative size-[160px] shrink-0 overflow-hidden rounded-full border-4 border-mint-whisper bg-gray-100">
+                  <Image
+                    src={member.image}
+                    alt={member.alt}
+                    width={160}
+                    height={160}
+                    className="h-full w-full object-cover object-center"
                   />
                 </div>
                 <div className="text-center">
                   <h3 className="text-lg font-bold text-charcoal mb-1">
                     {member.name}
                   </h3>
-                  <p className="text-sm font-bold text-fresh-green mb-1">{member.role}</p>
-                  <p className="text-xs text-warm-gray font-mono">
-                    {member.credentials}
+                  <p className="text-sm font-bold text-fresh-green mb-2 leading-snug">
+                    {member.role}
+                  </p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-charcoal/50 mb-1">
+                    Committee focus
+                  </p>
+                  <p className="text-xs text-warm-gray leading-relaxed">
+                    {member.assignments}
                   </p>
                 </div>
               </div>

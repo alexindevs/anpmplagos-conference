@@ -179,7 +179,7 @@ export default async function PublicCompanyProfilePage({
                       ) : (
                         <div className="mb-4 flex-1" />
                       )}
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-between gap-3">
                         {product.linkUrl?.trim() ? (
                           <a
                             href={product.linkUrl}
@@ -191,7 +191,7 @@ export default async function PublicCompanyProfilePage({
                             <span className="material-symbols-outlined ml-1 text-[16px]">open_in_new</span>
                           </a>
                         ) : null}
-                        <WhatsAppButton slug={slug} productId={product.id} />
+                        <WhatsAppButton slug={slug} productId={product.id}/>
                       </div>
                     </div>
                   </div>
