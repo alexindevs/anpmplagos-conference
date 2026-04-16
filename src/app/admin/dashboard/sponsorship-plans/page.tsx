@@ -1,53 +1,244 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  deleteAdminSponsorshipPlan,
   formatKoboToNaira,
-  getSponsorshipPlans,
+  getAdminAdvertSlots,
+  getAdminBrandingSlots,
+  getAdminSponsorshipPlans,
+  parseNairaInputToKobo,
+  patchAdminSponsorshipPlan,
+  postAdminSponsorshipPlan,
+  type AdminAdvertSlot,
+  type AdminBrandingSlot,
+  type ConferenceDay,
+  type SessionSlotDuration,
+  type SponsorshipBundleBoothTier,
   type SponsorshipPlanCatalogItem,
 } from "@/lib/api";
 
 const Q_PLANS = ["admin", "sponsorship-plans"] as const;
 
 const TIER_OPTIONS = [
+  { value: "bronze", label: "Bronze", color: "bg-orange-100 text-orange-800" },
   { value: "silver", label: "Silver", color: "bg-slate-100 text-slate-700" },
   { value: "gold", label: "Gold", color: "bg-amber-100 text-amber-700" },
   { value: "platinum", label: "Platinum", color: "bg-secondary/10 text-secondary" },
   { value: "headliner", label: "Headliner", color: "bg-primary/10 text-primary" },
 ];
 
+const BUNDLE_BOOTH_OPTIONS: { value: "" | SponsorshipBundleBoothTier; label: string }[] = [
+  { value: "", label: "No booth in bundle" },
+  { value: "gold", label: "Gold booth (3m x 3m)" },
+  { value: "platinum", label: "Platinum booth (5m x 3m)" },
+  { value: "headliner", label: "Headliner booth (7m x 3m)" },
+];
+
+const DURATION_OPTIONS: { value: SessionSlotDuration; label: string }[] = [
+  { value: "m10", label: "10 min" },
+  { value: "m15", label: "15 min" },
+  { value: "m20", label: "20 min" },
+  { value: "m30", label: "30 min" },
+  { value: "m45", label: "45 min" },
+  { value: "h1", label: "1 hour" },
+  { value: "h2", label: "2 hours" },
+];
+
+const DAY_OPTIONS: { value: ConferenceDay; label: string }[] = [
+  { value: "day_1", label: "Day 1" },
+  { value: "day_2", label: "Day 2" },
+];
+
 function getTierStyle(tier: string) {
   return (
     TIER_OPTIONS.find((t) => t.value === tier.toLowerCase()) ?? {
+      value: tier,
       label: tier,
       color: "bg-slate-100 text-slate-700",
     }
   );
 }
 
-interface PlanFormData {
-  name: string;
-  priceInKobo: number;
-  tier: string;
-  perks: string[];
-  isActive: boolean;
+function advertIdsFromPlan(plan: SponsorshipPlanCatalogItem | null | undefined): string[] {
+  if (!plan?.advertSlots?.length) return [];
+  return plan.advertSlots.map((row) => row.advertSlot?.id).filter((id): id is string => Boolean(id));
 }
 
-function normalizePerksForForm(plan: SponsorshipPlanCatalogItem | null | undefined): string[] {
-  const cleaned = (plan?.perks ?? []).map((p) => p.trim()).filter(Boolean);
-  return cleaned.length > 0 ? cleaned : [""];
+function brandingIdsFromPlan(plan: SponsorshipPlanCatalogItem | null | undefined): string[] {
+  if (!plan?.brandingSlots?.length) return [];
+  return plan.brandingSlots.map((row) => row.brandingSlot?.id).filter((id): id is string => Boolean(id));
+}
+
+/** Pre-fill price field from stored kobo (whole naira as string). */
+function koboToNairaInputValue(kobo: number | undefined): string {
+  const k = kobo ?? 0;
+  if (k <= 0) return "";
+  const naira = k / 100;
+  return Number.isInteger(naira) ? String(naira) : String(naira);
+}
+
+interface PlanFormData {
+  name: string;
+  /** User-entered naira (commas/decimals allowed); converted to kobo on save. */
+  priceNaira: string;
+  tier: string;
+  isActive: boolean;
+  ticketAdmits: number;
+  bundleBoothTier: "" | SponsorshipBundleBoothTier;
+  bundleMasterclassDuration: "" | SessionSlotDuration;
+  bundleMasterclassDay: "" | ConferenceDay;
+  bundlePresentationDuration: "" | SessionSlotDuration;
+  bundlePresentationDay: "" | ConferenceDay;
+  advertSlotIds: string[];
+  brandingSlotIds: string[];
+}
+
+function durationLabel(v: SessionSlotDuration | "" | undefined): string {
+  if (!v) return "";
+  return DURATION_OPTIONS.find((d) => d.value === v)?.label ?? String(v);
+}
+
+function dayLabel(v: ConferenceDay | "" | undefined): string {
+  if (!v) return "";
+  return DAY_OPTIONS.find((d) => d.value === v)?.label ?? String(v);
+}
+
+function deriveBundlePerksFromForm(
+  form: PlanFormData,
+  adverts: AdminAdvertSlot[],
+  branding: AdminBrandingSlot[],
+  existingPlan?: SponsorshipPlanCatalogItem | null,
+): string[] {
+  const lines: string[] = [];
+  const n = Math.max(1, Number(form.ticketAdmits) || 1);
+  lines.push(
+    n === 1
+      ? "Conference delegate admission for one person"
+      : `Conference delegate admission for ${n} people`,
+  );
+
+  if (form.bundleBoothTier) {
+    const t = form.bundleBoothTier.charAt(0).toUpperCase() + form.bundleBoothTier.slice(1);
+    lines.push(`${t} booth`);
+  }
+
+  if (form.bundleMasterclassDuration && form.bundleMasterclassDay) {
+    lines.push(
+      `A ${durationLabel(form.bundleMasterclassDuration)} long masterclass on ${dayLabel(form.bundleMasterclassDay)}`,
+    );
+  }
+
+  if (form.bundlePresentationDuration && form.bundlePresentationDay) {
+    lines.push(
+      `Presentation slot: ${durationLabel(form.bundlePresentationDuration)} on ${dayLabel(form.bundlePresentationDay)}`,
+    );
+  }
+
+  for (const id of form.advertSlotIds) {
+    const slot = adverts.find((a) => a.id === id);
+    const fromPlan = existingPlan?.advertSlots?.find((r) => r.advertSlot?.id === id)?.advertSlot?.title?.trim();
+    const title = slot?.title?.trim() || fromPlan || "Advert slot";
+    lines.push(`Advert placement: ${title}`);
+  }
+
+  for (const id of form.brandingSlotIds) {
+    const slot = branding.find((b) => b.id === id);
+    const fromPlan = existingPlan?.brandingSlots?.find((r) => r.brandingSlot?.id === id)?.brandingSlot?.title?.trim();
+    const title = slot?.title?.trim() || fromPlan || "Branding slot";
+    lines.push(`Branding placement: ${title}`);
+  }
+
+  return lines;
 }
 
 function planFormDefaults(plan: SponsorshipPlanCatalogItem | null | undefined): PlanFormData {
+  const bt = plan?.bundleBoothTier;
+  const boothOk = bt === "gold" || bt === "platinum" || bt === "headliner" ? bt : "";
   return {
     name: plan?.name ?? "",
-    priceInKobo: plan?.priceInKobo ?? 0,
+    priceNaira: koboToNairaInputValue(plan?.priceInKobo),
     tier: plan?.tier ?? "silver",
-    perks: normalizePerksForForm(plan),
     isActive: plan == null || plan.isActive !== false,
+    ticketAdmits: plan?.ticketAdmits != null && plan.ticketAdmits >= 1 ? plan.ticketAdmits : 1,
+    bundleBoothTier: boothOk,
+    bundleMasterclassDuration: (plan?.bundleMasterclassDuration as SessionSlotDuration) ?? "",
+    bundleMasterclassDay: (plan?.bundleMasterclassDay as ConferenceDay) ?? "",
+    bundlePresentationDuration: (plan?.bundlePresentationDuration as SessionSlotDuration) ?? "",
+    bundlePresentationDay: (plan?.bundlePresentationDay as ConferenceDay) ?? "",
+    advertSlotIds: advertIdsFromPlan(plan),
+    brandingSlotIds: brandingIdsFromPlan(plan),
   };
 }
+
+function formValidationMessage(f: PlanFormData): string | null {
+  const priceKobo = parseNairaInputToKobo(f.priceNaira);
+  if (priceKobo == null || priceKobo <= 0) {
+    return "Enter a valid price in naira (e.g. 50000 or 50,000).";
+  }
+  const mc = !!(f.bundleMasterclassDuration || f.bundleMasterclassDay);
+  const mcFull = !!(f.bundleMasterclassDuration && f.bundleMasterclassDay);
+  if (mc && !mcFull) return "Masterclass bundle: set both duration and day, or clear both.";
+  const pr = !!(f.bundlePresentationDuration || f.bundlePresentationDay);
+  const prFull = !!(f.bundlePresentationDuration && f.bundlePresentationDay);
+  if (pr && !prFull) return "Presentation bundle: set both duration and day, or clear both.";
+  return null;
+}
+
+function buildSponsorshipPlanPayload(
+  data: PlanFormData,
+  isPatch: boolean,
+  adverts: AdminAdvertSlot[],
+  branding: AdminBrandingSlot[],
+  existingPlan?: SponsorshipPlanCatalogItem | null,
+): Record<string, unknown> {
+  const perks = deriveBundlePerksFromForm(data, adverts, branding, existingPlan);
+  const priceKobo = parseNairaInputToKobo(data.priceNaira) ?? 0;
+  const payload: Record<string, unknown> = {
+    name: data.name,
+    priceInKobo: priceKobo,
+    tier: data.tier,
+    perks,
+    isActive: data.isActive,
+    ticketAdmits: Math.max(1, Number(data.ticketAdmits) || 1),
+    advertSlotIds: data.advertSlotIds,
+    brandingSlotIds: data.brandingSlotIds,
+  };
+  if (data.bundleBoothTier) payload.bundleBoothTier = data.bundleBoothTier;
+  const mcFull = data.bundleMasterclassDuration && data.bundleMasterclassDay;
+  if (mcFull) {
+    payload.bundleMasterclassDuration = data.bundleMasterclassDuration;
+    payload.bundleMasterclassDay = data.bundleMasterclassDay;
+  } else if (isPatch) {
+    payload.bundleMasterclassDuration = null;
+    payload.bundleMasterclassDay = null;
+  }
+  const prFull = data.bundlePresentationDuration && data.bundlePresentationDay;
+  if (prFull) {
+    payload.bundlePresentationDuration = data.bundlePresentationDuration;
+    payload.bundlePresentationDay = data.bundlePresentationDay;
+  } else if (isPatch) {
+    payload.bundlePresentationDuration = null;
+    payload.bundlePresentationDay = null;
+  }
+  return payload;
+}
+
+function bundleSummaryLine(plan: SponsorshipPlanCatalogItem): string {
+  const parts: string[] = [];
+  if (plan.ticketAdmits != null && plan.ticketAdmits > 1) parts.push(`${plan.ticketAdmits} admits`);
+  if (plan.bundleBoothTier) parts.push(`${plan.bundleBoothTier} booth`);
+  if (plan.bundleMasterclassDuration && plan.bundleMasterclassDay) parts.push("masterclass slot");
+  if (plan.bundlePresentationDuration && plan.bundlePresentationDay) parts.push("presentation slot");
+  const nAdv = plan.advertSlots?.length ?? 0;
+  const nBr = plan.brandingSlots?.length ?? 0;
+  if (nAdv) parts.push(`${nAdv} advert`);
+  if (nBr) parts.push(`${nBr} branding`);
+  return parts.length ? parts.join(" · ") : "—";
+}
+
+type PlanSaveContext = { adverts: AdminAdvertSlot[]; branding: AdminBrandingSlot[] };
 
 function PlanModal({
   isOpen,
@@ -55,50 +246,79 @@ function PlanModal({
   plan,
   onSave,
   isSaving,
+  saveError,
 }: {
   isOpen: boolean;
   onClose: () => void;
   plan?: SponsorshipPlanCatalogItem | null;
-  onSave: (data: PlanFormData) => void;
+  onSave: (data: PlanFormData, ctx: PlanSaveContext) => void;
   isSaving: boolean;
+  saveError: Error | null;
 }) {
   const [form, setForm] = useState<PlanFormData>(() => planFormDefaults(plan));
 
-  useEffect(() => {
-    if (!isOpen) return;
-    setForm(planFormDefaults(plan));
-  }, [isOpen, plan]);
+  const advertsQuery = useQuery({
+    queryKey: ["admin", "advert-slots", "plan-modal"],
+    queryFn: getAdminAdvertSlots,
+    enabled: isOpen,
+    staleTime: 30 * 1000,
+  });
+  const brandingQuery = useQuery({
+    queryKey: ["admin", "branding-slots", "plan-modal"],
+    queryFn: getAdminBrandingSlots,
+    enabled: isOpen,
+    staleTime: 30 * 1000,
+  });
 
   if (!isOpen) return null;
 
-  const addPerk = () => setForm((f) => ({ ...f, perks: [...f.perks, ""] }));
-  const removePerk = (idx: number) =>
-    setForm((f) => ({ ...f, perks: f.perks.filter((_, i) => i !== idx) }));
-  const updatePerk = (idx: number, value: string) =>
-    setForm((f) => ({ ...f, perks: f.perks.map((p, i) => (i === idx ? value : p)) }));
+  const derivedPerks = deriveBundlePerksFromForm(
+    form,
+    advertsQuery.data ?? [],
+    brandingQuery.data ?? [],
+    plan ?? null,
+  );
+
+  const validationMsg = formValidationMessage(form);
+  const canSave = !validationMsg && form.name.trim();
+
+  const toggleId = (field: "advertSlotIds" | "brandingSlotIds", id: string) => {
+    setForm((f) => {
+      const cur = f[field];
+      const has = cur.includes(id);
+      return { ...f, [field]: has ? cur.filter((x) => x !== id) : [...cur, id] };
+    });
+  };
+
+  const slotSelectable = (slot: AdminAdvertSlot | AdminBrandingSlot, selectedIds: string[]) => {
+    if (selectedIds.includes(slot.id)) return true;
+    return !slot.isTaken && !slot.isReserved;
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-[80%] md:max-w-[50%] rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-border-dark dark:bg-background-dark-soft">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 overflow-y-auto">
+      <div className="my-8 w-full max-w-[90%] md:max-w-[50%] rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-border-dark dark:bg-background-dark-soft">
         <h2 className="text-xl font-black text-[#181112] dark:text-white mb-4">
-          {plan ? "Edit Sponsorship Plan" : "Create Sponsorship Plan"}
+          {plan ? "Edit sponsorship plan" : "Create sponsorship plan"}
         </h2>
 
-        <div className="space-y-4">
+        <div className="space-y-5 max-h-[70vh] overflow-y-auto pr-1">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-white/70 mb-1">Plan Name</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-white/70 mb-1">Plan name</label>
             <input
               type="text"
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-white"
-              placeholder="e.g., Gold Premium"
+              placeholder="e.g. Gold Bundle"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-white/70 mb-1">Tier</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
+                Display tier
+              </label>
               <select
                 value={form.tier}
                 onChange={(e) => setForm((f) => ({ ...f, tier: e.target.value }))}
@@ -112,14 +332,134 @@ function PlanModal({
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-white/70 mb-1">Price (kobo)</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
+                Price (₦ naira)
+              </label>
               <input
-                type="number"
-                value={form.priceInKobo || ""}
-                onChange={(e) => setForm((f) => ({ ...f, priceInKobo: parseInt(e.target.value) || 0 }))}
+                type="text"
+                inputMode="decimal"
+                autoComplete="off"
+                value={form.priceNaira}
+                onChange={(e) => setForm((f) => ({ ...f, priceNaira: e.target.value }))}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-white"
-                placeholder="e.g., 500000"
+                placeholder="e.g. 50000 or 50,000"
               />
+          
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
+              Delegate admissions included
+            </label>
+            <input
+              type="number"
+              min={1}
+              value={form.ticketAdmits}
+              onChange={(e) => setForm((f) => ({ ...f, ticketAdmits: Math.max(1, parseInt(e.target.value, 10) || 1) }))}
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
+            />
+            <p className="mt-1 text-xs text-slate-500 dark:text-white/50">
+              How many conference delegates this plan covers when purchased (minimum 1).
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
+              Bundle booth (checkout assignment)
+            </label>
+            <select
+              value={form.bundleBoothTier}
+              onChange={(e) =>
+                setForm((f) => ({
+                  ...f,
+                  bundleBoothTier: e.target.value as PlanFormData["bundleBoothTier"],
+                }))
+              }
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
+            >
+              {BUNDLE_BOOTH_OPTIONS.map((o) => (
+                <option key={o.label} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="rounded-lg border border-slate-100 bg-slate-50/80 p-3 dark:border-border-dark dark:bg-background-dark">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Bundle masterclass slot</p>
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                value={form.bundleMasterclassDuration}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    bundleMasterclassDuration: e.target.value as PlanFormData["bundleMasterclassDuration"],
+                  }))
+                }
+                className="rounded-lg border border-slate-200 px-2 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
+              >
+                <option value="">Duration…</option>
+                {DURATION_OPTIONS.map((d) => (
+                  <option key={d.value} value={d.value}>
+                    {d.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={form.bundleMasterclassDay}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, bundleMasterclassDay: e.target.value as PlanFormData["bundleMasterclassDay"] }))
+                }
+                className="rounded-lg border border-slate-200 px-2 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
+              >
+                <option value="">Day…</option>
+                {DAY_OPTIONS.map((d) => (
+                  <option key={d.value} value={d.value}>
+                    {d.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-slate-100 bg-slate-50/80 p-3 dark:border-border-dark dark:bg-background-dark">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Bundle presentation slot</p>
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                value={form.bundlePresentationDuration}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    bundlePresentationDuration: e.target.value as PlanFormData["bundlePresentationDuration"],
+                  }))
+                }
+                className="rounded-lg border border-slate-200 px-2 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
+              >
+                <option value="">Duration…</option>
+                {DURATION_OPTIONS.map((d) => (
+                  <option key={d.value} value={d.value}>
+                    {d.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={form.bundlePresentationDay}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    bundlePresentationDay: e.target.value as PlanFormData["bundlePresentationDay"],
+                  }))
+                }
+                className="rounded-lg border border-slate-200 px-2 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
+              >
+                <option value="">Day…</option>
+                {DAY_OPTIONS.map((d) => (
+                  <option key={d.value} value={d.value}>
+                    {d.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -137,38 +477,89 @@ function PlanModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-white/70 mb-2">Perks / Benefits</label>
-            <div className="space-y-2">
-              {form.perks.map((perk, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={perk}
-                    onChange={(e) => updatePerk(idx, e.target.value)}
-                    className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-white"
-                    placeholder={`Benefit ${idx + 1}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removePerk(idx)}
-                    className="p-2 text-slate-400 hover:text-red-600 transition-colors"
-                    title="Remove perk"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">delete</span>
-                  </button>
-                </div>
-              ))}
+            <p className="text-sm font-medium text-slate-700 dark:text-white/70 mb-2">Advert slots (optional)</p>
+            <p className="text-xs text-slate-500 mb-2">Only free slots can be newly selected. Saving replaces all links.</p>
+            <div className="max-h-36 overflow-y-auto rounded-lg border border-slate-200 divide-y dark:border-border-dark">
+              {advertsQuery.isLoading ? (
+                <p className="p-3 text-xs text-slate-500">Loading…</p>
+              ) : (
+                (advertsQuery.data ?? []).map((slot) => {
+                  const sel = form.advertSlotIds.includes(slot.id);
+                  const ok = slotSelectable(slot, form.advertSlotIds);
+                  return (
+                    <label
+                      key={slot.id}
+                      className={`flex items-center gap-2 px-3 py-2 text-sm ${ok || sel ? "cursor-pointer" : "opacity-50 cursor-not-allowed"}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={sel}
+                        disabled={!ok && !sel}
+                        onChange={() => {
+                          if (sel) toggleId("advertSlotIds", slot.id);
+                          else if (ok) toggleId("advertSlotIds", slot.id);
+                        }}
+                      />
+                      <span className="truncate">{slot.title}</span>
+                    </label>
+                  );
+                })
+              )}
             </div>
-            <button
-              type="button"
-              onClick={addPerk}
-              className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-secondary hover:text-secondary/80"
-            >
-              <span className="material-symbols-outlined text-[18px]">add</span>
-              Add Benefit
-            </button>
+          </div>
+
+          <div>
+            <p className="text-sm font-medium text-slate-700 dark:text-white/70 mb-2">Branding slots (optional)</p>
+            <div className="max-h-36 overflow-y-auto rounded-lg border border-slate-200 divide-y dark:border-border-dark">
+              {brandingQuery.isLoading ? (
+                <p className="p-3 text-xs text-slate-500">Loading…</p>
+              ) : (
+                (brandingQuery.data ?? []).map((slot) => {
+                  const sel = form.brandingSlotIds.includes(slot.id);
+                  const ok = slotSelectable(slot, form.brandingSlotIds);
+                  return (
+                    <label
+                      key={slot.id}
+                      className={`flex items-center gap-2 px-3 py-2 text-sm ${ok || sel ? "cursor-pointer" : "opacity-50 cursor-not-allowed"}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={sel}
+                        disabled={!ok && !sel}
+                        onChange={() => {
+                          if (sel) toggleId("brandingSlotIds", slot.id);
+                          else if (ok) toggleId("brandingSlotIds", slot.id);
+                        }}
+                      />
+                      <span className="truncate">{slot.title}</span>
+                    </label>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-secondary/20 bg-secondary/5 p-4 dark:border-secondary/30 dark:bg-secondary/10">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-white/60 mb-2">
+              Plan perks (saved with this bundle)
+            </p>
+            <p className="text-xs text-slate-500 dark:text-white/50 mb-3">
+              Built automatically from delegate admissions, booth bundle, session bundles, and selected marketing slots.
+            </p>
+            <ul className="list-inside list-disc space-y-1.5 text-sm text-[#181112] dark:text-white/90">
+              {derivedPerks.map((line, i) => (
+                <li key={i}>{line}</li>
+              ))}
+            </ul>
           </div>
         </div>
+
+        {validationMsg && (
+          <p className="mt-3 text-sm text-amber-800 bg-amber-50 rounded-lg px-3 py-2">{validationMsg}</p>
+        )}
+        {saveError && (
+          <p className="mt-3 text-sm text-red-800 bg-red-50 rounded-lg px-3 py-2">{saveError.message}</p>
+        )}
 
         <div className="mt-6 flex items-center justify-end gap-3">
           <button
@@ -180,11 +571,16 @@ function PlanModal({
           </button>
           <button
             type="button"
-            onClick={() => onSave(form)}
-            disabled={isSaving || !form.name || form.priceInKobo <= 0}
+            onClick={() =>
+              onSave(form, {
+                adverts: advertsQuery.data ?? [],
+                branding: brandingQuery.data ?? [],
+              })
+            }
+            disabled={isSaving || !canSave}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {isSaving ? "Saving..." : plan ? "Save Changes" : "Create Plan"}
+            {isSaving ? "Saving…" : plan ? "Save" : "Create"}
           </button>
         </div>
       </div>
@@ -195,19 +591,17 @@ function PlanModal({
 export default function AdminSponsorshipPlansPage() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalInstance, setModalInstance] = useState(0);
   const [editingPlan, setEditingPlan] = useState<SponsorshipPlanCatalogItem | null>(null);
   const [filterTier, setFilterTier] = useState<string>("");
 
   const { data: plans, isLoading, isError } = useQuery({
-    queryKey: Q_PLANS,
-    queryFn: getSponsorshipPlans,
+    queryKey: [...Q_PLANS, filterTier],
+    queryFn: () => getAdminSponsorshipPlans(filterTier ? { tier: filterTier } : undefined),
     staleTime: 60 * 1000,
   });
 
-  const filteredPlans = useMemo(() => {
-    if (!filterTier) return plans ?? [];
-    return (plans ?? []).filter((p) => p.tier.toLowerCase() === filterTier.toLowerCase());
-  }, [plans, filterTier]);
+  const filteredPlans = useMemo(() => plans ?? [], [plans]);
 
   const groupedPlans = useMemo(() => {
     const groups: Record<string, SponsorshipPlanCatalogItem[]> = {
@@ -215,6 +609,7 @@ export default function AdminSponsorshipPlansPage() {
       platinum: [],
       gold: [],
       silver: [],
+      bronze: [],
     };
     filteredPlans.forEach((plan) => {
       const tier = plan.tier.toLowerCase();
@@ -228,68 +623,53 @@ export default function AdminSponsorshipPlansPage() {
   }, [filteredPlans]);
 
   const saveMutation = useMutation({
-    mutationFn: async (data: PlanFormData) => {
-      const url = editingPlan
-        ? `/api/admin/sponsorship-plans/${editingPlan.id}`
-        : "/api/admin/sponsorship-plans";
-      const method = editingPlan ? "PATCH" : "POST";
-      const payload = {
-        ...data,
-        perks: data.perks.map((p) => p.trim()).filter(Boolean),
-      };
-
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      });
-      
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.message || "Failed to save plan");
+    mutationFn: async (vars: { data: PlanFormData; adverts: AdminAdvertSlot[]; branding: AdminBrandingSlot[] }) => {
+      const payload = buildSponsorshipPlanPayload(
+        vars.data,
+        Boolean(editingPlan),
+        vars.adverts,
+        vars.branding,
+        editingPlan,
+      );
+      if (editingPlan) {
+        return patchAdminSponsorshipPlan(editingPlan.id, payload);
       }
-      return res.json();
+      return postAdminSponsorshipPlan(payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: Q_PLANS });
+      void queryClient.invalidateQueries({ queryKey: Q_PLANS });
       setIsModalOpen(false);
       setEditingPlan(null);
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await fetch(`/api/admin/sponsorship-plans/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.message || "Failed to delete plan");
-      }
-    },
+    mutationFn: (id: string) => deleteAdminSponsorshipPlan(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: Q_PLANS });
+      void queryClient.invalidateQueries({ queryKey: Q_PLANS });
     },
   });
 
-  const handleSave = (data: PlanFormData) => {
-    saveMutation.mutate(data);
+  const handleSave = (data: PlanFormData, ctx: PlanSaveContext) => {
+    saveMutation.mutate({ data, adverts: ctx.adverts, branding: ctx.branding });
   };
 
   const handleEdit = (plan: SponsorshipPlanCatalogItem) => {
+    saveMutation.reset();
     setEditingPlan(plan);
+    setModalInstance((n) => n + 1);
     setIsModalOpen(true);
   };
 
   const handleCreate = () => {
+    saveMutation.reset();
     setEditingPlan(null);
+    setModalInstance((n) => n + 1);
     setIsModalOpen(true);
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this sponsorship plan?")) {
+    if (confirm("Delete this sponsorship plan? Only allowed if there are no payments.")) {
       deleteMutation.mutate(id);
     }
   };
@@ -300,6 +680,7 @@ export default function AdminSponsorshipPlansPage() {
       total: all.length,
       active: all.filter((p) => p.isActive !== false).length,
       byTier: {
+        bronze: all.filter((p) => p.tier.toLowerCase() === "bronze").length,
         silver: all.filter((p) => p.tier.toLowerCase() === "silver").length,
         gold: all.filter((p) => p.tier.toLowerCase() === "gold").length,
         platinum: all.filter((p) => p.tier.toLowerCase() === "platinum").length,
@@ -308,15 +689,17 @@ export default function AdminSponsorshipPlansPage() {
     };
   }, [plans]);
 
-  const tierOrder: Array<keyof typeof groupedPlans> = ["headliner", "platinum", "gold", "silver"];
+  const tierOrder: Array<keyof typeof groupedPlans> = ["headliner", "platinum", "gold", "silver", "bronze"];
 
   return (
     <>
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-background-light/95 px-4 py-5 backdrop-blur dark:border-border-dark dark:bg-background-dark/95 sm:px-6 sm:py-6 lg:px-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-black tracking-tight text-[#181112] dark:text-white">Sponsorship Plans</h2>
-            <p className="text-sm text-slate-500 dark:text-white/50">Create and manage sponsorship plans for companies</p>
+            <h2 className="text-2xl font-black tracking-tight text-[#181112] dark:text-white">Sponsorship plans</h2>
+            <p className="text-sm text-slate-500 dark:text-white/50">
+              Create plans with bundle booth rules, session shapes, and marketing slot links (see ADMIN-SPONSORSHIP-BUNDLES.md).
+            </p>
           </div>
           <button
             type="button"
@@ -324,24 +707,23 @@ export default function AdminSponsorshipPlansPage() {
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700 transition-colors"
           >
             <span className="material-symbols-outlined text-[18px]">add</span>
-            Create Plan
+            Create plan
           </button>
         </div>
       </header>
 
       <div className="bg-background-light p-4 dark:bg-background-dark sm:p-6 lg:p-8">
-        {/* Stats */}
-        <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-5">
-          <StatCard label="Total Plans" value={String(stats.total)} />
+        <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+          <StatCard label="Total" value={String(stats.total)} />
+          <StatCard label="Bronze" value={String(stats.byTier.bronze)} color="bg-orange-100 text-orange-800" />
           <StatCard label="Silver" value={String(stats.byTier.silver)} color="bg-slate-100 text-slate-700" />
           <StatCard label="Gold" value={String(stats.byTier.gold)} color="bg-amber-100 text-amber-700" />
           <StatCard label="Platinum" value={String(stats.byTier.platinum)} color="bg-secondary/10 text-secondary" />
           <StatCard label="Headliner" value={String(stats.byTier.headliner)} color="bg-primary/10 text-primary" />
         </div>
 
-        {/* Filter */}
         <div className="mb-6 flex flex-wrap items-center gap-3">
-          <span className="text-sm font-medium text-slate-600 dark:text-white/60">Filter by tier:</span>
+          <span className="text-sm font-medium text-slate-600 dark:text-white/60">Filter by display tier:</span>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
@@ -367,7 +749,6 @@ export default function AdminSponsorshipPlansPage() {
           </div>
         </div>
 
-        {/* Plans by Tier */}
         {isLoading ? (
           <div className="flex items-center gap-2 text-sm text-slate-600 py-8">
             <div className="size-6 animate-spin rounded-full border-2 border-secondary/30 border-t-secondary" />
@@ -387,12 +768,10 @@ export default function AdminSponsorshipPlansPage() {
 
               return (
                 <section key={tierKey} className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <span className={`material-symbols-outlined ${tierInfo.color.split(" ")[1]}`}>
-                      {tierKey === "headliner" ? "campaign" : tierKey === "platinum" ? "workspace_premium" : tierKey === "gold" ? "verified" : "stars"}
-                    </span>
-                    <h3 className={`text-lg font-black ${tierInfo.color.split(" ")[1]}`}>
-                      {tierInfo.label} Plans
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`rounded-full px-3 py-1 text-sm font-black ${tierInfo.color}`}>{tierInfo.label}</span>
+                    <h3 className="text-lg font-black text-[#181112] dark:text-white">
+                      plans
                       <span className="ml-2 text-sm font-medium text-slate-500">({tierPlans.length})</span>
                     </h3>
                   </div>
@@ -402,10 +781,21 @@ export default function AdminSponsorshipPlansPage() {
                       <table className="w-full text-left">
                         <thead>
                           <tr className="border-b border-slate-200 bg-slate-50 dark:border-border-dark dark:bg-background-dark-softer">
-                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">Name</th>
-                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">Price</th>
-                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">Perks</th>
-                            <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">Actions</th>
+                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
+                              Name
+                            </th>
+                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
+                              Price
+                            </th>
+                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
+                              Bundle
+                            </th>
+                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
+                              Perks
+                            </th>
+                            <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
+                              Actions
+                            </th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-border-dark">
@@ -422,22 +812,27 @@ export default function AdminSponsorshipPlansPage() {
                                   </span>
                                 )}
                               </td>
-                              <td className="px-4 py-3">
+                              <td className="px-4 py-3 whitespace-nowrap">
                                 <span className="font-black text-primary">{formatKoboToNaira(plan.priceInKobo)}</span>
+                              </td>
+                              <td className="px-4 py-3 text-xs text-slate-600 dark:text-white/60 max-w-[220px]">
+                                {bundleSummaryLine(plan)}
                               </td>
                               <td className="px-4 py-3">
                                 <div className="text-sm text-slate-600 dark:text-white/60">
                                   {plan.perks && plan.perks.length > 0 ? (
                                     <ul className="space-y-0.5">
                                       {plan.perks.slice(0, 2).map((perk, idx) => (
-                                        <li key={idx} className="truncate max-w-[200px]">{perk}</li>
+                                        <li key={idx} className="truncate max-w-[200px]">
+                                          {perk}
+                                        </li>
                                       ))}
                                       {plan.perks.length > 2 && (
                                         <li className="text-xs text-slate-400">+{plan.perks.length - 2} more</li>
                                       )}
                                     </ul>
                                   ) : (
-                                    <span className="text-slate-400">No perks listed</span>
+                                    <span className="text-slate-400">—</span>
                                   )}
                                 </div>
                               </td>
@@ -447,7 +842,7 @@ export default function AdminSponsorshipPlansPage() {
                                     type="button"
                                     onClick={() => handleEdit(plan)}
                                     className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-secondary/10 hover:text-secondary"
-                                    title="Edit plan"
+                                    title="Edit"
                                   >
                                     <span className="material-symbols-outlined text-[20px]">edit</span>
                                   </button>
@@ -455,7 +850,7 @@ export default function AdminSponsorshipPlansPage() {
                                     type="button"
                                     onClick={() => handleDelete(plan.id)}
                                     className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                                    title="Delete plan"
+                                    title="Delete"
                                   >
                                     <span className="material-symbols-outlined text-[20px]">delete</span>
                                   </button>
@@ -474,17 +869,15 @@ export default function AdminSponsorshipPlansPage() {
             {(plans?.length ?? 0) === 0 && (
               <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-12 text-center dark:border-border-dark dark:bg-background-dark-soft">
                 <span className="material-symbols-outlined text-4xl text-slate-300">campaign</span>
-                <p className="mt-3 text-sm font-bold text-[#181112] dark:text-white">No sponsorship plans yet</p>
-                <p className="mt-1 text-xs text-slate-500 dark:text-white/50">
-                  Create your first plan to start offering sponsorships to companies.
-                </p>
+                <p className="mt-3 text-sm font-bold text-[#181112] dark:text-white">No sponsorship plans</p>
+                <p className="mt-1 text-xs text-slate-500 dark:text-white/50">Create a plan to offer bundles to companies.</p>
                 <button
                   type="button"
                   onClick={handleCreate}
                   className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white hover:bg-red-700 transition-colors"
                 >
                   <span className="material-symbols-outlined text-[18px]">add</span>
-                  Create First Plan
+                  Create plan
                 </button>
               </div>
             )}
@@ -493,6 +886,7 @@ export default function AdminSponsorshipPlansPage() {
       </div>
 
       <PlanModal
+        key={modalInstance}
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
@@ -501,6 +895,7 @@ export default function AdminSponsorshipPlansPage() {
         plan={editingPlan}
         onSave={handleSave}
         isSaving={saveMutation.isPending}
+        saveError={saveMutation.error instanceof Error ? saveMutation.error : null}
       />
     </>
   );

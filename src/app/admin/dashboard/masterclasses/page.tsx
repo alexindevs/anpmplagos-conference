@@ -21,6 +21,7 @@ export default function MasterclassesPage() {
           title: "New masterclass",
           description: "Describe this session for buyers.",
         },
+        collectSlotShape: true,
         list: getAdminMasterclasses,
         create: postAdminMasterclass,
         patch: patchAdminMasterclass,

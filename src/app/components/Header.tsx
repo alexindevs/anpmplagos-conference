@@ -46,11 +46,14 @@ export default function Header() {
   /** Public `/company/:slug` profiles keep this header; portal routes use CompanyPortalShell. */
   const isCompanyPortal =
     pathname.startsWith("/company/dashboard") ||
+    pathname.startsWith("/company/floor-plan") ||
     pathname.startsWith("/company/select-booth") ||
     pathname.startsWith("/company/marketing") ||
     pathname.startsWith("/company/booth") ||
     pathname.startsWith("/company/payment-callback") ||
     pathname.startsWith("/company/hotel-room") ||
+    pathname.startsWith("/company/order") ||
+    pathname.startsWith("/company/cart") ||
     pathname.startsWith("/company/masterclasses") ||
     pathname.startsWith("/company/panels") ||
     pathname.startsWith("/company/presentations") ||

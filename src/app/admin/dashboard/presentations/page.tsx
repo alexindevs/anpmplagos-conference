@@ -21,6 +21,7 @@ export default function PresentationsPage() {
           title: "New presentation",
           description: "Describe this presentation for buyers.",
         },
+        collectSlotShape: true,
         list: getAdminPresentations,
         create: postAdminPresentation,
         patch: patchAdminPresentation,

@@ -162,8 +162,7 @@ export default function ExhibitorDashboardPage() {
   const canAddProducts = useMemo(() => {
     if (!profile) return false;
     const tier = (profile.highestSponsorshipTier ?? profile.effectiveDisplayTier ?? profile.tier ?? "").trim().toLowerCase();
-    console.log(tier)
-    if (!tier) return false;
+    if (!tier || tier === "default") return false;
     // Allowed tiers: headliner, platinum, gold
     return ["headliner", "platinum", "gold"].includes(tier);
   }, [profile]);
@@ -355,7 +354,7 @@ export default function ExhibitorDashboardPage() {
                   <p className="text-sm text-slate-600 mt-2">No booth saved yet. Select your booth to continue.</p>
                   <div className="mt-4">
                     <Link
-                      href="/company/select-booth"
+                      href="/company/sponsorship-plans?tab=booths"
                       className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-white font-bold hover:bg-red-700 transition-colors"
                     >
                       <span className="material-symbols-outlined text-sm">store</span>
@@ -429,10 +428,20 @@ export default function ExhibitorDashboardPage() {
 
               <div className="mt-6 pt-6 border-t border-secondary/20">
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Support Contact</p>
-                <p className="text-sm font-bold text-[#181112]">Pharm. Aladesanmi</p>
-                <a href="mailto:logsnspecs@gmail.com" className="block text-sm text-secondary hover:underline">
-                logsnspecs@gmail.com
-                </a>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-bold text-[#181112]">Pharm. Moji Aladesanmi</p>
+                    <a href="mailto:exhibition774@gmail.com" className="block text-sm text-secondary hover:underline">
+                      exhibition774@gmail.com
+                    </a>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-[#181112]">Pharm. Ayodeji Oni</p>
+                    <a href="tel:+2347038519794" className="block text-sm text-secondary hover:underline">
+                      +234 703 851 9794
+                    </a>
+                  </div>
+                </div>
               </div>
             </section>
           </aside>

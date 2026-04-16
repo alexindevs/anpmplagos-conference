@@ -68,7 +68,11 @@ export default async function PublicCompanyProfilePage({
   const webHref = websiteHref(exhibitor.website);
   const paragraphs = descriptionParagraphs(exhibitor.description);
   const displayTier = (exhibitor.highestSponsorshipTier ?? exhibitor.effectiveDisplayTier ?? exhibitor.tier)?.trim();
-  const tierLabel = displayTier ? `${displayTier.charAt(0).toUpperCase() + displayTier.slice(1)} Partner` : "Conference partner";
+  const displayTierLower = displayTier?.toLowerCase() ?? "";
+  const tierLabel =
+    !displayTierLower || displayTierLower === "default"
+      ? "Conference partner"
+      : `${displayTierLower.charAt(0).toUpperCase() + displayTierLower.slice(1)} Partner`;
 
   const bannerStyle = exhibitor.headerImage
     ? { backgroundImage: `url("${exhibitor.headerImage}")` }

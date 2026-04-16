@@ -2,6 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { companyLogoImageUrl } from "@/lib/company-branding";
 import { getPublicCompanies, type PublicCompany } from "@/lib/api";
+import {
+  isOurValuedSponsorRow,
+  normalizedPublicSponsorTierKey,
+  publicSponsorTierBadgeLabel,
+  publicSponsorTierSectionTitle,
+} from "@/lib/public-sponsor-display";
 
 export const metadata = {
   title: "Our Sponsors - ANPMP Lagos Conference",
@@ -16,17 +22,7 @@ function companySlug(e: PublicCompany): string {
   return encodeURIComponent(e.id);
 }
 
-function displayTier(c: PublicCompany): string {
-  const t = (c.highestSponsorshipTier ?? c.effectiveDisplayTier ?? c.tier ?? "").trim().toLowerCase();
-  if (!t) return "";
-  if (t === "headliner") return "Headliner";
-  if (t === "platinum") return "Platinum";
-  if (t === "gold") return "Gold";
-  if (t === "silver") return "Silver";
-  return t.charAt(0).toUpperCase() + t.slice(1);
-}
-
-const TIER_ORDER = ["headliner", "platinum", "gold", "silver"];
+const TIER_ORDER = ["headliner", "platinum", "gold", "silver", "bronze"];
 
 interface TierConfig {
   id: string;
@@ -41,7 +37,7 @@ interface TierConfig {
 const TIER_CONFIGS: Record<string, TierConfig> = {
   headliner: {
     id: "headliner",
-    label: "Headliner Sponsors",
+    label: "Headliner Partners",
     icon: "campaign",
     colorClass: "text-primary",
     bgClass: "bg-mint-whisper",
@@ -50,7 +46,7 @@ const TIER_CONFIGS: Record<string, TierConfig> = {
   },
   platinum: {
     id: "platinum",
-    label: "Platinum Sponsors",
+    label: "Platinum Partners",
     icon: "workspace_premium",
     colorClass: "text-medical-green",
     bgClass: "bg-white",
@@ -59,7 +55,7 @@ const TIER_CONFIGS: Record<string, TierConfig> = {
   },
   gold: {
     id: "gold",
-    label: "Gold Sponsors",
+    label: "Gold Partners",
     icon: "verified",
     colorClass: "text-fresh-green",
     bgClass: "bg-white",
@@ -68,8 +64,17 @@ const TIER_CONFIGS: Record<string, TierConfig> = {
   },
   silver: {
     id: "silver",
-    label: "Silver Sponsors",
+    label: "Silver Partners",
     icon: "stars",
+    colorClass: "text-charcoal",
+    bgClass: "bg-white",
+    borderClass: "border-l-charcoal/30",
+    badgeClass: "bg-primary/80 text-white",
+  },
+  bronze: {
+    id: "bronze",
+    label: "Bronze Partners",
+    icon: "workspace_premium",
     colorClass: "text-charcoal",
     bgClass: "bg-white",
     borderClass: "border-l-charcoal/30",
@@ -90,6 +95,37 @@ function paletteForIndex(i: number) {
   return ICON_PALETTES[i % ICON_PALETTES.length]!;
 }
 
+function partitionSponsorSections(companies: PublicCompany[]) {
+  const valued: PublicCompany[] = [];
+  const defaultRest: PublicCompany[] = [];
+  const byTier: Record<string, PublicCompany[]> = {};
+
+  for (const c of companies) {
+    if (isOurValuedSponsorRow(c)) {
+      valued.push(c);
+      continue;
+    }
+    const key = normalizedPublicSponsorTierKey(c);
+    if (key === "default") {
+      defaultRest.push(c);
+      continue;
+    }
+    if (!byTier[key]) byTier[key] = [];
+    byTier[key].push(c);
+  }
+
+  const sortedTierKeys = Object.keys(byTier).sort((a, b) => {
+    const indexA = TIER_ORDER.indexOf(a);
+    const indexB = TIER_ORDER.indexOf(b);
+    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+    if (indexA !== -1) return -1;
+    if (indexB !== -1) return 1;
+    return a.localeCompare(b);
+  });
+
+  return { valued, defaultRest, sortedTierKeys };
+}
+
 export const revalidate = 120;
 
 export default async function SponsorsPage() {
@@ -103,23 +139,41 @@ export default async function SponsorsPage() {
       e instanceof Error ? e.message : "Unable to load companies. Please try again later.";
   }
 
-  const groupedByTier = companies.reduce((acc, c) => {
-    const tier = (c.highestSponsorshipTier ?? c.effectiveDisplayTier ?? c.tier ?? "other")
-      .trim()
-      .toLowerCase();
-    if (!acc[tier]) acc[tier] = [];
-    acc[tier].push(c);
-    return acc;
-  }, {} as Record<string, PublicCompany[]>);
+  const { valued, defaultRest, sortedTierKeys } = partitionSponsorSections(companies);
 
-  const sortedTiers = Object.keys(groupedByTier).sort((a, b) => {
-    const indexA = TIER_ORDER.indexOf(a);
-    const indexB = TIER_ORDER.indexOf(b);
-    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-    if (indexA !== -1) return -1;
-    if (indexB !== -1) return 1;
-    return a.localeCompare(b);
-  });
+  const sectionBlocks: {
+    key: string;
+    companies: PublicCompany[];
+    heading: string;
+    neutralTier: boolean;
+  }[] = [];
+
+  for (const tierKey of sortedTierKeys) {
+    const list = byTier[tierKey];
+    if (!list?.length) continue;
+    sectionBlocks.push({
+      key: tierKey,
+      companies: list,
+      heading: TIER_CONFIGS[tierKey]?.label ?? publicSponsorTierSectionTitle(tierKey),
+      neutralTier: false,
+    });
+  }
+  if (defaultRest.length > 0) {
+    sectionBlocks.push({
+      key: "partners-default",
+      companies: defaultRest,
+      heading: "Partners",
+      neutralTier: true,
+    });
+  }
+  if (valued.length > 0) {
+    sectionBlocks.push({
+      key: "valued-sponsors",
+      companies: valued,
+      heading: "Our valued sponsors",
+      neutralTier: true,
+    });
+  }
 
   return (
     <main className="flex min-h-screen w-full grow flex-col">
@@ -145,21 +199,30 @@ export default async function SponsorsPage() {
 
       {!loadError && companies.length > 0 ? (
         <div className="flex w-full flex-col gap-0">
-          {sortedTiers.map((tierKey) => {
-            const tierCompanies = groupedByTier[tierKey] || [];
-            const config = TIER_CONFIGS[tierKey] || {
-              id: tierKey,
-              label: tierKey.charAt(0).toUpperCase() + tierKey.slice(1) + " Partners",
-              icon: "workspace_premium",
-              colorClass: "text-charcoal",
-              bgClass: "bg-white",
-              borderClass: "border-l-charcoal/20",
-              badgeClass: "bg-primary text-white",
-            };
+          {sectionBlocks.map((block) => {
+            const config = block.neutralTier
+              ? {
+                  id: block.key,
+                  label: block.heading,
+                  icon: "handshake",
+                  colorClass: "text-charcoal",
+                  bgClass: "bg-white",
+                  borderClass: "border-l-charcoal/20",
+                  badgeClass: "bg-primary text-white",
+                }
+              : TIER_CONFIGS[block.key] || {
+                  id: block.key,
+                  label: block.heading,
+                  icon: "workspace_premium",
+                  colorClass: "text-charcoal",
+                  bgClass: "bg-white",
+                  borderClass: "border-l-charcoal/20",
+                  badgeClass: "bg-primary text-white",
+                };
 
             return (
               <section
-                key={tierKey}
+                key={block.key}
                 className={`w-full border-b border-gray-100 py-16 last:border-b-0 ${config.bgClass}`}
               >
                 <div className="mx-auto max-w-[1280px] px-4 sm:px-10">
@@ -175,11 +238,11 @@ export default async function SponsorsPage() {
                   </div>
 
                   <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {tierCompanies.map((c, idx) => {
+                    {block.companies.map((c, idx) => {
                       const slug = companySlug(c);
                       const image = companyLogoImageUrl(c) || c.headerImage?.trim() || "";
                       const palette = paletteForIndex(idx);
-                      const displayTierName = displayTier(c);
+                      const displayTierName = block.neutralTier ? "" : publicSponsorTierBadgeLabel(c);
 
                       return (
                         <div
@@ -210,11 +273,11 @@ export default async function SponsorsPage() {
                                 <h3 className="text-lg font-bold leading-tight text-[#181112] transition-colors group-hover:text-primary">
                                   {c.companyName}
                                 </h3>
-                                {displayTierName && (
+                                {displayTierName ? (
                                   <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${config.badgeClass}`}>
                                     {displayTierName}
                                   </span>
-                                )}
+                                ) : null}
                               </div>
                               <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-[#896165]">
                                 {c.tagline?.trim() || "Industry Partner"}

@@ -28,7 +28,7 @@ const PLANS: { id: RegType; name: string; price: string; description: string; ic
     id: "company",
     name: "Sponsor",
     price: "Plans from portal",
-    description: "Organizations and companies (booths, sponsorship plans, masterclasses, and panel sessions)",
+    description: "Organizations and companies (booths, sponsorship plans, masterclasses, panel sessions and more)",
     icon: "business",
     benefits: [
       "Company directory listing",
@@ -38,6 +38,25 @@ const PLANS: { id: RegType; name: string; price: string; description: string; ic
     ],
   },
 ];
+
+function getRegistrationPasswordError(password: string): string | null {
+  if (password.length < 8) {
+    return "Password must be longer than 8 characters.";
+  }
+  if (!/[a-z]/.test(password)) {
+    return "Password must include a lowercase letter.";
+  }
+  if (!/[A-Z]/.test(password)) {
+    return "Password must include an uppercase letter.";
+  }
+  if (!/[0-9]/.test(password)) {
+    return "Password must include a number.";
+  }
+  if (!/[^A-Za-z0-9]/.test(password)) {
+    return "Password must include a special character (for example !@#$%).";
+  }
+  return null;
+}
 
 export default function RegisterPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -107,7 +126,20 @@ export default function RegisterPage() {
   const isSubmitting = createMutation.isPending;
   const submitError = createMutation.error ? getSubmitErrorMessage(createMutation.error) : null;
 
+  const passwordOkLength = password.length > 8;
+  const passwordOkLower = /[a-z]/.test(password);
+  const passwordOkUpper = /[A-Z]/.test(password);
+  const passwordOkDigit = /[0-9]/.test(password);
+  const passwordOkSpecial = /[^A-Za-z0-9]/.test(password);
+  const isPasswordValid =
+    passwordOkLength && passwordOkLower && passwordOkUpper && passwordOkDigit && passwordOkSpecial;
+
   const handleSave = () => {
+    const passwordError = getRegistrationPasswordError(password);
+    if (passwordError) {
+      alert(passwordError);
+      return;
+    }
     createMutation.mutate(
       {
         regType,
@@ -299,7 +331,7 @@ export default function RegisterPage() {
             {/* Account (email + password) - all types */}
             <section className="bg-white rounded-xl p-6 shadow-sm mx-4 border border-gray-100">
               <h2 className="text-charcoal text-[22px] font-bold leading-tight pb-6">
-                Account (for login)
+                Account (for signup)
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex flex-col gap-2">
@@ -315,12 +347,38 @@ export default function RegisterPage() {
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-gray-700">Password</label>
                   <input
-                    className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
-                    placeholder="••••••••"
+                    className={`rounded-lg border bg-white px-3 py-2 focus:ring-primary focus:border-primary ${
+                      password.length > 0 && !isPasswordValid
+                        ? "border-red-400"
+                        : "border-gray-300"
+                    }`}
+                    placeholder="•••••••••"
                     type="password"
+                    autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    aria-invalid={password.length > 0 && !isPasswordValid}
                   />
+                  <ul className="text-xs text-gray-500 space-y-1 list-none p-0 m-0">
+                    {[
+                      { ok: passwordOkLength, text: "Longer than 8 characters" },
+                      { ok: passwordOkLower, text: "One lowercase letter" },
+                      { ok: passwordOkUpper, text: "One uppercase letter" },
+                      { ok: passwordOkDigit, text: "One number" },
+                      { ok: passwordOkSpecial, text: "One special character" },
+                    ].map(({ ok, text }) => (
+                      <li key={text} className="flex items-center gap-2">
+                        <span
+                          className={`material-symbols-outlined text-[16px] ${
+                            ok ? "text-green-600" : "text-gray-300"
+                          }`}
+                        >
+                          {ok ? "check_circle" : "radio_button_unchecked"}
+                        </span>
+                        {text}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </section>
@@ -690,6 +748,11 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => {
+                  const passwordError = getRegistrationPasswordError(password);
+                  if (passwordError) {
+                    alert(passwordError);
+                    return;
+                  }
                   if (
                     regType === "company" &&
                     !companyDescription.trim()

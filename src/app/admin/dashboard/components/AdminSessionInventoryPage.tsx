@@ -4,9 +4,11 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ApiError,
+  type ConferenceDay,
   type CreateAdminSessionSlotInput,
   type PatchAdminSessionSlotPayload,
   formatKoboToNaira,
+  type SessionSlotDuration,
   type SessionStatus,
 } from "@/lib/api";
 
@@ -15,6 +17,8 @@ export type SessionInventoryRow = {
   title: string;
   description?: string;
   priceInKobo?: number;
+  slotDuration?: SessionSlotDuration;
+  conferenceDay?: ConferenceDay;
   status: SessionStatus;
   isTaken?: boolean;
   isReserved?: boolean;
@@ -27,10 +31,37 @@ export interface AdminSessionInventoryConfig {
   queryKey: readonly string[];
   addButtonLabel: string;
   createDefaults: { title: string; description: string };
+  /** When true, create/edit collect `slotDuration` and `conferenceDay` (masterclasses & presentations). */
+  collectSlotShape?: boolean;
   list: () => Promise<SessionInventoryRow[]>;
   create: (body: CreateAdminSessionSlotInput) => Promise<unknown>;
   patch: (id: string, body: PatchAdminSessionSlotPayload) => Promise<unknown>;
   remove: (id: string) => Promise<unknown>;
+}
+
+const SLOT_DURATION_OPTIONS: { value: SessionSlotDuration; label: string }[] = [
+  { value: "m10", label: "10 min" },
+  { value: "m15", label: "15 min" },
+  { value: "m20", label: "20 min" },
+  { value: "m30", label: "30 min" },
+  { value: "m45", label: "45 min" },
+  { value: "h1", label: "1 hour" },
+  { value: "h2", label: "2 hours" },
+];
+
+const CONFERENCE_DAY_OPTIONS: { value: ConferenceDay; label: string }[] = [
+  { value: "day_1", label: "Day 1" },
+  { value: "day_2", label: "Day 2" },
+];
+
+function slotDurationLabel(v?: SessionSlotDuration): string {
+  if (!v) return "—";
+  return SLOT_DURATION_OPTIONS.find((o) => o.value === v)?.label ?? v;
+}
+
+function conferenceDayLabel(v?: ConferenceDay): string {
+  if (!v) return "—";
+  return CONFERENCE_DAY_OPTIONS.find((o) => o.value === v)?.label ?? v;
 }
 
 function parseNairaToKobo(input: string): number {
@@ -45,6 +76,9 @@ function koboToNairaField(k?: number): string {
 }
 
 export function AdminSessionInventoryPage({ config }: { config: AdminSessionInventoryConfig }) {
+  const collectSlotShape = Boolean(config.collectSlotShape);
+  const tableColCount = collectSlotShape ? 8 : 6;
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<SessionStatus | "">("");
   const [modal, setModal] = useState<
@@ -55,6 +89,8 @@ export function AdminSessionInventoryPage({ config }: { config: AdminSessionInve
   const [formTitle, setFormTitle] = useState("");
   const [formDescription, setFormDescription] = useState("");
   const [formPriceNaira, setFormPriceNaira] = useState("");
+  const [formSlotDuration, setFormSlotDuration] = useState<SessionSlotDuration>("m30");
+  const [formConferenceDay, setFormConferenceDay] = useState<ConferenceDay>("day_1");
   const [formStatus, setFormStatus] = useState<SessionStatus>("draft");
   const [formReserved, setFormReserved] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -71,11 +107,16 @@ export function AdminSessionInventoryPage({ config }: { config: AdminSessionInve
   const createMutation = useMutation({
     mutationFn: () => {
       const priceInKobo = parseNairaToKobo(formPriceNaira);
-      return config.create({
+      const body: CreateAdminSessionSlotInput = {
         title: formTitle.trim() || config.createDefaults.title,
         description: formDescription.trim() || config.createDefaults.description,
         priceInKobo,
-      });
+      };
+      if (collectSlotShape) {
+        body.slotDuration = formSlotDuration;
+        body.conferenceDay = formConferenceDay;
+      }
+      return config.create(body);
     },
     onSuccess: () => {
       invalidate();
@@ -95,6 +136,10 @@ export function AdminSessionInventoryPage({ config }: { config: AdminSessionInve
         status: formStatus,
         isReserved: formReserved,
       };
+      if (collectSlotShape) {
+        body.slotDuration = formSlotDuration;
+        body.conferenceDay = formConferenceDay;
+      }
       return config.patch(modal.row.id, body);
     },
     onSuccess: () => {
@@ -119,6 +164,8 @@ export function AdminSessionInventoryPage({ config }: { config: AdminSessionInve
     setFormTitle(config.createDefaults.title);
     setFormDescription(config.createDefaults.description);
     setFormPriceNaira("0");
+    setFormSlotDuration("m30");
+    setFormConferenceDay("day_1");
     setFormStatus("draft");
     setFormReserved(false);
     setFormError(null);
@@ -129,6 +176,8 @@ export function AdminSessionInventoryPage({ config }: { config: AdminSessionInve
     setFormTitle(row.title);
     setFormDescription(row.description ?? "");
     setFormPriceNaira(koboToNairaField(row.priceInKobo));
+    setFormSlotDuration(row.slotDuration ?? "m30");
+    setFormConferenceDay(row.conferenceDay ?? "day_1");
     setFormStatus(row.status);
     setFormReserved(!!row.isReserved);
     setFormError(null);
@@ -219,6 +268,16 @@ export function AdminSessionInventoryPage({ config }: { config: AdminSessionInve
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
                     Title
                   </th>
+                  {collectSlotShape ? (
+                    <>
+                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
+                        Duration
+                      </th>
+                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
+                        Day
+                      </th>
+                    </>
+                  ) : null}
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
                     Price
                   </th>
@@ -239,21 +298,21 @@ export function AdminSessionInventoryPage({ config }: { config: AdminSessionInve
               <tbody className="divide-y divide-primary/5 dark:divide-border-dark">
                 {isLoading && (
                   <tr>
-                    <td className="px-6 py-6 text-sm text-slate-500 dark:text-white/50" colSpan={6}>
+                    <td className="px-6 py-6 text-sm text-slate-500 dark:text-white/50" colSpan={tableColCount}>
                       Loading…
                     </td>
                   </tr>
                 )}
                 {isError && (
                   <tr>
-                    <td className="px-6 py-6 text-sm text-primary" colSpan={6}>
+                    <td className="px-6 py-6 text-sm text-primary" colSpan={tableColCount}>
                       Unable to load slots.
                     </td>
                   </tr>
                 )}
                 {!isLoading && !isError && filtered.length === 0 && (
                   <tr>
-                    <td className="px-6 py-6 text-sm text-slate-500 dark:text-white/50" colSpan={6}>
+                    <td className="px-6 py-6 text-sm text-slate-500 dark:text-white/50" colSpan={tableColCount}>
                       No slots yet.
                     </td>
                   </tr>
@@ -266,6 +325,16 @@ export function AdminSessionInventoryPage({ config }: { config: AdminSessionInve
                     <td className="px-6 py-4 text-sm font-semibold text-[#181112] dark:text-white">
                       {row.title}
                     </td>
+                    {collectSlotShape ? (
+                      <>
+                        <td className="px-6 py-4 text-sm text-[#181112] dark:text-white/90">
+                          {slotDurationLabel(row.slotDuration)}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-[#181112] dark:text-white/90">
+                          {conferenceDayLabel(row.conferenceDay)}
+                        </td>
+                      </>
+                    ) : null}
                     <td className="px-6 py-4 text-sm text-[#181112] dark:text-white/90">
                       {formatKoboToNaira(row.priceInKobo)}
                     </td>
@@ -407,6 +476,38 @@ export function AdminSessionInventoryPage({ config }: { config: AdminSessionInve
                   className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
                 />
               </label>
+              {collectSlotShape && (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <label className="block text-xs font-bold uppercase text-slate-500 dark:text-white/50">
+                    Slot duration
+                    <select
+                      value={formSlotDuration}
+                      onChange={(e) => setFormSlotDuration(e.target.value as SessionSlotDuration)}
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
+                    >
+                      {SLOT_DURATION_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block text-xs font-bold uppercase text-slate-500 dark:text-white/50">
+                    Conference day
+                    <select
+                      value={formConferenceDay}
+                      onChange={(e) => setFormConferenceDay(e.target.value as ConferenceDay)}
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
+                    >
+                      {CONFERENCE_DAY_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              )}
               {modal.mode === "edit" && (
                 <>
                   <label className="block text-xs font-bold uppercase text-slate-500 dark:text-white/50">

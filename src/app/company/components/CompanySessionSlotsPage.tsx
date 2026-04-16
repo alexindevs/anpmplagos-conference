@@ -2,9 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { getCompanyNameFromAuthUser, isCompanyRegType } from "@/lib/auth-api";
+import { conferenceCartQueryKey, useAddConferenceCartItem } from "@/hooks/use-conference-cart";
+import { useClientPagination } from "@/hooks/use-shop-client-pagination";
 import {
   ApiError,
   formatKoboToNaira,
@@ -13,41 +15,40 @@ import {
   initializeSessionPayment,
   type CompanyOwnedSessionSlot,
   type PendingSessionPayment,
-  type SessionPaymentType,
   type SessionSlotCatalogItem,
 } from "@/lib/api";
 
 const Q_AVAIL = ["company", "session-slots", "available"] as const;
 const Q_ME = ["company", "session-slots", "me"] as const;
 
+export type CompanyShopSessionKind = "masterclass" | "presentation";
+
 function catalogForKind(
-  kind: SessionPaymentType,
+  kind: CompanyShopSessionKind,
   data: Awaited<ReturnType<typeof getAvailableSessionSlots>> | undefined
 ): SessionSlotCatalogItem[] {
   if (!data) return [];
   if (kind === "masterclass") return data.masterclasses;
-  if (kind === "panel") return data.panelSessions;
   return data.presentations;
 }
 
 function ownedForKind(
-  kind: SessionPaymentType,
+  kind: CompanyShopSessionKind,
   data: Awaited<ReturnType<typeof getCompanyMeSessions>> | undefined
 ): CompanyOwnedSessionSlot[] {
   if (!data) return [];
   if (kind === "masterclass") return data.masterclasses;
-  if (kind === "panel") return data.panelSessions;
   return data.presentations;
 }
 
 function CatalogCard({
   slot,
-  paying,
-  onPay,
+  busy,
+  onAddToCart,
 }: {
   slot: SessionSlotCatalogItem;
-  paying: boolean;
-  onPay: () => void;
+  busy: boolean;
+  onAddToCart: () => void;
 }) {
   return (
     <div className="flex flex-col rounded-xl border border-secondary/20 border-t-2 border-t-secondary/60 bg-white p-5 shadow-sm">
@@ -59,19 +60,19 @@ function CatalogCard({
       <div className="mt-auto pt-4">
         <button
           type="button"
-          disabled={paying}
-          onClick={onPay}
+          disabled={busy}
+          onClick={onAddToCart}
           className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {paying ? (
+          {busy ? (
             <>
               <span className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-              Starting…
+              Adding…
             </>
           ) : (
             <>
-              <span className="material-symbols-outlined text-[18px]">payments</span>
-              Pay now
+              <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+              Add to cart
             </>
           )}
         </button>
@@ -85,16 +86,22 @@ export function CompanySessionSlotsPage({
   heading,
   lead,
   icon,
+  embedded = false,
 }: {
-  sessionKind: SessionPaymentType;
+  sessionKind: CompanyShopSessionKind;
   heading: string;
   lead: string;
   icon: string;
+  /** When true, omit outer `<main>` and page-scale padding (used inside shop tabs). */
+  embedded?: boolean;
 }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: user, isPending: userLoading } = useAuthSession();
+  const [addingId, setAddingId] = useState<string | null>(null);
   const [payingId, setPayingId] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const addCartMutation = useAddConferenceCartItem();
 
   useEffect(() => {
     if (!userLoading && (!user || !isCompanyRegType(user))) {
@@ -134,6 +141,7 @@ export function CompanySessionSlotsPage({
     () => catalogForKind(sessionKind, availQuery.data),
     [sessionKind, availQuery.data]
   );
+  const { page, setPage, totalPages, pageItems: catalogPage } = useClientPagination(catalog);
   const owned = useMemo(() => ownedForKind(sessionKind, meQuery.data), [sessionKind, meQuery.data]);
   const pending = useMemo(
     () =>
@@ -141,10 +149,24 @@ export function CompanySessionSlotsPage({
     [meQuery.data, sessionKind]
   );
 
-  const handlePay = (sessionId: string) => {
+  const handleAddToCart = (sessionId: string) => {
     setCheckoutError(null);
-    setPayingId(sessionId);
-    payMutation.mutate(sessionId);
+    setAddingId(sessionId);
+    const body =
+      sessionKind === "masterclass"
+        ? { type: "masterclass" as const, masterclassId: sessionId }
+        : { type: "presentation" as const, presentationId: sessionId };
+    addCartMutation.mutate(body, {
+      onSettled: () => setAddingId(null),
+      onError: (e) => {
+        setCheckoutError(e instanceof ApiError ? e.message : "Could not add to cart.");
+      },
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: Q_AVAIL });
+        void queryClient.invalidateQueries({ queryKey: Q_ME });
+        void queryClient.invalidateQueries({ queryKey: conferenceCartQueryKey });
+      },
+    });
   };
 
   const handlePendingContinue = (p: PendingSessionPayment) => {
@@ -154,24 +176,31 @@ export function CompanySessionSlotsPage({
   };
 
   if (userLoading || !user) {
-    return (
-      <div className="min-h-screen bg-background-light flex items-center justify-center">
+    const loader = (
+      <div className={embedded ? "py-16 flex justify-center" : "min-h-screen bg-background-light flex items-center justify-center"}>
         <div className="flex items-center gap-3">
           <div className="size-8 animate-spin rounded-full border-4 border-secondary/30 border-t-secondary" />
           <span className="text-slate-600">Loading…</span>
         </div>
       </div>
     );
+    return loader;
   }
 
   const loadError =
     (availQuery.isError && availQuery.error instanceof Error ? availQuery.error.message : null) ||
     (meQuery.isError && meQuery.error instanceof Error ? meQuery.error.message : null);
 
-  return (
-    <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-      <div className="mb-6 border-l-4 border-secondary pl-4">
-        <h1 className="text-2xl font-black text-[#181112]">{heading}</h1>
+  const shellClass = embedded ? "space-y-6" : "flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8";
+  const titleClass = embedded ? "text-xl font-black text-[#181112]" : "text-2xl font-black text-[#181112]";
+  const inner = (
+    <>
+      <div className={embedded ? "border-l-4 border-secondary pl-4" : "mb-6 border-l-4 border-secondary pl-4"}>
+        {embedded ? (
+          <h2 className={titleClass}>{heading}</h2>
+        ) : (
+          <h1 className={titleClass}>{heading}</h1>
+        )}
         <p className="text-sm text-slate-600 mt-2">{lead}</p>
       </div>
 
@@ -204,16 +233,41 @@ export function CompanySessionSlotsPage({
             There are no open slots in this category right now.
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {catalog.map((slot) => (
-              <CatalogCard
-                key={slot.id}
-                slot={slot}
-                paying={payingId === slot.id && payMutation.isPending}
-                onPay={() => handlePay(slot.id)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {catalogPage.map((slot) => (
+                <CatalogCard
+                  key={slot.id}
+                  slot={slot}
+                  busy={addingId === slot.id && addCartMutation.isPending}
+                  onAddToCart={() => handleAddToCart(slot.id)}
+                />
+              ))}
+            </div>
+            {totalPages > 1 ? (
+              <div className="flex items-center justify-center gap-3 pt-6">
+                <button
+                  type="button"
+                  disabled={page <= 1}
+                  onClick={() => setPage(page - 1)}
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-bold text-slate-700 disabled:opacity-40"
+                >
+                  Previous
+                </button>
+                <span className="text-sm text-slate-600">
+                  Page {page} of {totalPages}
+                </span>
+                <button
+                  type="button"
+                  disabled={page >= totalPages}
+                  onClick={() => setPage(page + 1)}
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-bold text-slate-700 disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </div>
+            ) : null}
+          </>
         )}
       </section>
 
@@ -282,6 +336,11 @@ export function CompanySessionSlotsPage({
           </div>
         )}
       </section>
-    </main>
+    </>
   );
+
+  if (embedded) {
+    return <div className={shellClass}>{inner}</div>;
+  }
+  return <main className={shellClass}>{inner}</main>;
 }

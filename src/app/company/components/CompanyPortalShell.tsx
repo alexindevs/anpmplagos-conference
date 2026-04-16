@@ -17,8 +17,8 @@ function navActive(pathname: string, href: string): boolean {
       pathname.startsWith("/company/hotel-room")
     );
   }
-  if (href === "/company/marketing") {
-    return pathname === "/company/marketing" || pathname.startsWith("/company/marketing/");
+  if (href === "/company/sponsorship-plans") {
+    return pathname === "/company/sponsorship-plans" || pathname.startsWith("/company/sponsorship-plans/");
   }
   if (href === "/company/support") {
     return pathname === "/company/support" || pathname.startsWith("/company/support/");
@@ -80,39 +80,19 @@ export function CompanyPortalShell({
               Dashboard
             </Link>
 
-            <Link href="/company/select-booth" className={itemClass("/company/select-booth")}>
-              <span className="material-symbols-outlined">store</span>
-              Booth Selection
+            <Link href="/company/floor-plan" className={itemClass("/company/floor-plan")}>
+              <span className="material-symbols-outlined">map</span>
+              Floor plan
             </Link>
 
-            <Link href="/company/masterclasses" className={itemClass("/company/masterclasses")}>
-              <span className="material-symbols-outlined">school</span>
-              Masterclasses
-            </Link>
-
-            <Link href="/company/panels" className={itemClass("/company/panels")}>
-              <span className="material-symbols-outlined">groups</span>
-              Panel Sessions
-            </Link>
-
-            <Link href="/company/presentations" className={itemClass("/company/presentations")}>
-              <span className="material-symbols-outlined">co_present</span>
-              Presentations
+            <Link href="/company/sponsorship-plans" className={itemClass("/company/sponsorship-plans")}>
+              <span className="material-symbols-outlined">workspace_premium</span>
+              Sponsorship plans
             </Link>
 
             <Link href="/hotel-rooms" className={itemClass("/hotel-rooms")}>
               <span className="material-symbols-outlined">hotel</span>
               Hotel rooms
-            </Link>
-
-            <Link href="/company/marketing" className={itemClass("/company/marketing")}>
-              <span className="material-symbols-outlined">campaign</span>
-              Marketing
-            </Link>
-
-            <Link href="/company/sponsorship-plans" className={itemClass("/company/sponsorship-plans")}>
-              <span className="material-symbols-outlined">workspace_premium</span>
-              Sponsorship Plans
             </Link>
 
             <Link href="/company/tickets" className={itemClass("/company/tickets")}>

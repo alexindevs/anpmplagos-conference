@@ -2,17 +2,11 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { isCompanyRegType } from "@/lib/auth-api";
-import {
-  ApiError,
-  formatKoboToNaira,
-  getAvailableHotelRooms,
-  getMyBookedHotelRooms,
-  initializeHotelRoomPayment,
-  type HotelRoom,
-} from "@/lib/api";
+import { hotelCartQueryKey, useAddHotelCartItem } from "@/hooks/use-hotel-cart";
+import { ApiError, formatKoboToNaira, getAvailableHotelRooms, getMyBookedHotelRooms, type HotelRoom } from "@/lib/api";
 
 const HOTEL_ROOMS_QUERY_KEY = ["hotel-rooms", "available"] as const;
 const HOTEL_ROOMS_ME_QUERY_KEY = ["hotel-rooms", "me"] as const;
@@ -20,7 +14,7 @@ const HOTEL_ROOMS_ME_QUERY_KEY = ["hotel-rooms", "me"] as const;
 export default function HotelRoomsPage() {
   const queryClient = useQueryClient();
   const { data: user, isPending: sessionLoading } = useAuthSession();
-  const [bookingRoomId, setBookingRoomId] = useState<string | null>(null);
+  const [addingRoomId, setAddingRoomId] = useState<string | null>(null);
 
   const { data: rooms = [], isLoading, isError, error } = useQuery({
     queryKey: HOTEL_ROOMS_QUERY_KEY,
@@ -58,17 +52,7 @@ export default function HotelRoomsPage() {
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [rooms]);
 
-  const payMutation = useMutation({
-    mutationFn: (hotelRoomId: string) => initializeHotelRoomPayment({ hotelRoomId }),
-    onSuccess: (data) => {
-      void queryClient.invalidateQueries({ queryKey: HOTEL_ROOMS_QUERY_KEY });
-      void queryClient.invalidateQueries({ queryKey: HOTEL_ROOMS_ME_QUERY_KEY });
-      window.location.href = data.authorizationUrl;
-    },
-    onSettled: () => {
-      setBookingRoomId(null);
-    },
-  });
+  const addCartMutation = useAddHotelCartItem();
 
   const registrationOk =
     !user ||
@@ -76,30 +60,51 @@ export default function HotelRoomsPage() {
     !user.registrationStatus ||
     user.registrationStatus.toLowerCase() === "registered";
 
-  const handleBook = (roomId: string) => {
+  const handleAddToCart = (roomId: string) => {
     if (!user || !registrationOk) return;
-    setBookingRoomId(roomId);
-    payMutation.mutate(roomId);
+    setAddingRoomId(roomId);
+    addCartMutation.mutate(
+      { type: "hotel_room", hotelRoomId: roomId },
+      {
+        onSettled: () => setAddingRoomId(null),
+        onSuccess: () => {
+          void queryClient.invalidateQueries({ queryKey: HOTEL_ROOMS_QUERY_KEY });
+          void queryClient.invalidateQueries({ queryKey: HOTEL_ROOMS_ME_QUERY_KEY });
+          void queryClient.invalidateQueries({ queryKey: hotelCartQueryKey });
+        },
+      }
+    );
   };
 
-  const payErrorMessage =
-    payMutation.error instanceof ApiError
-      ? (payMutation.error.body?.message as string) || payMutation.error.message
-      : payMutation.error instanceof Error
-        ? payMutation.error.message
-        : "Could not start checkout. Please try again.";
+  const cartErrorMessage =
+    addCartMutation.error instanceof ApiError
+      ? (addCartMutation.error.body?.message as string) || addCartMutation.error.message
+      : addCartMutation.error instanceof Error
+        ? addCartMutation.error.message
+        : "Could not add to cart. Please try again.";
 
   return (
     <main className="flex-1 w-full min-h-0 overflow-y-auto bg-background-light">
       <section className="flex w-full max-w-[1280px] flex-col gap-6 px-4 py-10 sm:px-10 mx-auto">
-        <div className="flex flex-col gap-3 border-l-4 border-primary bg-white p-6 shadow-sm rounded-r-lg">
-          <h1 className="text-4xl font-black leading-tight tracking-tight text-[#181112]">
-            Conference hotel rooms
-          </h1>
-          <p className="text-lg leading-normal text-[#896165]">
-            Reserve official partner hotel slots for ANPMP Lagos Conference 2026. Each listing is one
-            bookable room for registered conference members.
-          </p>
+        <div className="flex flex-col gap-3 border-l-4 border-primary bg-white p-6 shadow-sm rounded-r-lg sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-4xl font-black leading-tight tracking-tight text-[#181112]">
+              Conference hotel rooms
+            </h1>
+            <p className="text-lg leading-normal text-[#896165] mt-2">
+              Reserve official partner hotel slots for ANPMP Lagos Conference 2026. Add rooms to your{" "}
+              <strong className="text-[#181112]">hotel cart</strong>, then checkout once.
+            </p>
+          </div>
+          {!sessionLoading && user && registrationOk && (
+            <Link
+              href="/hotel-rooms/cart"
+              className="inline-flex shrink-0 items-center gap-2 self-start rounded-lg border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm font-bold text-primary shadow-sm hover:bg-primary/10"
+            >
+              <span className="material-symbols-outlined text-[20px]">shopping_cart</span>
+              Cart
+            </Link>
+          )}
         </div>
 
         {!sessionLoading && user && (
@@ -136,8 +141,8 @@ export default function HotelRoomsPage() {
                   </div>
                   {myBookedRooms.length === 0 ? (
                     <p className="text-sm text-slate-600">
-                      You don&apos;t have any completed hotel bookings yet. Book a slot below.
-                      is confirmed.
+                      You don&apos;t have any completed hotel bookings yet. Add a room from the catalog below, then
+                      checkout from your hotel cart when you&apos;re ready.
                     </p>
                   ) : (
                     <div className="overflow-x-auto rounded-lg border border-slate-200">
@@ -180,9 +185,9 @@ export default function HotelRoomsPage() {
           </div>
         )}
 
-        {payMutation.isError && (
+        {addCartMutation.isError && (
           <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-            {payErrorMessage}
+            {cartErrorMessage}
           </div>
         )}
 
@@ -261,19 +266,19 @@ export default function HotelRoomsPage() {
                           <td className="py-4 px-4 text-right">
                             <button
                               type="button"
-                              disabled={!user || !registrationOk || payMutation.isPending}
-                              onClick={() => handleBook(room.id)}
+                              disabled={!user || !registrationOk || addCartMutation.isPending}
+                              onClick={() => handleAddToCart(room.id)}
                               className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white shadow-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              {bookingRoomId === room.id && payMutation.isPending ? (
+                              {addingRoomId === room.id && addCartMutation.isPending ? (
                                 <>
                                   <span className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                                  Starting…
+                                  Adding…
                                 </>
                               ) : (
                                 <>
-                                  <span className="material-symbols-outlined text-[18px]">payments</span>
-                                  Book &amp; pay
+                                  <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                                  Add to cart
                                 </>
                               )}
                             </button>

@@ -113,7 +113,7 @@ function BoothPaymentCallbackContent() {
           </p>
           <div className="flex flex-col gap-3">
             <Link
-              href="/company/select-booth"
+              href="/company/sponsorship-plans?tab=booths"
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-white font-bold hover:bg-red-700 transition-colors"
             >
               Try Again
@@ -250,7 +250,7 @@ function BoothPaymentCallbackContent() {
             {(isFailed || isRefunded) && (
               <>
                 <Link
-                  href="/company/select-booth"
+                  href="/company/sponsorship-plans?tab=booths"
                   className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-white font-bold hover:bg-red-700 transition-colors"
                 >
                   <span className="material-symbols-outlined">refresh</span>

@@ -10,7 +10,7 @@ const MARKETING_KINDS = new Set(["advert_slot", "branding_slot"]);
 
 /**
  * Paystack return URL for advert / branding slot payments.
- * Configure backend: `/company/marketing/payment-callback?reference=...`
+ * Configure backend: `/company/marketing/payment-callback?reference=...` (legacy URL; shop lives under `/company/sponsorship-plans`.)
  */
 function CompanyMarketingPaymentCallbackContent() {
   const queryClient = useQueryClient();
@@ -45,7 +45,7 @@ function CompanyMarketingPaymentCallbackContent() {
           <h1 className="text-3xl font-black text-[#181112] mb-4">Invalid payment link</h1>
           <p className="text-gray-600 mb-6">This link is missing a payment reference.</p>
           <Link
-            href="/company/marketing"
+            href="/company/sponsorship-plans?tab=adverts"
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-white font-bold hover:bg-red-700 transition-colors"
           >
             Back to Marketing
@@ -79,7 +79,7 @@ function CompanyMarketingPaymentCallbackContent() {
             {error instanceof Error ? error.message : "Unable to verify your payment."}
           </p>
           <Link
-            href="/company/marketing"
+            href="/company/sponsorship-plans?tab=adverts"
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-white font-bold hover:bg-red-700 transition-colors"
           >
             Back to Marketing
@@ -217,7 +217,7 @@ function CompanyMarketingPaymentCallbackContent() {
           <div className="flex flex-col gap-3">
             {isSuccess && (
               <Link
-                href="/company/marketing"
+                href="/company/sponsorship-plans?tab=adverts"
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-white font-bold hover:bg-red-700 transition-colors"
               >
                 <span className="material-symbols-outlined">campaign</span>
@@ -227,7 +227,7 @@ function CompanyMarketingPaymentCallbackContent() {
             {(isFailed || isRefunded) && (
               <>
                 <Link
-                  href="/company/marketing"
+                  href="/company/sponsorship-plans?tab=adverts"
                   className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-white font-bold hover:bg-red-700 transition-colors"
                 >
                   Try again
@@ -246,7 +246,7 @@ function CompanyMarketingPaymentCallbackContent() {
                 >
                   Check status again
                 </button>
-                <Link href="/company/marketing" className="text-center text-sm text-gray-600 hover:text-primary">
+                <Link href="/company/sponsorship-plans?tab=adverts" className="text-center text-sm text-gray-600 hover:text-primary">
                   Marketing
                 </Link>
               </>

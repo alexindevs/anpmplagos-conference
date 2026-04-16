@@ -59,7 +59,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/company/branding",
-        destination: "/company/marketing",
+        destination: "/company/sponsorship-plans?tab=branding",
         permanent: false,
       },
     ];

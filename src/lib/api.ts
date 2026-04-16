@@ -402,6 +402,36 @@ export function parseNairaInputToKobo(raw: string): number | null {
   return Math.round(naira * 100);
 }
 
+/**
+ * Coerce kobo amounts from the API: JSON number or integer string (safe for large totals).
+ * Clamps to `Number.MAX_SAFE_INTEGER` / `MIN_SAFE_INTEGER` when the string exceeds JS safe range.
+ */
+export function parseKoboField(value: unknown): number {
+  if (value == null) return 0;
+  if (typeof value === "number" && Number.isFinite(value)) return Math.trunc(value);
+  if (typeof value === "bigint") {
+    const n = Number(value);
+    return Number.isFinite(n) ? Math.trunc(n) : 0;
+  }
+  const s = String(value).trim().replace(/,/g, "");
+  if (!s) return 0;
+  if (!/^-?\d+$/.test(s)) {
+    const n = Number(s);
+    return Number.isFinite(n) ? Math.trunc(n) : 0;
+  }
+  try {
+    const bi = BigInt(s);
+    const hi = BigInt(Number.MAX_SAFE_INTEGER);
+    const lo = BigInt(Number.MIN_SAFE_INTEGER);
+    if (bi > hi) return Number.MAX_SAFE_INTEGER;
+    if (bi < lo) return Number.MIN_SAFE_INTEGER;
+    return Number(bi);
+  } catch {
+    const n = Number(s);
+    return Number.isFinite(n) ? Math.trunc(n) : 0;
+  }
+}
+
 export interface RegistrationResponse {
   id: string;
   status: string;
@@ -472,6 +502,8 @@ export interface ExhibitorSummary {
   booth?: Booth | null;
   representatives?: { id?: string; name: string; title: string; phone: string }[];
   createdAt: string;
+  /** Running total of sponsorship-related payments (kobo); may be a string on the wire. */
+  sponsorshipPaidTotalKobo?: number;
 }
 
 export type CompanySummary = ExhibitorSummary;
@@ -487,6 +519,9 @@ export interface MasterclassSession {
   startTime?: string;
   endTime?: string;
   location?: string;
+  /** Slot shape for inventory / bundles (API: `slotDuration` + `conferenceDay`). */
+  slotDuration?: SessionSlotDuration;
+  conferenceDay?: ConferenceDay;
   priceInKobo?: number;
   companyId?: string | null;
   company?: { id: string; companyName: string };
@@ -513,6 +548,8 @@ export interface PanelSession {
   startTime?: string;
   endTime?: string;
   location?: string;
+  slotDuration?: SessionSlotDuration;
+  conferenceDay?: ConferenceDay;
   companyId?: string | null;
   company?: { id: string; companyName: string };
   /** @deprecated Use `company` */
@@ -536,6 +573,8 @@ export interface PresentationSession {
   id: string;
   title: string;
   description?: string;
+  slotDuration?: SessionSlotDuration;
+  conferenceDay?: ConferenceDay;
   priceInKobo: number;
   status: SessionStatus;
   isTaken?: boolean;
@@ -554,6 +593,16 @@ export interface SessionSlotCatalogItem {
   description: string;
   priceInKobo: number;
   createdAt?: string;
+}
+
+function normalizeSessionSlotCatalogItemFromWire(raw: unknown): SessionSlotCatalogItem {
+  if (!raw || typeof raw !== "object") {
+    throw new Error("Invalid session slot payload");
+  }
+  const o = raw as Record<string, unknown>;
+  const s = { ...(raw as object) } as SessionSlotCatalogItem;
+  s.priceInKobo = parseKoboField(o.priceInKobo);
+  return s;
 }
 
 export interface AvailableSessionSlotsResponse {
@@ -602,8 +651,8 @@ function normalizePendingSessionPayment(item: unknown): PendingSessionPayment | 
       reference: o.reference,
       kind: o.kind as SessionPaymentType,
       sessionId: o.sessionId,
-      amount: Number(o.amount) || 0,
-      baseAmount: Number(o.baseAmount) || 0,
+      amount: parseKoboField(o.amount),
+      baseAmount: parseKoboField(o.baseAmount),
       createdAt: typeof o.createdAt === "string" ? o.createdAt : "",
     };
   }
@@ -618,8 +667,8 @@ function normalizePendingSessionPayment(item: unknown): PendingSessionPayment | 
       reference: payment.reference,
       kind,
       sessionId: String(session.id),
-      amount: Number(payment.amount) || 0,
-      baseAmount: Number(payment.baseAmount) || 0,
+      amount: parseKoboField(payment.amount),
+      baseAmount: parseKoboField(payment.baseAmount),
       createdAt: typeof payment.createdAt === "string" ? payment.createdAt : "",
     };
   }
@@ -728,6 +777,22 @@ export interface AdminCompaniesQuery {
   tier?: SponsorTier | string;
 }
 
+function normalizeExhibitorSummaryFromWire(raw: unknown): ExhibitorSummary {
+  if (!raw || typeof raw !== "object") {
+    throw new Error("Invalid company summary payload");
+  }
+  const o = raw as Record<string, unknown>;
+  const row = { ...(raw as object) } as ExhibitorSummary;
+  if ("sponsorshipPaidTotalKobo" in o) row.sponsorshipPaidTotalKobo = parseKoboField(o.sponsorshipPaidTotalKobo);
+  if ("sponsorAmount" in o) row.sponsorAmount = parseKoboField(o.sponsorAmount);
+  if (row.booth != null) row.booth = normalizeBoothMoneyFields(row.booth) ?? null;
+  return row;
+}
+
+function normalizeExhibitorDetailFromWire(raw: unknown): ExhibitorDetail {
+  return normalizeExhibitorSummaryFromWire(raw) as ExhibitorDetail;
+}
+
 export async function getAdminCompanies(
   query: AdminCompaniesQuery = {}
 ): Promise<PaginatedResponse<CompanySummary>> {
@@ -737,7 +802,11 @@ export async function getAdminCompanies(
   if (query.status) params.status = String(query.status);
   if (query.tier) params.tier = String(query.tier);
   if (query.search) params.search = query.search;
-  return apiFetch<PaginatedResponse<CompanySummary>>("/api/admin/companies", { params });
+  const raw = await apiFetch<PaginatedResponse<Record<string, unknown>>>("/api/admin/companies", { params });
+  return {
+    ...raw,
+    items: raw.items.map((item) => normalizeExhibitorSummaryFromWire(item)),
+  } as PaginatedResponse<CompanySummary>;
 }
 
 export async function getAdminSponsors(query: AdminSponsorsQuery = {}): Promise<PaginatedResponse<SponsorSummary>> {
@@ -752,7 +821,8 @@ export async function getAdminSponsors(query: AdminSponsorsQuery = {}): Promise<
 }
 
 export async function getAdminSponsor(id: string): Promise<SponsorDetail> {
-  return apiFetch<SponsorDetail>(`/api/admin/companies/${id}`);
+  const raw = await apiFetch<unknown>(`/api/admin/companies/${id}`);
+  return normalizeExhibitorDetailFromWire(raw) as SponsorDetail;
 }
 
 export async function patchAdminSponsor(
@@ -771,17 +841,19 @@ export async function patchAdminSponsor(
     headerImage: string;
   }>
 ): Promise<SponsorDetail> {
-  return apiFetch<SponsorDetail>(`/api/admin/companies/${id}`, {
+  const raw = await apiFetch<unknown>(`/api/admin/companies/${id}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
   });
+  return normalizeExhibitorDetailFromWire(raw) as SponsorDetail;
 }
 
 export async function postSponsorBooth(sponsorId: string, boothId: string | null): Promise<SponsorDetail> {
-  return apiFetch<SponsorDetail>(`/api/admin/companies/${sponsorId}/booth`, {
+  const raw = await apiFetch<unknown>(`/api/admin/companies/${sponsorId}/booth`, {
     method: "POST",
     body: JSON.stringify({ boothId }),
   });
+  return normalizeExhibitorDetailFromWire(raw) as SponsorDetail;
 }
 
 export interface AdminExhibitorsQuery {
@@ -806,10 +878,11 @@ export async function postAdminCompanyBooth(
   companyId: string,
   boothId: string | null
 ): Promise<ExhibitorDetail> {
-  return apiFetch<ExhibitorDetail>(`/api/admin/companies/${companyId}/booth`, {
+  const raw = await apiFetch<unknown>(`/api/admin/companies/${companyId}/booth`, {
     method: "POST",
     body: JSON.stringify({ boothId }),
   });
+  return normalizeExhibitorDetailFromWire(raw);
 }
 
 /** @deprecated Use `postAdminCompanyBooth` */
@@ -821,7 +894,8 @@ export async function putExhibitorBooth(
 }
 
 export async function getAdminExhibitor(id: string): Promise<ExhibitorDetail> {
-  return apiFetch<ExhibitorDetail>(`/api/admin/companies/${id}`);
+  const raw = await apiFetch<unknown>(`/api/admin/companies/${id}`);
+  return normalizeExhibitorDetailFromWire(raw);
 }
 
 export async function patchAdminExhibitor(
@@ -837,10 +911,11 @@ export async function patchAdminExhibitor(
     status: string;
   }>
 ): Promise<ExhibitorDetail> {
-  return apiFetch<ExhibitorDetail>(`/api/admin/companies/${id}`, {
+  const raw = await apiFetch<unknown>(`/api/admin/companies/${id}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
   });
+  return normalizeExhibitorDetailFromWire(raw);
 }
 
 /** Admin create body for masterclass / panel / presentation slots (SESSIONS-API.md). */
@@ -848,6 +923,9 @@ export interface CreateAdminSessionSlotInput {
   title: string;
   description: string;
   priceInKobo: number;
+  /** Required by API for masterclasses and presentations; omit for panel slots if unused. */
+  slotDuration?: SessionSlotDuration;
+  conferenceDay?: ConferenceDay;
 }
 
 export type PatchAdminSessionSlotPayload = Partial<
@@ -954,15 +1032,32 @@ export async function deleteAdminPresentation(id: string): Promise<{ message: st
 }
 
 export async function getAvailableSessionSlots(): Promise<AvailableSessionSlotsResponse> {
-  return apiFetch<AvailableSessionSlotsResponse>("/api/companies/session-slots/available");
+  const raw = await apiFetch<Record<string, unknown>>("/api/companies/session-slots/available");
+  const mapList = (v: unknown) =>
+    (Array.isArray(v) ? v : []).map((row) => normalizeSessionSlotCatalogItemFromWire(row));
+  return {
+    masterclasses: mapList(raw.masterclasses),
+    panelSessions: mapList(raw.panelSessions),
+    presentations: mapList(raw.presentations),
+  };
+}
+
+function normalizeCompanyOwnedSessionSlotFromWire(raw: unknown): CompanyOwnedSessionSlot {
+  if (!raw || typeof raw !== "object") {
+    throw new Error("Invalid owned session slot payload");
+  }
+  const o = raw as Record<string, unknown>;
+  return { ...(raw as object) as CompanyOwnedSessionSlot, priceInKobo: parseKoboField(o.priceInKobo) };
 }
 
 export async function getCompanyMeSessions(): Promise<CompanyMeSessionsResponse> {
   const raw = await apiFetch<Record<string, unknown>>("/api/companies/me/sessions");
+  const mapOwned = (v: unknown) =>
+    (Array.isArray(v) ? v : []).map((row) => normalizeCompanyOwnedSessionSlotFromWire(row));
   return {
-    masterclasses: (Array.isArray(raw.masterclasses) ? raw.masterclasses : []) as CompanyOwnedSessionSlot[],
-    panelSessions: (Array.isArray(raw.panelSessions) ? raw.panelSessions : []) as CompanyOwnedSessionSlot[],
-    presentations: (Array.isArray(raw.presentations) ? raw.presentations : []) as CompanyOwnedSessionSlot[],
+    masterclasses: mapOwned(raw.masterclasses),
+    panelSessions: mapOwned(raw.panelSessions),
+    presentations: mapOwned(raw.presentations),
     pendingSessionPayments: normalizePendingSessionPaymentsList(raw.pendingSessionPayments),
   };
 }
@@ -1296,6 +1391,16 @@ export interface PublicExhibitor {
   tier?: string | null;
   effectiveDisplayTier?: string | null;
   highestSponsorshipTier?: string | null;
+  /**
+   * When true, company has an active paid sponsorship plan (distinct from booth-only / add-ons).
+   * Used with `GET /api/companies/public` for “Our valued sponsors” grouping.
+   */
+  hasActiveSponsorshipPlan?: boolean;
+  /**
+   * When true, at least one completed paid order qualifies the company for the valued-sponsors list.
+   * Send `false` for default-tier directory rows that should not appear under “Our valued sponsors”.
+   */
+  hasCompletedPaidPurchase?: boolean;
   website?: string;
   headerImage?: string;
   logo?: string;
@@ -1428,17 +1533,40 @@ export async function trackPublicExhibitorProfileView(slug: string): Promise<voi
 /** @deprecated `GET /api/sponsors/public` removed — use `getPublicCompanies`. */
 export async function getPublicSponsors(): Promise<PublicSponsor[]> {
   const companies = await getPublicCompanies();
-  return companies.map((c) => ({
-    id: c.id,
-    slug: c.slug,
-    companyName: c.companyName,
-    tagline: c.tagline,
-    website: c.website,
-    tier: (c.tier ?? c.effectiveDisplayTier ?? "custom") as SponsorTier,
-    logo: c.logo?.trim() || c.profileImage?.trim() || undefined,
-    headerImage: c.headerImage,
-    booth: c.booth ?? undefined,
-  }));
+  return companies.map((c) => {
+    const raw = (c.highestSponsorshipTier ?? c.effectiveDisplayTier ?? c.tier ?? "").trim().toLowerCase();
+    const tierKey =
+      !raw || raw === "default"
+        ? ("custom" as SponsorTier)
+        : raw === "headliner" || raw === "platinum" || raw === "gold" || raw === "silver"
+          ? (raw as SponsorTier)
+          : ("custom" as SponsorTier);
+    return {
+      id: c.id,
+      slug: c.slug,
+      companyName: c.companyName,
+      tagline: c.tagline,
+      website: c.website,
+      tier: tierKey,
+      logo: c.logo?.trim() || c.profileImage?.trim() || undefined,
+      headerImage: c.headerImage,
+      booth: c.booth ?? undefined,
+    };
+  });
+}
+
+/** Bundle session shape (must be paired on create/update). See ADMIN-SPONSORSHIP-BUNDLES.md */
+export type SessionSlotDuration = "m10" | "m15" | "m20" | "m30" | "m45" | "h1" | "h2";
+export type ConferenceDay = "day_1" | "day_2";
+/** Booth tier assigned at checkout when plan is purchased — not the same as display `tier`. */
+export type SponsorshipBundleBoothTier = "gold" | "platinum" | "headliner";
+
+export interface SponsorshipPlanAdvertJoin {
+  advertSlot?: { id: string; title?: string } | null;
+}
+
+export interface SponsorshipPlanBrandingJoin {
+  brandingSlot?: { id: string; title?: string } | null;
 }
 
 export interface SponsorshipPlanCatalogItem {
@@ -1448,10 +1576,84 @@ export interface SponsorshipPlanCatalogItem {
   tier: string;
   perks?: string[];
   isActive?: boolean;
+  /** Default 1 when omitted. */
+  ticketAdmits?: number;
+  bundleBoothTier?: SponsorshipBundleBoothTier | null;
+  bundleMasterclassDuration?: SessionSlotDuration | null;
+  bundleMasterclassDay?: ConferenceDay | null;
+  bundlePresentationDuration?: SessionSlotDuration | null;
+  bundlePresentationDay?: ConferenceDay | null;
+  /** Join rows from admin/detail responses */
+  advertSlots?: SponsorshipPlanAdvertJoin[];
+  brandingSlots?: SponsorshipPlanBrandingJoin[];
+}
+
+function normalizeSponsorshipPlanCatalogItemFromWire(raw: unknown): SponsorshipPlanCatalogItem {
+  if (!raw || typeof raw !== "object") {
+    throw new Error("Invalid sponsorship plan payload");
+  }
+  const o = raw as Record<string, unknown>;
+  const p = { ...(raw as object) } as SponsorshipPlanCatalogItem;
+  p.priceInKobo = parseKoboField(o.priceInKobo);
+  return p;
 }
 
 export async function getSponsorshipPlans(): Promise<SponsorshipPlanCatalogItem[]> {
-  return apiFetch<SponsorshipPlanCatalogItem[]>("/api/companies/sponsorship-plans");
+  const rows = await apiFetch<unknown[]>("/api/companies/sponsorship-plans");
+  return rows.map((row) => normalizeSponsorshipPlanCatalogItemFromWire(row));
+}
+
+/** Admin list/detail — includes `advertSlots` / `brandingSlots` joins when returned by API. */
+export async function getAdminSponsorshipPlans(options?: {
+  tier?: string;
+  isActive?: boolean;
+}): Promise<SponsorshipPlanCatalogItem[]> {
+  const params: Record<string, string> = {};
+  if (options?.tier) params.tier = options.tier;
+  if (options?.isActive !== undefined) params.isActive = options.isActive ? "true" : "false";
+  const rows = await apiFetch<unknown[]>(
+    "/api/admin/sponsorship-plans",
+    Object.keys(params).length ? { params } : undefined
+  );
+  return rows.map((row) => normalizeSponsorshipPlanCatalogItemFromWire(row));
+}
+
+export async function postAdminSponsorshipPlan(
+  payload: Record<string, unknown>
+): Promise<SponsorshipPlanCatalogItem> {
+  const raw = await apiFetch<unknown>("/api/admin/sponsorship-plans", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  return normalizeSponsorshipPlanCatalogItemFromWire(raw);
+}
+
+export async function patchAdminSponsorshipPlan(
+  id: string,
+  payload: Record<string, unknown>
+): Promise<SponsorshipPlanCatalogItem> {
+  const raw = await apiFetch<unknown>(`/api/admin/sponsorship-plans/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+  return normalizeSponsorshipPlanCatalogItemFromWire(raw);
+}
+
+export async function deleteAdminSponsorshipPlan(id: string): Promise<void> {
+  const url = new URL(`/api/admin/sponsorship-plans/${encodeURIComponent(id)}`, API_BASE);
+  const res = await fetch(url.toString(), {
+    method: "DELETE",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+    throw new ApiError(
+      res.status,
+      (typeof body.message === "string" ? body.message : null) ?? res.statusText,
+      body
+    );
+  }
 }
 
 // Hotel rooms (public inventory) — see HOTEL-ROOMS.md
@@ -1849,7 +2051,8 @@ export type PaymentKind =
   | "hotel_room"
   | "sponsorship_plan"
   | "advert_slot"
-  | "branding_slot";
+  | "branding_slot"
+  | "order";
 
 export interface Payment {
   id: string;
@@ -1876,10 +2079,50 @@ export interface Payment {
   updatedAt: string;
 }
 
+function normalizePaymentFromWire(raw: unknown): Payment {
+  if (!raw || typeof raw !== "object") {
+    throw new Error("Invalid payment payload");
+  }
+  const o = raw as Record<string, unknown>;
+  const p = { ...(raw as object) } as Payment;
+  p.baseAmount = parseKoboField(o.baseAmount);
+  p.amount = parseKoboField(o.amount);
+  return p;
+}
+
 export interface VerifyPaymentResponse {
   success: boolean;
   payment: Payment;
   paystackData: Record<string, unknown>;
+}
+
+function normalizePaymentInitializeResponseFromWire(raw: unknown): PaymentInitializeResponse {
+  if (!raw || typeof raw !== "object") {
+    throw new Error("Invalid payment initialize payload");
+  }
+  const o = raw as Record<string, unknown>;
+  return {
+    reference: String(o.reference ?? ""),
+    authorizationUrl: String(o.authorizationUrl ?? ""),
+    accessCode: String(o.accessCode ?? ""),
+    amount: parseKoboField(o.amount),
+    baseAmount: parseKoboField(o.baseAmount),
+  };
+}
+
+function normalizeOrderCheckoutResponseFromWire(raw: unknown): OrderCheckoutResponse {
+  if (!raw || typeof raw !== "object") {
+    throw new Error("Invalid order checkout payload");
+  }
+  const o = raw as Record<string, unknown>;
+  return {
+    orderId: String(o.orderId ?? ""),
+    reference: String(o.reference ?? ""),
+    authorizationUrl: String(o.authorizationUrl ?? ""),
+    accessCode: String(o.accessCode ?? ""),
+    amount: parseKoboField(o.amount),
+    baseAmount: parseKoboField(o.baseAmount),
+  };
 }
 
 export async function initializeBoothPayment(
@@ -1887,10 +2130,11 @@ export async function initializeBoothPayment(
 ): Promise<PaymentInitializeResponse> {
   const body: Record<string, string> = { boothId: request.boothId };
   if (request.companyId) body.companyId = request.companyId;
-  return apiFetch<PaymentInitializeResponse>("/api/payments/booth", {
+  const raw = await apiFetch<unknown>("/api/payments/booth", {
     method: "POST",
     body: JSON.stringify(body),
   });
+  return normalizePaymentInitializeResponseFromWire(raw);
 }
 
 export async function initializeSessionPayment(
@@ -1901,10 +2145,11 @@ export async function initializeSessionPayment(
     sessionId: request.sessionId,
   };
   if (request.companyId) body.companyId = request.companyId;
-  return apiFetch<PaymentInitializeResponse>("/api/payments/session", {
+  const raw = await apiFetch<unknown>("/api/payments/session", {
     method: "POST",
     body: JSON.stringify(body),
   });
+  return normalizePaymentInitializeResponseFromWire(raw);
 }
 
 export async function initializeSponsorshipPlanPayment(
@@ -1912,19 +2157,21 @@ export async function initializeSponsorshipPlanPayment(
 ): Promise<PaymentInitializeResponse> {
   const body: Record<string, string> = { sponsorshipPlanId: request.sponsorshipPlanId };
   if (request.companyId) body.companyId = request.companyId;
-  return apiFetch<PaymentInitializeResponse>("/api/payments/sponsorship-plan", {
+  const raw = await apiFetch<unknown>("/api/payments/sponsorship-plan", {
     method: "POST",
     body: JSON.stringify(body),
   });
+  return normalizePaymentInitializeResponseFromWire(raw);
 }
 
 export async function initializeHotelRoomPayment(
   request: InitializeHotelRoomPaymentRequest
 ): Promise<PaymentInitializeResponse> {
-  return apiFetch<PaymentInitializeResponse>("/api/payments/hotel-room", {
+  const raw = await apiFetch<unknown>("/api/payments/hotel-room", {
     method: "POST",
     body: JSON.stringify(request),
   });
+  return normalizePaymentInitializeResponseFromWire(raw);
 }
 
 export async function initializeAdvertSlotPayment(
@@ -1932,10 +2179,11 @@ export async function initializeAdvertSlotPayment(
 ): Promise<PaymentInitializeResponse> {
   const body: Record<string, string> = { advertSlotId: request.advertSlotId };
   if (request.companyId) body.companyId = request.companyId;
-  return apiFetch<PaymentInitializeResponse>("/api/payments/advert-slot", {
+  const raw = await apiFetch<unknown>("/api/payments/advert-slot", {
     method: "POST",
     body: JSON.stringify(body),
   });
+  return normalizePaymentInitializeResponseFromWire(raw);
 }
 
 export async function initializeBrandingSlotPayment(
@@ -1943,14 +2191,186 @@ export async function initializeBrandingSlotPayment(
 ): Promise<PaymentInitializeResponse> {
   const body: Record<string, string> = { brandingSlotId: request.brandingSlotId };
   if (request.companyId) body.companyId = request.companyId;
-  return apiFetch<PaymentInitializeResponse>("/api/payments/branding-slot", {
+  const raw = await apiFetch<unknown>("/api/payments/branding-slot", {
     method: "POST",
     body: JSON.stringify(body),
   });
+  return normalizePaymentInitializeResponseFromWire(raw);
 }
 
 export async function verifyPayment(reference: string): Promise<VerifyPaymentResponse> {
-  return apiFetch<VerifyPaymentResponse>(`/api/payments/paystack/verify/${reference}`);
+  const raw = await apiFetch<Record<string, unknown>>(
+    `/api/payments/paystack/verify/${encodeURIComponent(reference)}`
+  );
+  return {
+    success: Boolean(raw.success),
+    payment: normalizePaymentFromWire(raw.payment),
+    paystackData:
+      raw.paystackData && typeof raw.paystackData === "object"
+        ? (raw.paystackData as Record<string, unknown>)
+        : {},
+  };
+}
+
+// ==================== Cart & order checkout (FRONTEND-CART-AND-CHECKOUT.md) ====================
+
+export type CartKind = "conference" | "hotel";
+
+export type CartItemType =
+  | "booth"
+  | "masterclass"
+  | "panel"
+  | "presentation"
+  | "sponsorship_plan"
+  | "advert_slot"
+  | "branding_slot"
+  | "hotel_room";
+
+/** Line from GET /api/carts/current — nested catalog keys vary by `type`. */
+export interface CartItem {
+  id: string;
+  type: CartItemType;
+  quantity: number;
+  boothId?: string | null;
+  masterclassId?: string | null;
+  panelSessionId?: string | null;
+  presentationId?: string | null;
+  sponsorshipPlanId?: string | null;
+  advertSlotId?: string | null;
+  brandingSlotId?: string | null;
+  hotelRoomId?: string | null;
+  /** Joined catalog for display (shape depends on backend). */
+  booth?: Booth | null;
+  masterclass?: SessionSlotCatalogItem | null;
+  panelSession?: SessionSlotCatalogItem | null;
+  presentation?: SessionSlotCatalogItem | null;
+  sponsorshipPlan?: SponsorshipPlanCatalogItem | null;
+  advertSlot?: CompanyMarketingSlot | null;
+  brandingSlot?: CompanyMarketingSlot | null;
+  hotelRoom?: HotelRoom | null;
+  /** Unit price in kobo when returned by API */
+  unitPriceInKobo?: number;
+  lineTotalKobo?: number;
+  /** Checkout snapshot: unit base in kobo (may be a string on the wire). */
+  unitBaseAmountKobo?: number;
+  [key: string]: unknown;
+}
+
+/** Checkout / order snapshot line — same kobo string coercion as `CartItem` when returned by the API. */
+export type OrderItem = CartItem;
+
+export interface Cart {
+  id: string | null;
+  userId: string;
+  kind: CartKind;
+  items: CartItem[];
+}
+
+function normalizeBoothMoneyFields(raw: unknown): Booth | null | undefined {
+  if (raw == null) return raw as null | undefined;
+  if (typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const b = { ...(raw as object) } as Booth;
+  if ("price" in o && o.price != null) b.price = parseKoboField(o.price);
+  return b;
+}
+
+function normalizeHotelRoomMoneyFields(raw: unknown): HotelRoom | null | undefined {
+  if (raw == null) return raw as null | undefined;
+  if (typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const h = { ...(raw as object) } as HotelRoom;
+  if ("price" in o && o.price != null) h.price = parseKoboField(o.price);
+  return h;
+}
+
+function normalizeMarketingSlotMoneyFields(raw: unknown): CompanyMarketingSlot | null | undefined {
+  if (raw == null) return raw as null | undefined;
+  if (typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const m = { ...(raw as object) } as CompanyMarketingSlot;
+  if ("price" in o && o.price != null) m.price = parseKoboField(o.price);
+  return m;
+}
+
+function normalizeCartItemFromWire(raw: unknown): CartItem {
+  if (!raw || typeof raw !== "object") {
+    throw new Error("Invalid cart item payload");
+  }
+  const o = raw as Record<string, unknown>;
+  const item = { ...(raw as object) } as CartItem;
+  if ("unitPriceInKobo" in o) item.unitPriceInKobo = parseKoboField(o.unitPriceInKobo);
+  if ("lineTotalKobo" in o) item.lineTotalKobo = parseKoboField(o.lineTotalKobo);
+  if ("unitBaseAmountKobo" in o) item.unitBaseAmountKobo = parseKoboField(o.unitBaseAmountKobo);
+  if (o.sponsorshipPlan != null) item.sponsorshipPlan = normalizeSponsorshipPlanCatalogItemFromWire(o.sponsorshipPlan);
+  if (o.booth != null) item.booth = normalizeBoothMoneyFields(o.booth) ?? null;
+  if (o.masterclass != null) item.masterclass = normalizeSessionSlotCatalogItemFromWire(o.masterclass);
+  if (o.panelSession != null)
+    item.panelSession = normalizeSessionSlotCatalogItemFromWire(o.panelSession) as SessionSlotCatalogItem;
+  if (o.presentation != null) item.presentation = normalizeSessionSlotCatalogItemFromWire(o.presentation);
+  if (o.advertSlot != null) item.advertSlot = normalizeMarketingSlotMoneyFields(o.advertSlot) ?? null;
+  if (o.brandingSlot != null) item.brandingSlot = normalizeMarketingSlotMoneyFields(o.brandingSlot) ?? null;
+  if (o.hotelRoom != null) item.hotelRoom = normalizeHotelRoomMoneyFields(o.hotelRoom) ?? null;
+  return item;
+}
+
+function normalizeCartFromWire(raw: unknown): Cart {
+  if (!raw || typeof raw !== "object") {
+    throw new Error("Invalid cart payload");
+  }
+  const o = raw as Record<string, unknown>;
+  const items = Array.isArray(o.items) ? o.items.map((row) => normalizeCartItemFromWire(row)) : [];
+  return { ...(raw as object) as Cart, items };
+}
+
+export async function getCurrentCart(cartKind: CartKind): Promise<Cart> {
+  const raw = await apiFetch<unknown>("/api/carts/current", { params: { cartKind } });
+  return normalizeCartFromWire(raw);
+}
+
+export interface AddCartItemBody {
+  cartKind: CartKind;
+  type: CartItemType;
+  quantity?: number;
+  boothId?: string;
+  masterclassId?: string;
+  panelSessionId?: string;
+  presentationId?: string;
+  sponsorshipPlanId?: string;
+  advertSlotId?: string;
+  brandingSlotId?: string;
+  hotelRoomId?: string;
+}
+
+export async function addCartItem(body: AddCartItemBody): Promise<Cart> {
+  const raw = await apiFetch<unknown>("/api/carts/items", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+  return normalizeCartFromWire(raw);
+}
+
+export async function removeCartItem(itemId: string): Promise<{ removed: boolean; id: string }> {
+  return apiFetch<{ removed: boolean; id: string }>(`/api/carts/items/${encodeURIComponent(itemId)}`, {
+    method: "DELETE",
+  });
+}
+
+export interface OrderCheckoutResponse {
+  orderId: string;
+  reference: string;
+  authorizationUrl: string;
+  accessCode: string;
+  amount: number;
+  baseAmount: number;
+}
+
+export async function checkoutOrder(cartKind: CartKind): Promise<OrderCheckoutResponse> {
+  const raw = await apiFetch<unknown>("/api/orders/checkout", {
+    method: "POST",
+    body: JSON.stringify({ cartKind }),
+  });
+  return normalizeOrderCheckoutResponseFromWire(raw);
 }
 
 // ==================== Support tickets ====================
@@ -2199,10 +2619,11 @@ export async function createIndividualRegistration(
 }
 
 export async function initializeRegistrationPayment(userId: string): Promise<RegistrationPaymentInitializeResponse> {
-  return apiFetch<RegistrationPaymentInitializeResponse>("/api/payments/registration", {
+  const raw = await apiFetch<unknown>("/api/payments/registration", {
     method: "POST",
     body: JSON.stringify({ userId }),
   });
+  return normalizePaymentInitializeResponseFromWire(raw) as RegistrationPaymentInitializeResponse;
 }
 
 export async function getMyRegistration(): Promise<{
@@ -2230,7 +2651,17 @@ export async function verifyRegistrationPayment(reference: string): Promise<{
   payment: Payment;
   paystackData: Record<string, unknown>;
 }> {
-  return apiFetch(`/api/payments/paystack/verify/${encodeURIComponent(reference)}`);
+  const raw = await apiFetch<Record<string, unknown>>(
+    `/api/payments/paystack/verify/${encodeURIComponent(reference)}`
+  );
+  return {
+    success: Boolean(raw.success),
+    payment: normalizePaymentFromWire(raw.payment),
+    paystackData:
+      raw.paystackData && typeof raw.paystackData === "object"
+        ? (raw.paystackData as Record<string, unknown>)
+        : {},
+  };
 }
 
 // ==================== Event Pass API ====================

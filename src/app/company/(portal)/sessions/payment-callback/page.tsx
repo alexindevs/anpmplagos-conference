@@ -158,22 +158,22 @@ function CompanySessionsPaymentCallbackContent() {
             {isSuccess && (
               <>
                 <Link
-                  href="/company/masterclasses"
+                  href="/company/sponsorship-plans?tab=masterclasses"
                   className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-white font-bold hover:bg-red-700 transition-colors"
                 >
                   Masterclasses
                 </Link>
                 <Link
-                  href="/company/panels"
-                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-6 py-3 text-[#181112] font-bold hover:bg-slate-50 transition-colors"
-                >
-                  Panel sessions
-                </Link>
-                <Link
-                  href="/company/presentations"
+                  href="/company/sponsorship-plans?tab=presentations"
                   className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-6 py-3 text-[#181112] font-bold hover:bg-slate-50 transition-colors"
                 >
                   Presentations
+                </Link>
+                <Link
+                  href="/company/sponsorship-plans?tab=bundles"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-6 py-3 text-[#181112] font-bold hover:bg-slate-50 transition-colors"
+                >
+                  Sponsorship &amp; catalog
                 </Link>
               </>
             )}

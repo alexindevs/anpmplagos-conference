@@ -42,8 +42,7 @@ export function AttendeeHotelRoomsShell({
   };
 
   const itemClass = (href: string) => {
-    const active =
-      href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+    const active = pathname === href || pathname.startsWith(`${href}/`);
     return active
       ? "w-full flex items-center gap-3 rounded-lg bg-primary px-3 py-2 text-white font-bold"
       : "w-full flex items-center gap-3 rounded-lg hover:bg-primary/5 px-3 py-2 text-slate-700 font-semibold";
