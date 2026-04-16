@@ -81,6 +81,15 @@ function compareAdminDashboardBooths(a: AdminDashboardSummaryBooth, b: AdminDash
   return a.id.localeCompare(b.id);
 }
 
+type AdminDashboardStat = {
+  label: string;
+  value: string;
+  trend?: string;
+  sub?: string;
+  icon: string;
+  color: "primary" | "secondary";
+};
+
 function StatCard({
   label,
   value,
@@ -132,21 +141,21 @@ export default function AdminDashboardPage() {
     queryFn: getAdminDashboardSummary,
   });
 
-  const stats = useMemo(
-    () => [
+  const stats = useMemo((): AdminDashboardStat[] => {
+    return [
       {
         label: "Member Tickets",
         value: String(summary?.registrations.members ?? 0),
         trend: undefined,
         icon: "confirmation_number",
-        color: "primary" as const,
+        color: "primary",
       },
       {
         label: "Attendee Tickets",
         value: String(summary?.registrations.attendees ?? 0),
         trend: undefined,
         icon: "local_activity",
-        color: "secondary" as const,
+        color: "secondary",
       },
       {
         label: "Company signups",
@@ -158,20 +167,18 @@ export default function AdminDashboardPage() {
         ),
         trend: undefined,
         icon: "partner_exchange",
-        color: "secondary" as const,
+        color: "secondary",
       },
       {
         label: "Sponsorship Bundles",
         value: formatKoboToNaira(
-          summary?.sponsorships.recordedSponsorshipPaidTotalKobo ??
-            summary?.sponsorships.totalPledged
+          summary?.sponsorships.recordedSponsorshipPaidTotalKobo ?? summary?.sponsorships.totalPledged
         ),
         icon: "payments",
-        color: "primary" as const,
+        color: "primary",
       },
-    ],
-    [summary]
-  );
+    ];
+  }, [summary]);
 
   const recent = summary?.recentRegistrations ?? [];
 
@@ -216,7 +223,7 @@ export default function AdminDashboardPage() {
               trend={s.trend}
               sub={s.sub}
               icon={s.icon}
-              color={s.color as "primary" | "secondary"}
+              color={s.color}
             />
           ))}
         </div>
