@@ -23,7 +23,8 @@ export function useConferenceCart(enabled = true) {
 export function useAddConferenceCartItem() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: AddCartItemBody) => addCartItem({ ...body, cartKind: "conference" }),
+    mutationFn: (body: Omit<AddCartItemBody, "cartKind">) =>
+      addCartItem({ ...body, cartKind: "conference" }),
     onSuccess: (cart: Cart) => {
       queryClient.setQueryData(conferenceCartQueryKey, cart);
       void queryClient.invalidateQueries({ queryKey: conferenceCartQueryKey });

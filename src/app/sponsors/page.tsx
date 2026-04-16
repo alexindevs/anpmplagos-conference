@@ -123,7 +123,7 @@ function partitionSponsorSections(companies: PublicCompany[]) {
     return a.localeCompare(b);
   });
 
-  return { valued, defaultRest, sortedTierKeys };
+  return { valued, defaultRest, sortedTierKeys, byTier };
 }
 
 export const revalidate = 120;
@@ -139,7 +139,7 @@ export default async function SponsorsPage() {
       e instanceof Error ? e.message : "Unable to load companies. Please try again later.";
   }
 
-  const { valued, defaultRest, sortedTierKeys } = partitionSponsorSections(companies);
+  const { valued, defaultRest, sortedTierKeys, byTier } = partitionSponsorSections(companies);
 
   const sectionBlocks: {
     key: string;
