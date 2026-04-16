@@ -23,7 +23,7 @@ function OrderPaymentCallbackContent() {
   }, [user]);
 
   const [status, setStatus] = useState<"verifying" | "success" | "failed" | "error">("verifying");
-  const [message, setMessage] = useState("Verifying your payment...");
+  const [message, setMessage] = useState("Confirming your payment…");
 
   const verifyQuery = useQuery({
     queryKey: ["payment", "verify", "order", reference],
@@ -47,7 +47,7 @@ function OrderPaymentCallbackContent() {
     if (verifyQuery.isError) {
       queueMicrotask(() => {
         setStatus("error");
-        setMessage("Could not verify payment. Please contact support if you were charged.");
+        setMessage("Could not confirm payment. Please contact support if you were charged.");
       });
       return;
     }
@@ -63,7 +63,7 @@ function OrderPaymentCallbackContent() {
           setStatus("success");
           setMessage(
             payment.kind === "order"
-              ? "Your order payment was confirmed. Conference purchases and hotel bookings will update in the app as they finalize."
+              ? "Your order payment was confirmed. Your purchases and hotel bookings will show in your portal shortly."
               : "Your payment has been confirmed."
           );
         } else if (payment.status === "pending") {
@@ -85,7 +85,7 @@ function OrderPaymentCallbackContent() {
             <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-secondary/10">
               <div className="size-8 animate-spin rounded-full border-4 border-secondary/30 border-t-secondary" />
             </div>
-            <h1 className="text-xl font-black text-[#181112] mb-2">Verifying payment</h1>
+            <h1 className="text-xl font-black text-[#181112] mb-2">Confirming payment</h1>
             <p className="text-sm text-slate-600">{message}</p>
           </>
         )}

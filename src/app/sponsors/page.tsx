@@ -95,6 +95,8 @@ function paletteForIndex(i: number) {
   return ICON_PALETTES[i % ICON_PALETTES.length]!;
 }
 
+const RECOGNIZED_SPONSOR_TIERS = new Set(TIER_ORDER);
+
 function partitionSponsorSections(companies: PublicCompany[]) {
   const valued: PublicCompany[] = [];
   const defaultRest: PublicCompany[] = [];
@@ -108,6 +110,10 @@ function partitionSponsorSections(companies: PublicCompany[]) {
     const key = normalizedPublicSponsorTierKey(c);
     if (key === "default") {
       defaultRest.push(c);
+      continue;
+    }
+    if (!RECOGNIZED_SPONSOR_TIERS.has(key)) {
+      valued.push(c);
       continue;
     }
     if (!byTier[key]) byTier[key] = [];
@@ -154,7 +160,9 @@ export default async function SponsorsPage() {
     sectionBlocks.push({
       key: tierKey,
       companies: list,
-      heading: TIER_CONFIGS[tierKey]?.label ?? publicSponsorTierSectionTitle(tierKey),
+      heading:
+        TIER_CONFIGS[tierKey]?.label ??
+        publicSponsorTierSectionTitle(tierKey),
       neutralTier: false,
     });
   }

@@ -73,7 +73,7 @@ function CompanyHotelRoomPaymentCallbackContent() {
           <div className="mb-6 flex justify-center">
             <div className="size-16 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
           </div>
-          <h1 className="text-3xl font-black text-[#181112] mb-4">Verifying payment</h1>
+          <h1 className="text-3xl font-black text-[#181112] mb-4">Confirming payment</h1>
           <p className="text-gray-600">
             Please wait while we confirm your hotel booking payment…
           </p>
@@ -91,7 +91,7 @@ function CompanyHotelRoomPaymentCallbackContent() {
           <p className="text-gray-600 mb-6">
             {error instanceof Error
               ? error.message
-              : "Unable to verify your payment. Contact support if money was debited."}
+              : "We couldn't confirm your payment. Contact support if money was debited."}
           </p>
           <div className="flex flex-col gap-3">
             <Link
@@ -275,7 +275,7 @@ function PaymentCallbackSuspenseFallback() {
           <div className="size-16 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
         </div>
         <h1 className="text-3xl font-black text-[#181112] mb-4">Loading</h1>
-        <p className="text-gray-600">Preparing payment verification…</p>
+        <p className="text-gray-600">Confirming your payment…</p>
       </div>
     </main>
   );

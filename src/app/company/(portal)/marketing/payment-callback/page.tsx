@@ -62,7 +62,7 @@ function CompanyMarketingPaymentCallbackContent() {
           <div className="mb-6 flex justify-center">
             <div className="size-16 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
           </div>
-          <h1 className="text-3xl font-black text-[#181112] mb-4">Verifying payment</h1>
+          <h1 className="text-3xl font-black text-[#181112] mb-4">Confirming payment</h1>
           <p className="text-gray-600">Please wait while we confirm your marketing purchase…</p>
         </div>
       </main>
@@ -76,7 +76,7 @@ function CompanyMarketingPaymentCallbackContent() {
           <span className="material-symbols-outlined text-6xl text-red-600 mb-4">error</span>
           <h1 className="text-3xl font-black text-[#181112] mb-4">Verification failed</h1>
           <p className="text-gray-600 mb-6">
-            {error instanceof Error ? error.message : "Unable to verify your payment."}
+            {error instanceof Error ? error.message : "We couldn't confirm your payment."}
           </p>
           <Link
             href="/company/sponsorship-plans?tab=adverts"
@@ -97,9 +97,9 @@ function CompanyMarketingPaymentCallbackContent() {
   const successBlurb = () => {
     if (!isSuccess || !payment) return "";
     if (payment.kind === "advert_slot")
-      return "Your payment was received. Your advert slot will appear under “Your advert slots” shortly once your booking is finalized.";
+      return "Your payment was received. Your advert will appear under “Your advert slots” shortly.";
     if (payment.kind === "branding_slot")
-      return "Your payment was received. Your branding slot will appear under “Your branding slots” shortly once your booking is finalized.";
+      return "Your payment was received. Your branding placement will appear under “Your branding slots” shortly.";
     return "Your payment was processed successfully.";
   };
 
@@ -141,7 +141,7 @@ function CompanyMarketingPaymentCallbackContent() {
             {isSuccess && successBlurb()}
             {isFailed && "Your payment could not be completed. You can try again from Marketing."}
             {isRefunded && "This payment was refunded."}
-            {!isSuccess && !isFailed && !isRefunded && "Your payment is still processing. Refresh in a moment."}
+            {!isSuccess && !isFailed && !isRefunded && "Your payment is still processing. Check back in a moment."}
           </p>
 
           {payment && (
@@ -266,7 +266,7 @@ function MarketingPaymentCallbackFallback() {
           <div className="size-16 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
         </div>
         <h1 className="text-3xl font-black text-[#181112] mb-4">Loading</h1>
-        <p className="text-gray-600">Preparing payment verification…</p>
+        <p className="text-gray-600">Confirming your payment…</p>
       </div>
     </main>
   );

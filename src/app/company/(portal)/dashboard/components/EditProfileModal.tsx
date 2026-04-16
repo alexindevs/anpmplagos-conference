@@ -164,7 +164,7 @@ export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
                   placeholder="https://..."
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-secondary focus:ring-1 focus:ring-secondary outline-none"
                 />
-                <p className="text-xs text-slate-500 mt-1">Link for your staff to book hotels (shows in Quick Actions)</p>
+                <p className="text-xs text-slate-500 mt-1">Optional link for staff to book conference hotels. It appears as a button on your dashboard.</p>
               </div>
             </div>
 

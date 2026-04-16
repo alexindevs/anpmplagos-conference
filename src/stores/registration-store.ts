@@ -2,12 +2,6 @@ import { create } from "zustand";
 
 export type RegType = "member" | "non-member" | "company";
 
-export interface Representative {
-  name: string;
-  title: string;
-  phone: string;
-}
-
 interface RegistrationState {
   step: number;
   regType: RegType | null;
@@ -18,6 +12,8 @@ interface RegistrationState {
   password: string;
 
   // Member / Non-member
+  /** Honorific (e.g. Dr); sent as API `title` when non-empty. */
+  title: string;
   fullName: string;
   phone: string;
   bio: string;
@@ -27,6 +23,10 @@ interface RegistrationState {
   spousePhone: string;
   primarySpecialty: string;
   hospitalOrg: string;
+  /** Member only; API `organizationAddress`. */
+  organizationAddress: string;
+  /** Member only; API `zone` (chapter / zone grouping). */
+  zone: string;
   anpmpId: string;
   inMedicalField: boolean | null;
   occupation: string;
@@ -42,7 +42,6 @@ interface RegistrationState {
   contactEmail: string;
   primaryContactName: string;
   primaryContactPhone: string;
-  representatives: Representative[];
 
   // UI / Media
   profilePictures: File[];
@@ -56,6 +55,7 @@ interface RegistrationState {
   setEmail: (v: string) => void;
   setPassword: (v: string) => void;
 
+  setTitle: (v: string) => void;
   setFullName: (v: string) => void;
   setPhone: (v: string) => void;
   setBio: (v: string) => void;
@@ -65,6 +65,8 @@ interface RegistrationState {
   setSpousePhone: (v: string) => void;
   setPrimarySpecialty: (v: string) => void;
   setHospitalOrg: (v: string) => void;
+  setOrganizationAddress: (v: string) => void;
+  setZone: (v: string) => void;
   setAnpmpId: (v: string) => void;
   setInMedicalField: (v: boolean | null) => void;
   setOccupation: (v: string) => void;
@@ -79,18 +81,11 @@ interface RegistrationState {
   setPrimaryContactName: (v: string) => void;
   setPrimaryContactPhone: (v: string) => void;
 
-  setRepresentatives: (r: Representative[] | ((prev: Representative[]) => Representative[])) => void;
-  addRepresentative: () => void;
-  removeRepresentative: (i: number) => void;
-  updateRepresentative: (i: number, field: keyof Representative, val: string) => void;
-
   setProfilePictures: (p: File[] | ((prev: File[]) => File[])) => void;
   setIsDragging: (v: boolean) => void;
 
   reset: () => void;
 }
-
-const initialRepresentative: Representative = { name: "", title: "", phone: "" };
 
 const initialState = {
   step: 1,
@@ -98,6 +93,7 @@ const initialState = {
   saved: false,
   email: "",
   password: "",
+  title: "",
   fullName: "",
   phone: "",
   bio: "",
@@ -107,6 +103,8 @@ const initialState = {
   spousePhone: "",
   primarySpecialty: "",
   hospitalOrg: "",
+  organizationAddress: "",
+  zone: "",
   anpmpId: "",
   inMedicalField: null as boolean | null,
   occupation: "",
@@ -119,7 +117,6 @@ const initialState = {
   contactEmail: "",
   primaryContactName: "",
   primaryContactPhone: "",
-  representatives: [initialRepresentative],
   profilePictures: [] as File[],
   isDragging: false,
 };
@@ -134,6 +131,7 @@ export const useRegistrationStore = create<RegistrationState>((set) => ({
   setEmail: (email) => set({ email }),
   setPassword: (password) => set({ password }),
 
+  setTitle: (title) => set({ title }),
   setFullName: (fullName) => set({ fullName }),
   setPhone: (phone) => set({ phone }),
   setBio: (bio) => set({ bio }),
@@ -143,6 +141,8 @@ export const useRegistrationStore = create<RegistrationState>((set) => ({
   setSpousePhone: (spousePhone) => set({ spousePhone }),
   setPrimarySpecialty: (primarySpecialty) => set({ primarySpecialty }),
   setHospitalOrg: (hospitalOrg) => set({ hospitalOrg }),
+  setOrganizationAddress: (organizationAddress) => set({ organizationAddress }),
+  setZone: (zone) => set({ zone }),
   setAnpmpId: (anpmpId) => set({ anpmpId }),
   setInMedicalField: (inMedicalField) => set({ inMedicalField }),
   setOccupation: (occupation) => set({ occupation }),
@@ -156,25 +156,6 @@ export const useRegistrationStore = create<RegistrationState>((set) => ({
   setContactEmail: (contactEmail) => set({ contactEmail }),
   setPrimaryContactName: (primaryContactName) => set({ primaryContactName }),
   setPrimaryContactPhone: (primaryContactPhone) => set({ primaryContactPhone }),
-
-  setRepresentatives: (r) =>
-    set((s) => ({
-      representatives: typeof r === "function" ? r(s.representatives) : r,
-    })),
-  addRepresentative: () =>
-    set((s) => ({
-      representatives: [...s.representatives, { ...initialRepresentative }],
-    })),
-  removeRepresentative: (i) =>
-    set((s) => ({
-      representatives: s.representatives.filter((_, idx) => idx !== i),
-    })),
-  updateRepresentative: (i, field, val) =>
-    set((s) => ({
-      representatives: s.representatives.map((item, idx) =>
-        idx === i ? { ...item, [field]: val } : item
-      ),
-    })),
 
   setProfilePictures: (p) =>
     set((s) => ({

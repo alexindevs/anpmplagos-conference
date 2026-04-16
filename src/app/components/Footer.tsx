@@ -33,7 +33,7 @@ export default async function Footer() {
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center gap-3 mb-6">
               <Image
-                src="/anpmp-logo.jpg"
+                src="/anpmp-logo.jpeg"
                 alt="ANPMP"
                 width={140}
                 height={48}

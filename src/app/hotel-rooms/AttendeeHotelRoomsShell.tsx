@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { PortalSidebarHeaderLogo } from "@/app/components/PortalSidebarHeaderLogo";
 import { ResponsivePortalShell } from "@/app/components/ResponsivePortalShell";
 import { authSessionQueryKey } from "@/hooks/use-auth-session";
 import { logout } from "@/lib/auth-api";
@@ -56,7 +57,7 @@ export function AttendeeHotelRoomsShell({
         <>
           <div className="border-b border-primary/10 px-4 py-5">
             <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-primary text-2xl">hotel</span>
+              <PortalSidebarHeaderLogo />
               <div className="min-w-0">
                 <p className="text-sm font-bold text-charcoal leading-tight">Hotel booking</p>
                 <p className="text-xs text-slate-500 truncate">ANPMP Lagos Conference 2026</p>

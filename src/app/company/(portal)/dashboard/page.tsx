@@ -109,6 +109,16 @@ export default function ExhibitorDashboardPage() {
     retry: false,
   });
 
+  const boothStatus = dashboardData?.booth.status ?? "none";
+  const assignedBoothFromApi = dashboardData?.booth.assignedBooth;
+  const pendingPaymentFromApi = dashboardData?.booth.pendingPayment;
+  const hasAssignedBooth =
+    !dashboardLoading &&
+    !dashboardError &&
+    Boolean(dashboardData) &&
+    boothStatus === "assigned" &&
+    Boolean(assignedBoothFromApi);
+
   // Fetch products
   const {
     data: products = [],
@@ -143,7 +153,7 @@ export default function ExhibitorDashboardPage() {
         throw e;
       }
     },
-    enabled: Boolean(companyId) && !meLoading,
+    enabled: Boolean(companyId) && !meLoading && hasAssignedBooth,
     retry: false,
   });
 
@@ -191,10 +201,6 @@ export default function ExhibitorDashboardPage() {
   }, [products]);
 
   // Use API booth status if available, fallback to localStorage draft
-  const boothStatus = dashboardData?.booth.status ?? "none";
-  const assignedBoothFromApi = dashboardData?.booth.assignedBooth;
-  const pendingPaymentFromApi = dashboardData?.booth.pendingPayment;
-
   const displayBooth = assignedBoothFromApi || boothDraft;
   const displayBoothMetaLine = displayBooth ? boothSizeTierLine(displayBooth) : null;
   const displayBoothStatus =
@@ -273,7 +279,7 @@ export default function ExhibitorDashboardPage() {
                 )}
               </div>
               <div className="rounded-xl border border-secondary/20 border-t-4 border-t-secondary/80 bg-white p-4 shadow-sm">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Total Attendees</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Total Members</p>
                 {dashboardLoading ? (
                   <div className="h-8 w-20 rounded bg-slate-100 animate-pulse mt-2" />
                 ) : (
@@ -281,11 +287,6 @@ export default function ExhibitorDashboardPage() {
                     <p className="text-2xl font-black text-[#181112] mt-2">
                       {stats.totalMembers.toLocaleString()}
                     </p>
-                    {stats.totalMembers > 0 && (
-                      <p className="mt-2 text-xs text-secondary">
-                        {stats.inquiryRatePercent.toFixed(1)}% inquiry rate
-                      </p>
-                    )}
                   </>
                 )}
               </div>
@@ -343,7 +344,7 @@ export default function ExhibitorDashboardPage() {
                     </div>
                     {displayBoothStatus !== "CONFIRMED" && pendingPaymentFromApi && (
                       <p className="text-xs text-slate-500">
-                        Payment pending (Ref: {pendingPaymentFromApi.reference})
+                        Payment pending. Reference: {pendingPaymentFromApi.reference}
                       </p>
                     )}
                   </div>
@@ -398,20 +399,38 @@ export default function ExhibitorDashboardPage() {
                 <button
                   type="button"
                   onClick={() => dispatchModal({ type: "OPEN_ADD_REPRESENTATIVE" })}
-                  className="flex w-full items-center justify-between rounded-lg border border-secondary/20 bg-slate-50 px-4 py-3 transition-colors hover:bg-secondary/10"
+                  disabled={!hasAssignedBooth}
+                  className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 transition-colors ${
+                    hasAssignedBooth
+                      ? "border-secondary/20 bg-slate-50 hover:bg-secondary/10"
+                      : "border-slate-200 bg-slate-100 cursor-not-allowed opacity-60"
+                  }`}
+                  title={
+                    hasAssignedBooth
+                      ? "Add booth representatives"
+                      : "Add representatives after your booth is confirmed"
+                  }
                 >
-                  <span className="flex items-center gap-2 font-bold text-slate-700">
-                    <span className="material-symbols-outlined text-secondary">groups</span>
+                  <span
+                    className={`flex items-center gap-2 font-bold ${hasAssignedBooth ? "text-slate-700" : "text-slate-500"}`}
+                  >
+                    <span
+                      className={`material-symbols-outlined ${hasAssignedBooth ? "text-secondary" : "text-slate-400"}`}
+                    >
+                      groups
+                    </span>
                     Add Representatives
                   </span>
-                  <span className="material-symbols-outlined text-slate-400">chevron_right</span>
+                  <span className={`material-symbols-outlined ${hasAssignedBooth ? "text-slate-400" : "text-slate-300"}`}>
+                    {hasAssignedBooth ? "chevron_right" : "lock"}
+                  </span>
                 </button>
                 <button
                   type="button"
                   onClick={openHotelsForStaff}
                   title={
                     hotelUrl && /^https?:\/\//i.test(hotelUrl)
-                      ? "Open your custom hotel link for staff (external)"
+                      ? "Open your staff hotel booking link"
                       : "Book official conference hotel slots — multiple rooms allowed for companies"
                   }
                   className="flex w-full items-center justify-between rounded-lg border border-secondary/20 bg-slate-50 px-4 py-3 transition-colors hover:bg-secondary/10"
@@ -447,101 +466,102 @@ export default function ExhibitorDashboardPage() {
           </aside>
         </div>
 
-        {/* Representatives */}
-        <section className="mt-6 rounded-xl border border-secondary/20 bg-white p-6 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <h2 className="text-lg font-black text-[#181112]">Your Representatives</h2>
-            <p className="text-xs text-slate-500">
-              Staff members managing your booth
-            </p>
-          </div>
-
-          {!companyId ? (
-            <p className="text-sm text-slate-600 py-6 text-center">
-              Your representatives will appear here once your account is linked.
-            </p>
-          ) : repsLoading ? (
-            <div className="space-y-3 py-2">
-              {[1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="h-16 rounded-lg bg-slate-100 animate-pulse"
-                />
-              ))}
-            </div>
-          ) : repsError ? (
-            <p className="text-sm text-red-600 py-6 text-center">
-              Couldn&apos;t load representatives. Please refresh or try again later.
-            </p>
-          ) : representatives.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-secondary/25 bg-slate-50/80 py-10 text-center">
-              <span className="material-symbols-outlined text-4xl text-slate-300">groups</span>
-              <p className="text-sm font-bold text-[#181112] mt-2">No representatives added</p>
-              <p className="text-xs text-slate-500 mt-1 mx-auto">
-                Add staff members who will be present at your booth.
+        {hasAssignedBooth ? (
+          <section className="mt-6 rounded-xl border border-secondary/20 bg-white p-6 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <h2 className="text-lg font-black text-[#181112]">Your Representatives</h2>
+              <p className="text-xs text-slate-500">
+                Staff members managing your booth
               </p>
             </div>
-          ) : (
-            <div className="overflow-x-auto rounded-lg border border-secondary/20">
-              <table className="w-full min-w-[520px] text-left">
-                <thead>
-                  <tr className="border-b border-secondary/20 bg-slate-50/80">
-                    <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Name
-                    </th>
-                    <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Title / role
-                    </th>
-                    <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Phone
-                    </th>
-                    <th className="py-3 px-4 text-right text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {representatives.map((rep) => (
-                    <tr
-                      key={rep.id}
-                      className="border-b border-secondary/20 transition-colors last:border-b-0 hover:bg-secondary/5"
-                    >
-                      <td className="py-3 px-4 text-sm font-bold text-[#181112]">{rep.name}</td>
-                      <td className="py-3 px-4 text-sm text-slate-600">{rep.title || "—"}</td>
-                      <td className="py-3 px-4 text-sm text-slate-600 font-mono">{rep.phone || "—"}</td>
-                      <td className="py-3 px-4 text-right">
-                        <div className="inline-flex items-center gap-1 justify-end">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              dispatchModal({ type: "OPEN_EDIT_REPRESENTATIVE", repId: rep.id })
-                            }
-                            className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-secondary/10 hover:text-secondary"
-                            title="Edit representative"
-                          >
-                            <span className="material-symbols-outlined text-[20px]">edit</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (confirm("Are you sure you want to remove this representative?")) {
-                                deleteRepMutation.mutate(rep.id);
-                              }
-                            }}
-                            className="p-2 text-slate-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
-                            title="Remove representative"
-                          >
-                            <span className="material-symbols-outlined text-[20px]">delete</span>
-                          </button>
-                        </div>
-                      </td>
+
+            {!companyId ? (
+              <p className="text-sm text-slate-600 py-6 text-center">
+                Your representatives will appear here once your account is linked.
+              </p>
+            ) : repsLoading ? (
+              <div className="space-y-3 py-2">
+                {[1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="h-16 rounded-lg bg-slate-100 animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : repsError ? (
+              <p className="text-sm text-red-600 py-6 text-center">
+                Couldn&apos;t load representatives. Try again in a moment.
+              </p>
+            ) : representatives.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-secondary/25 bg-slate-50/80 py-10 text-center">
+                <span className="material-symbols-outlined text-4xl text-slate-300">groups</span>
+                <p className="text-sm font-bold text-[#181112] mt-2">No representatives added</p>
+                <p className="text-xs text-slate-500 mt-1 mx-auto">
+                  Add staff members who will be present at your booth.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-lg border border-secondary/20">
+                <table className="w-full min-w-[520px] text-left">
+                  <thead>
+                    <tr className="border-b border-secondary/20 bg-slate-50/80">
+                      <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Name
+                      </th>
+                      <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Title / role
+                      </th>
+                      <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Phone
+                      </th>
+                      <th className="py-3 px-4 text-right text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Actions
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
+                  </thead>
+                  <tbody>
+                    {representatives.map((rep) => (
+                      <tr
+                        key={rep.id}
+                        className="border-b border-secondary/20 transition-colors last:border-b-0 hover:bg-secondary/5"
+                      >
+                        <td className="py-3 px-4 text-sm font-bold text-[#181112]">{rep.name}</td>
+                        <td className="py-3 px-4 text-sm text-slate-600">{rep.title || "—"}</td>
+                        <td className="py-3 px-4 text-sm text-slate-600 font-mono">{rep.phone || "—"}</td>
+                        <td className="py-3 px-4 text-right">
+                          <div className="inline-flex items-center gap-1 justify-end">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                dispatchModal({ type: "OPEN_EDIT_REPRESENTATIVE", repId: rep.id })
+                              }
+                              className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-secondary/10 hover:text-secondary"
+                              title="Edit representative"
+                            >
+                              <span className="material-symbols-outlined text-[20px]">edit</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm("Are you sure you want to remove this representative?")) {
+                                  deleteRepMutation.mutate(rep.id);
+                                }
+                              }}
+                              className="p-2 text-slate-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
+                              title="Remove representative"
+                            >
+                              <span className="material-symbols-outlined text-[20px]">delete</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        ) : null}
 
         {/* Your products */}
         <section className="mt-6 rounded-xl border border-secondary/20 bg-white p-6 shadow-sm">
@@ -567,7 +587,7 @@ export default function ExhibitorDashboardPage() {
             </div>
           ) : productsError ? (
             <p className="text-sm text-red-600 py-6 text-center">
-              Couldn&apos;t load products. Please refresh or try again later.
+              Couldn&apos;t load products. Try again in a moment.
             </p>
           ) : sortedProducts.length === 0 ? (
             <div className="rounded-xl border border-dashed border-secondary/25 bg-slate-50/80 py-10 text-center">
@@ -654,7 +674,9 @@ export default function ExhibitorDashboardPage() {
         }
       />
       <RepresentativeModal
-        isOpen={modals.addRepresentative || modals.editRepresentative !== null}
+        isOpen={
+          hasAssignedBooth && (modals.addRepresentative || modals.editRepresentative !== null)
+        }
         onClose={() =>
           modals.addRepresentative
             ? dispatchModal({ type: "CLOSE_ADD_REPRESENTATIVE" })

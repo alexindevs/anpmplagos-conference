@@ -93,7 +93,7 @@ function BoothPaymentCallbackContent() {
           <div className="mb-6 flex justify-center">
             <div className="size-16 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
           </div>
-          <h1 className="text-3xl font-black text-[#181112] mb-4">Verifying Payment</h1>
+          <h1 className="text-3xl font-black text-[#181112] mb-4">Confirming payment</h1>
           <p className="text-gray-600">
             Please wait while we confirm your payment…
           </p>
@@ -107,9 +107,9 @@ function BoothPaymentCallbackContent() {
       <main className="flex flex-1 justify-center items-center py-16 px-4">
         <div className=" w-full max-w-[80%] md:max-w-[50%] text-center">
           <span className="material-symbols-outlined text-6xl text-red-600 mb-4">error</span>
-          <h1 className="text-3xl font-black text-[#181112] mb-4">Verification Failed</h1>
+          <h1 className="text-3xl font-black text-[#181112] mb-4">Could not confirm payment</h1>
           <p className="text-gray-600 mb-6">
-            {error instanceof Error ? error.message : "Unable to verify your payment. Please contact support if this issue persists."}
+            {error instanceof Error ? error.message : "We couldn't confirm your payment. Please contact support if this issue persists."}
           </p>
           <div className="flex flex-col gap-3">
             <Link
@@ -305,7 +305,7 @@ function BoothPaymentCallbackFallback() {
           <div className="size-16 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
         </div>
         <h1 className="text-3xl font-black text-[#181112] mb-4">Loading</h1>
-        <p className="text-gray-600">Preparing payment verification…</p>
+        <p className="text-gray-600">Confirming your payment…</p>
       </div>
     </main>
   );

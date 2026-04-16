@@ -46,19 +46,19 @@ function boothHoverLabel(b: AdminDashboardSummaryBooth): string | undefined {
   return "Occupied";
 }
 
-/** Display order: headliner → platinum → gold → silver → other tier labels → no tier */
-const BOOTH_TIER_ORDER = ["headliner", "platinum", "gold", "silver"] as const;
+/** Display order: headliner → platinum → gold → silver → bronze → other tier labels → no tier */
+const BOOTH_TIER_ORDER = ["headliner", "platinum", "gold", "silver", "bronze"] as const;
 
 function normalizedBoothTier(tier: string | null | undefined): string {
   return tier?.trim().toLowerCase() ?? "";
 }
 
-/** 0–3 = known tiers, 4 = non-empty unknown tier, 5 = missing tier */
+/** 0–4 = known tiers, 5 = non-empty unknown tier, 6 = missing tier */
 function boothTierSortGroup(tier: string | null | undefined): number {
   const t = normalizedBoothTier(tier);
-  if (!t) return 5;
+  if (!t) return 6;
   const idx = (BOOTH_TIER_ORDER as readonly string[]).indexOf(t);
-  return idx >= 0 ? idx : 4;
+  return idx >= 0 ? idx : 5;
 }
 
 function boothCreatedAtMs(b: AdminDashboardSummaryBooth): number {
@@ -71,7 +71,7 @@ function compareAdminDashboardBooths(a: AdminDashboardSummaryBooth, b: AdminDash
   const ga = boothTierSortGroup(a.tier);
   const gb = boothTierSortGroup(b.tier);
   if (ga !== gb) return ga - gb;
-  if (ga === 4) {
+  if (ga === 5) {
     const tierCmp = normalizedBoothTier(a.tier).localeCompare(normalizedBoothTier(b.tier));
     if (tierCmp !== 0) return tierCmp;
   }
@@ -161,13 +161,11 @@ export default function AdminDashboardPage() {
         color: "secondary" as const,
       },
       {
-        label: "Sponsorship (plans)",
+        label: "Sponsorship Bundles",
         value: formatKoboToNaira(
-          summary?.sponsorships.paidPlanRevenueKobo ??
-            summary?.sponsorships.recordedSponsorshipPaidTotalKobo ??
+          summary?.sponsorships.recordedSponsorshipPaidTotalKobo ??
             summary?.sponsorships.totalPledged
         ),
-        sub: `Company accounts: ${summary?.sponsorships.companyAccounts ?? summary?.sponsorships.activeSponsors ?? 0}`,
         icon: "payments",
         color: "primary" as const,
       },
@@ -190,7 +188,7 @@ export default function AdminDashboardPage() {
             <h2 className="text-2xl font-black tracking-tight text-[#181112] dark:text-white sm:text-3xl">
               Conference Overview
             </h2>
-            <p className="text-slate-500 dark:text-white/50">Real-time performance and floor management metrics.</p>
+            <p className="text-slate-500 dark:text-white/50">Overview of the exhibition floor and recent registrations.</p>
           </div>
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:gap-4">
             <div className="relative hidden w-full sm:w-auto md:block">
@@ -199,7 +197,7 @@ export default function AdminDashboardPage() {
               </span>
               <input
                 type="text"
-                placeholder="Search data..."
+                placeholder="Search…"
                 className="w-full min-w-0 rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white sm:w-64"
               />
             </div>

@@ -8,7 +8,6 @@ export function MasterclassesTab() {
       embedded
       sessionKind="masterclass"
       heading="Masterclasses"
-      lead="Browse available masterclass slots and add them to your conference cart."
       icon="school"
     />
   );

@@ -105,7 +105,7 @@ export default function Header() {
       <div className="px-4 md:px-10 py-4 max-w-7xl mx-auto flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <Image
-            src="/anpmp-logo.jpg"
+            src="/anpmp-logo.jpeg"
             alt="ANPMP"
             width={120}
             height={40}

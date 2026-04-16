@@ -29,11 +29,12 @@ const TIER_OPTIONS = [
   { value: "headliner", label: "Headliner", color: "bg-primary/10 text-primary" },
 ];
 
+/** Bundle checkout may only assign headliner, platinum, or gold booths (not silver/bronze). */
 const BUNDLE_BOOTH_OPTIONS: { value: "" | SponsorshipBundleBoothTier; label: string }[] = [
   { value: "", label: "No booth in bundle" },
-  { value: "gold", label: "Gold booth (3m x 3m)" },
-  { value: "platinum", label: "Platinum booth (5m x 3m)" },
   { value: "headliner", label: "Headliner booth (7m x 3m)" },
+  { value: "platinum", label: "Platinum booth (5m x 3m)" },
+  { value: "gold", label: "Gold booth (3m x 3m)" },
 ];
 
 const DURATION_OPTIONS: { value: SessionSlotDuration; label: string }[] = [
@@ -153,13 +154,17 @@ function deriveBundlePerksFromForm(
   return lines;
 }
 
-function planFormDefaults(plan: SponsorshipPlanCatalogItem | null | undefined): PlanFormData {
+function planFormDefaults(
+  plan: SponsorshipPlanCatalogItem | null | undefined,
+  opts?: { defaultTier?: string },
+): PlanFormData {
   const bt = plan?.bundleBoothTier;
   const boothOk = bt === "gold" || bt === "platinum" || bt === "headliner" ? bt : "";
+  const tierDefault = plan?.tier ?? opts?.defaultTier ?? "silver";
   return {
     name: plan?.name ?? "",
     priceNaira: koboToNairaInputValue(plan?.priceInKobo),
-    tier: plan?.tier ?? "silver",
+    tier: tierDefault,
     isActive: plan == null || plan.isActive !== false,
     ticketAdmits: plan?.ticketAdmits != null && plan.ticketAdmits >= 1 ? plan.ticketAdmits : 1,
     bundleBoothTier: boothOk,
@@ -244,6 +249,7 @@ function PlanModal({
   isOpen,
   onClose,
   plan,
+  defaultTier,
   onSave,
   isSaving,
   saveError,
@@ -251,11 +257,13 @@ function PlanModal({
   isOpen: boolean;
   onClose: () => void;
   plan?: SponsorshipPlanCatalogItem | null;
+  /** When creating, pre-select display tier (e.g. from an empty tier row). */
+  defaultTier?: string;
   onSave: (data: PlanFormData, ctx: PlanSaveContext) => void;
   isSaving: boolean;
   saveError: Error | null;
 }) {
-  const [form, setForm] = useState<PlanFormData>(() => planFormDefaults(plan));
+  const [form, setForm] = useState<PlanFormData>(() => planFormDefaults(plan, { defaultTier }));
 
   const advertsQuery = useQuery({
     queryKey: ["admin", "advert-slots", "plan-modal"],
@@ -379,11 +387,16 @@ function PlanModal({
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
             >
               {BUNDLE_BOOTH_OPTIONS.map((o) => (
-                <option key={o.label} value={o.value}>
+                <option key={o.value || "none"} value={o.value}>
                   {o.label}
                 </option>
               ))}
             </select>
+            <p className="mt-1 text-xs text-slate-500 dark:text-white/50">
+              Bundles may only include a <span className="font-semibold">Headliner</span>,{" "}
+              <span className="font-semibold">Platinum</span>, or <span className="font-semibold">Gold</span> booth.
+              Silver and bronze plans use display tier only—no booth tier in the bundle.
+            </p>
           </div>
 
           <div className="rounded-lg border border-slate-100 bg-slate-50/80 p-3 dark:border-border-dark dark:bg-background-dark">
@@ -478,7 +491,7 @@ function PlanModal({
 
           <div>
             <p className="text-sm font-medium text-slate-700 dark:text-white/70 mb-2">Advert slots (optional)</p>
-            <p className="text-xs text-slate-500 mb-2">Only free slots can be newly selected. Saving replaces all links.</p>
+            <p className="text-xs text-slate-500 mb-2">Only available slots can be added. Saving updates this plan&apos;s advert and branding selections.</p>
             <div className="max-h-36 overflow-y-auto rounded-lg border border-slate-200 divide-y dark:border-border-dark">
               {advertsQuery.isLoading ? (
                 <p className="p-3 text-xs text-slate-500">Loading…</p>
@@ -544,7 +557,7 @@ function PlanModal({
               Plan perks (saved with this bundle)
             </p>
             <p className="text-xs text-slate-500 dark:text-white/50 mb-3">
-              Built automatically from delegate admissions, booth bundle, session bundles, and selected marketing slots.
+              Included automatically based on the selected booth, sessions, and marketing slots.
             </p>
             <ul className="list-inside list-disc space-y-1.5 text-sm text-[#181112] dark:text-white/90">
               {derivedPerks.map((line, i) => (
@@ -593,15 +606,13 @@ export default function AdminSponsorshipPlansPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalInstance, setModalInstance] = useState(0);
   const [editingPlan, setEditingPlan] = useState<SponsorshipPlanCatalogItem | null>(null);
-  const [filterTier, setFilterTier] = useState<string>("");
+  const [createDefaultTier, setCreateDefaultTier] = useState<string | undefined>(undefined);
 
   const { data: plans, isLoading, isError } = useQuery({
-    queryKey: [...Q_PLANS, filterTier],
-    queryFn: () => getAdminSponsorshipPlans(filterTier ? { tier: filterTier } : undefined),
+    queryKey: Q_PLANS,
+    queryFn: () => getAdminSponsorshipPlans(),
     staleTime: 60 * 1000,
   });
-
-  const filteredPlans = useMemo(() => plans ?? [], [plans]);
 
   const groupedPlans = useMemo(() => {
     const groups: Record<string, SponsorshipPlanCatalogItem[]> = {
@@ -611,7 +622,7 @@ export default function AdminSponsorshipPlansPage() {
       silver: [],
       bronze: [],
     };
-    filteredPlans.forEach((plan) => {
+    (plans ?? []).forEach((plan) => {
       const tier = plan.tier.toLowerCase();
       if (groups[tier]) {
         groups[tier].push(plan);
@@ -620,7 +631,7 @@ export default function AdminSponsorshipPlansPage() {
       }
     });
     return groups;
-  }, [filteredPlans]);
+  }, [plans]);
 
   const saveMutation = useMutation({
     mutationFn: async (vars: { data: PlanFormData; adverts: AdminAdvertSlot[]; branding: AdminBrandingSlot[] }) => {
@@ -656,6 +667,7 @@ export default function AdminSponsorshipPlansPage() {
 
   const handleEdit = (plan: SponsorshipPlanCatalogItem) => {
     saveMutation.reset();
+    setCreateDefaultTier(undefined);
     setEditingPlan(plan);
     setModalInstance((n) => n + 1);
     setIsModalOpen(true);
@@ -663,7 +675,16 @@ export default function AdminSponsorshipPlansPage() {
 
   const handleCreate = () => {
     saveMutation.reset();
+    setCreateDefaultTier(undefined);
     setEditingPlan(null);
+    setModalInstance((n) => n + 1);
+    setIsModalOpen(true);
+  };
+
+  const handleCreateForTier = (tierKey: string) => {
+    saveMutation.reset();
+    setEditingPlan(null);
+    setCreateDefaultTier(tierKey);
     setModalInstance((n) => n + 1);
     setIsModalOpen(true);
   };
@@ -674,21 +695,6 @@ export default function AdminSponsorshipPlansPage() {
     }
   };
 
-  const stats = useMemo(() => {
-    const all = plans ?? [];
-    return {
-      total: all.length,
-      active: all.filter((p) => p.isActive !== false).length,
-      byTier: {
-        bronze: all.filter((p) => p.tier.toLowerCase() === "bronze").length,
-        silver: all.filter((p) => p.tier.toLowerCase() === "silver").length,
-        gold: all.filter((p) => p.tier.toLowerCase() === "gold").length,
-        platinum: all.filter((p) => p.tier.toLowerCase() === "platinum").length,
-        headliner: all.filter((p) => p.tier.toLowerCase() === "headliner").length,
-      },
-    };
-  }, [plans]);
-
   const tierOrder: Array<keyof typeof groupedPlans> = ["headliner", "platinum", "gold", "silver", "bronze"];
 
   return (
@@ -698,7 +704,7 @@ export default function AdminSponsorshipPlansPage() {
           <div>
             <h2 className="text-2xl font-black tracking-tight text-[#181112] dark:text-white">Sponsorship plans</h2>
             <p className="text-sm text-slate-500 dark:text-white/50">
-              Create plans with bundle booth rules, session shapes, and marketing slot links (see ADMIN-SPONSORSHIP-BUNDLES.md).
+              Create and manage sponsorship packages with booths, sessions, and marketing slots.
             </p>
           </div>
           <button
@@ -713,42 +719,6 @@ export default function AdminSponsorshipPlansPage() {
       </header>
 
       <div className="bg-background-light p-4 dark:bg-background-dark sm:p-6 lg:p-8">
-        <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          <StatCard label="Total" value={String(stats.total)} />
-          <StatCard label="Bronze" value={String(stats.byTier.bronze)} color="bg-orange-100 text-orange-800" />
-          <StatCard label="Silver" value={String(stats.byTier.silver)} color="bg-slate-100 text-slate-700" />
-          <StatCard label="Gold" value={String(stats.byTier.gold)} color="bg-amber-100 text-amber-700" />
-          <StatCard label="Platinum" value={String(stats.byTier.platinum)} color="bg-secondary/10 text-secondary" />
-          <StatCard label="Headliner" value={String(stats.byTier.headliner)} color="bg-primary/10 text-primary" />
-        </div>
-
-        <div className="mb-6 flex flex-wrap items-center gap-3">
-          <span className="text-sm font-medium text-slate-600 dark:text-white/60">Filter by display tier:</span>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setFilterTier("")}
-              className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
-                !filterTier ? "bg-primary text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-              }`}
-            >
-              All
-            </button>
-            {TIER_OPTIONS.map((t) => (
-              <button
-                key={t.value}
-                type="button"
-                onClick={() => setFilterTier(t.value)}
-                className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
-                  filterTier === t.value ? t.color : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {isLoading ? (
           <div className="flex items-center gap-2 text-sm text-slate-600 py-8">
             <div className="size-6 animate-spin rounded-full border-2 border-secondary/30 border-t-secondary" />
@@ -759,128 +729,120 @@ export default function AdminSponsorshipPlansPage() {
             Failed to load sponsorship plans. Please try again.
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6">
             {tierOrder.map((tierKey) => {
               const tierPlans = groupedPlans[tierKey];
-              if (tierPlans.length === 0) return null;
-
               const tierInfo = getTierStyle(tierKey);
 
               return (
-                <section key={tierKey} className="space-y-4">
-                  <div className="flex items-center gap-2 flex-wrap">
+                <section key={tierKey} className="space-y-2">
+                  <div className="flex items-center justify-between gap-3">
                     <span className={`rounded-full px-3 py-1 text-sm font-black ${tierInfo.color}`}>{tierInfo.label}</span>
-                    <h3 className="text-lg font-black text-[#181112] dark:text-white">
-                      plans
-                      <span className="ml-2 text-sm font-medium text-slate-500">({tierPlans.length})</span>
-                    </h3>
+                    {tierPlans.length === 0 && (
+                      <button
+                        type="button"
+                        onClick={() => handleCreateForTier(tierKey)}
+                        className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white p-2 text-slate-500 transition-colors hover:border-secondary hover:bg-secondary/5 hover:text-secondary dark:border-border-dark dark:bg-background-dark-soft dark:hover:border-secondary"
+                        title="Create plan"
+                      >
+                        <span className="material-symbols-outlined text-[20px]">add</span>
+                      </button>
+                    )}
                   </div>
 
-                  <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left">
-                        <thead>
-                          <tr className="border-b border-slate-200 bg-slate-50 dark:border-border-dark dark:bg-background-dark-softer">
-                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
-                              Name
-                            </th>
-                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
-                              Price
-                            </th>
-                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
-                              Bundle
-                            </th>
-                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
-                              Perks
-                            </th>
-                            <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
-                              Actions
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-border-dark">
-                          {tierPlans.map((plan) => (
-                            <tr
-                              key={plan.id}
-                              className="transition-colors hover:bg-slate-50 dark:hover:bg-background-dark-softer"
-                            >
-                              <td className="px-4 py-3">
-                                <div className="font-bold text-[#181112] dark:text-white">{plan.name}</div>
-                                {plan.isActive === false && (
-                                  <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 dark:bg-background-dark dark:text-white/50">
-                                    INACTIVE
-                                  </span>
-                                )}
-                              </td>
-                              <td className="px-4 py-3 whitespace-nowrap">
-                                <span className="font-black text-primary">{formatKoboToNaira(plan.priceInKobo)}</span>
-                              </td>
-                              <td className="px-4 py-3 text-xs text-slate-600 dark:text-white/60 max-w-[220px]">
-                                {bundleSummaryLine(plan)}
-                              </td>
-                              <td className="px-4 py-3">
-                                <div className="text-sm text-slate-600 dark:text-white/60">
-                                  {plan.perks && plan.perks.length > 0 ? (
-                                    <ul className="space-y-0.5">
-                                      {plan.perks.slice(0, 2).map((perk, idx) => (
-                                        <li key={idx} className="truncate max-w-[200px]">
-                                          {perk}
-                                        </li>
-                                      ))}
-                                      {plan.perks.length > 2 && (
-                                        <li className="text-xs text-slate-400">+{plan.perks.length - 2} more</li>
-                                      )}
-                                    </ul>
-                                  ) : (
-                                    <span className="text-slate-400">—</span>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="px-4 py-3 text-right">
-                                <div className="inline-flex items-center gap-1">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleEdit(plan)}
-                                    className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-secondary/10 hover:text-secondary"
-                                    title="Edit"
-                                  >
-                                    <span className="material-symbols-outlined text-[20px]">edit</span>
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDelete(plan.id)}
-                                    className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                                    title="Delete"
-                                  >
-                                    <span className="material-symbols-outlined text-[20px]">delete</span>
-                                  </button>
-                                </div>
-                              </td>
+                  {tierPlans.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 py-10 dark:border-border-dark dark:bg-background-dark-soft/40" />
+                  ) : (
+                    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                          <thead>
+                            <tr className="border-b border-slate-200 bg-slate-50 dark:border-border-dark dark:bg-background-dark-softer">
+                              <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
+                                Name
+                              </th>
+                              <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
+                                Price
+                              </th>
+                              <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
+                                Bundle
+                              </th>
+                              <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
+                                Perks
+                              </th>
+                              <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
+                                Actions
+                              </th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 dark:divide-border-dark">
+                            {tierPlans.map((plan) => (
+                              <tr
+                                key={plan.id}
+                                className="transition-colors hover:bg-slate-50 dark:hover:bg-background-dark-softer"
+                              >
+                                <td className="px-4 py-3">
+                                  <div className="font-bold text-[#181112] dark:text-white">{plan.name}</div>
+                                  {plan.isActive === false && (
+                                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 dark:bg-background-dark dark:text-white/50">
+                                      INACTIVE
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap">
+                                  <span className="font-black text-primary">{formatKoboToNaira(plan.priceInKobo)}</span>
+                                </td>
+                                <td className="px-4 py-3 text-xs text-slate-600 dark:text-white/60 max-w-[220px]">
+                                  {bundleSummaryLine(plan)}
+                                </td>
+                                <td className="px-4 py-3">
+                                  <div className="text-sm text-slate-600 dark:text-white/60">
+                                    {plan.perks && plan.perks.length > 0 ? (
+                                      <ul className="space-y-0.5">
+                                        {plan.perks.slice(0, 2).map((perk, idx) => (
+                                          <li key={idx} className="truncate max-w-[200px]">
+                                            {perk}
+                                          </li>
+                                        ))}
+                                        {plan.perks.length > 2 && (
+                                          <li className="text-xs text-slate-400">+{plan.perks.length - 2} more</li>
+                                        )}
+                                      </ul>
+                                    ) : (
+                                      <span className="text-slate-400">—</span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-right">
+                                  <div className="inline-flex items-center gap-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleEdit(plan)}
+                                      className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-secondary/10 hover:text-secondary"
+                                      title="Edit"
+                                    >
+                                      <span className="material-symbols-outlined text-[20px]">edit</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDelete(plan.id)}
+                                      className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                                      title="Delete"
+                                    >
+                                      <span className="material-symbols-outlined text-[20px]">delete</span>
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </section>
               );
             })}
-
-            {(plans?.length ?? 0) === 0 && (
-              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-12 text-center dark:border-border-dark dark:bg-background-dark-soft">
-                <span className="material-symbols-outlined text-4xl text-slate-300">campaign</span>
-                <p className="mt-3 text-sm font-bold text-[#181112] dark:text-white">No sponsorship plans</p>
-                <p className="mt-1 text-xs text-slate-500 dark:text-white/50">Create a plan to offer bundles to companies.</p>
-                <button
-                  type="button"
-                  onClick={handleCreate}
-                  className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white hover:bg-red-700 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[18px]">add</span>
-                  Create plan
-                </button>
-              </div>
-            )}
           </div>
         )}
       </div>
@@ -891,29 +853,14 @@ export default function AdminSponsorshipPlansPage() {
         onClose={() => {
           setIsModalOpen(false);
           setEditingPlan(null);
+          setCreateDefaultTier(undefined);
         }}
         plan={editingPlan}
+        defaultTier={editingPlan ? undefined : createDefaultTier}
         onSave={handleSave}
         isSaving={saveMutation.isPending}
         saveError={saveMutation.error instanceof Error ? saveMutation.error : null}
       />
     </>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  color = "bg-slate-100 text-[#181112]",
-}: {
-  label: string;
-  value: string;
-  color?: string;
-}) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
-      <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">{label}</p>
-      <p className={`mt-1 text-2xl font-black ${color}`}>{value}</p>
-    </div>
   );
 }

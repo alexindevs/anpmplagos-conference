@@ -11,7 +11,7 @@ function SponsorshipPaymentCallbackContent() {
   const reference = searchParams.get("reference") || searchParams.get("trxref");
 
   const [status, setStatus] = useState<"verifying" | "success" | "failed" | "error">("verifying");
-  const [message, setMessage] = useState("Verifying your payment...");
+  const [message, setMessage] = useState("Confirming your payment…");
 
   const verifyQuery = useQuery({
     queryKey: ["payment", "verify", reference],
@@ -35,7 +35,7 @@ function SponsorshipPaymentCallbackContent() {
     if (verifyQuery.isError) {
       queueMicrotask(() => {
         setStatus("error");
-        setMessage("Could not verify payment. Please contact support if you were charged.");
+        setMessage("Could not confirm payment. Please contact support if you were charged.");
       });
       return;
     }
@@ -65,7 +65,7 @@ function SponsorshipPaymentCallbackContent() {
             <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-secondary/10">
               <div className="size-8 animate-spin rounded-full border-4 border-secondary/30 border-t-secondary" />
             </div>
-            <h1 className="text-xl font-black text-[#181112] mb-2">Verifying Payment</h1>
+            <h1 className="text-xl font-black text-[#181112] mb-2">Confirming payment</h1>
             <p className="text-sm text-slate-600">{message}</p>
           </>
         )}

@@ -22,6 +22,8 @@ interface CreateRegistrationPayload {
   password: string;
   fullName: string;
   phone: string;
+  /** Member honorific; API field `title`; omit when empty. */
+  title: string;
   bio: string;
   hasSpouse: boolean;
   spouseName: string;
@@ -29,6 +31,8 @@ interface CreateRegistrationPayload {
   spousePhone: string;
   primarySpecialty: string;
   hospitalOrg: string;
+  organizationAddress: string;
+  zone: string;
   anpmpId: string;
   inMedicalField: boolean | null;
   occupation: string;
@@ -41,7 +45,6 @@ interface CreateRegistrationPayload {
   contactEmail: string;
   primaryContactName: string;
   primaryContactPhone: string;
-  representatives: { name: string; title: string; phone: string }[];
   profilePictures: File[];
 }
 
@@ -51,50 +54,18 @@ interface RegistrationResponse {
   message: string;
 }
 
-/** Optional reps for company; if all rows empty, reuse primary contact as one rep when name/phone present. */
-function normalizeCompanyRepresentatives(payload: CreateRegistrationPayload): {
-  name: string;
-  title: string;
-  phone: string;
-}[] {
-  const filled = payload.representatives.filter((r) => r.name?.trim() || r.title?.trim() || r.phone?.trim());
-  if (filled.length > 0) {
-    return filled.map((r) => ({
-      name: (r.name ?? "").trim(),
-      title: (r.title ?? "").trim(),
-      phone: (r.phone ?? "").trim(),
-    }));
-  }
-  const name = (payload.primaryContactName ?? "").trim();
-  const phone = (payload.primaryContactPhone ?? "").trim();
-  if (name || phone) {
-    return [{ name, title: "", phone }];
-  }
-  return [];
-}
-
-function appendCompanyRepresentativesToFormData(
-  fd: FormData,
-  representatives: { name: string; title: string; phone: string }[]
-) {
-  // NestJS / multipart: indexed fields parse to an array of objects (avoid JSON.stringify string).
-  representatives.forEach((r, i) => {
-    fd.append(`representatives[${i}][name]`, r.name);
-    fd.append(`representatives[${i}][title]`, r.title);
-    fd.append(`representatives[${i}][phone]`, r.phone);
-  });
-}
-
 function buildRegistrationBody(payload: CreateRegistrationPayload): Record<string, unknown> {
   const apiRegType = payload.regType === "non-member" ? "attendee" : payload.regType;
 
   if (apiRegType === "member") {
+    const titleTrim = (payload.title ?? "").trim();
     return {
       regType: "member",
       email: payload.email,
       password: payload.password,
       fullName: payload.fullName,
       phone: payload.phone,
+      ...(titleTrim ? { title: titleTrim } : {}),
       bio: payload.bio || undefined,
       anpmpId: payload.anpmpId || undefined,
       hasSpouse: payload.hasSpouse,
@@ -103,6 +74,8 @@ function buildRegistrationBody(payload: CreateRegistrationPayload): Record<strin
       spousePhone: payload.hasSpouse ? payload.spousePhone : undefined,
       primarySpecialty: payload.primarySpecialty,
       hospitalOrg: payload.hospitalOrg,
+      organizationAddress: payload.organizationAddress.trim(),
+      zone: payload.zone.trim(),
     };
   }
 
@@ -122,7 +95,6 @@ function buildRegistrationBody(payload: CreateRegistrationPayload): Record<strin
   }
 
   if (apiRegType === "company") {
-    const representatives = normalizeCompanyRepresentatives(payload);
     return {
       regType: "company",
       email: payload.email,
@@ -134,7 +106,6 @@ function buildRegistrationBody(payload: CreateRegistrationPayload): Record<strin
       contactEmail: payload.contactEmail,
       primaryContactName: payload.primaryContactName,
       primaryContactPhone: payload.primaryContactPhone,
-      ...(representatives.length > 0 ? { representatives } : {}),
     };
   }
 
@@ -149,6 +120,14 @@ export function useCreateRegistration() {
       if (payload.regType === "company" && !(payload.companyDescription ?? "").trim()) {
         throw new Error("Company description is required.");
       }
+      if (payload.regType === "member") {
+        if (!(payload.organizationAddress ?? "").trim()) {
+          throw new Error("Organization address is required.");
+        }
+        if (!(payload.zone ?? "").trim()) {
+          throw new Error("Zone is required.");
+        }
+      }
       const body = buildRegistrationBody(payload);
       const hasImages = payload.profilePictures.length > 0;
       const isCompany = payload.regType === "company";
@@ -157,21 +136,11 @@ export function useCreateRegistration() {
         const fd = new FormData();
         
         if (isCompany) {
-          const representatives =
-            "representatives" in body && Array.isArray(body.representatives)
-              ? (body.representatives as { name: string; title: string; phone: string }[])
-              : [];
-          const { representatives: _omit, ...rest } = body as Record<string, unknown> & {
-            representatives?: unknown;
-          };
-
-          Object.entries(rest).forEach(([key, value]) => {
+          Object.entries(body).forEach(([key, value]) => {
             if (value === undefined || value === null || value === "") return;
             if (typeof value === "object") fd.append(key, JSON.stringify(value));
             else fd.append(key, String(value));
           });
-
-          appendCompanyRepresentativesToFormData(fd, representatives);
 
           // Company multipart: `logo` and optional `headerImage` only
           const [firstImage, secondImage] = payload.profilePictures;

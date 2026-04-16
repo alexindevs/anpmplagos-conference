@@ -4,7 +4,15 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuthSession } from "@/hooks/use-auth-session";
-import { getExhibitorProfile, getMyEventPasses, generateConferencePass, generateHotelPass, getMyBookedHotelRooms, ApiError } from "@/lib/api";
+import {
+  getExhibitorProfile,
+  getMyEventPasses,
+  generateConferencePass,
+  generateHotelPass,
+  getMyBookedHotelRooms,
+  getPassPurchaseEligibility,
+  ApiError,
+} from "@/lib/api";
 import { getCompanyNameFromAuthUser } from "@/lib/auth-api";
 import Link from "next/link";
 
@@ -18,26 +26,38 @@ export default function CompanyTicketsPage() {
     enabled: !!user,
   });
 
+  const {
+    data: eligibility,
+    isLoading: eligibilityLoading,
+    isError: eligibilityError,
+  } = useQuery({
+    queryKey: ["event-pass", "pass-purchase-eligibility"],
+    queryFn: getPassPurchaseEligibility,
+    enabled: !!user && !!profile,
+  });
+
+  const canAccessPasses = eligibility?.isEligible === true;
+
   const companyName = profile?.companyName || getCompanyNameFromAuthUser(user) || "Company";
   const userId = user?.id || "";
 
   const { data: eventPasses, refetch: refetchPasses } = useQuery({
     queryKey: ["company", "event-passes"],
     queryFn: getMyEventPasses,
-    enabled: !!user && !!profile,
+    enabled: !!user && !!profile && canAccessPasses,
   });
 
   const { data: hotelBookings = [] } = useQuery({
     queryKey: ["company", "hotel-bookings"],
     queryFn: getMyBookedHotelRooms,
-    enabled: !!user && !!profile,
+    enabled: !!user && !!profile && canAccessPasses,
   });
 
   useEffect(() => {
     const generatePassesIfNeeded = async () => {
       console.log("Pass generation check:", { profile, userId, isGeneratingPasses, hotelBookingsCount: hotelBookings.length, eventPasses });
       
-      if (!profile || !userId || isGeneratingPasses) return;
+      if (!profile || !userId || !canAccessPasses || isGeneratingPasses) return;
       
       const needsConferencePass = !eventPasses?.conferencePass;
       const needsHotelPass = hotelBookings.length > 0 && !eventPasses?.hotelPass;
@@ -69,11 +89,11 @@ export default function CompanyTicketsPage() {
     };
 
     generatePassesIfNeeded();
-  }, [profile, userId, eventPasses, hotelBookings, refetchPasses, isGeneratingPasses]);
+  }, [profile, userId, canAccessPasses, eventPasses, hotelBookings, refetchPasses, isGeneratingPasses]);
 
   const handleDownloadTicket = (url: string | undefined, filename: string) => {
     if (!url) {
-      toast.error("Ticket not available yet. Please refresh the page.");
+      toast.error("Ticket not available yet. Try again in a moment.");
       return;
     }
     const link = document.createElement('a');
@@ -89,8 +109,38 @@ export default function CompanyTicketsPage() {
         <p className="text-sm text-slate-500 mt-1">View and manage your company&apos;s conference registration</p>
       </div>
 
-      {isLoading ? (
+      {isLoading || (profile && eligibilityLoading) ? (
         <div className="h-64 rounded-xl bg-slate-100 animate-pulse" />
+      ) : profile && eligibilityError ? (
+        <div className="rounded-xl border border-red-200 bg-white p-8 text-center">
+          <span className="material-symbols-outlined text-4xl text-red-300 mb-4">error</span>
+          <h2 className="text-xl font-black text-[#181112] mb-2">Couldn&apos;t verify ticket access</h2>
+          <p className="text-slate-500 mb-4">
+            Something went wrong while checking your pass eligibility. Please try again or contact support.
+          </p>
+          <Link
+            href="/company/support"
+            className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 font-bold text-slate-700 hover:bg-slate-200 transition-colors"
+          >
+            <span className="material-symbols-outlined">support</span>
+            Contact Support
+          </Link>
+        </div>
+      ) : profile && !canAccessPasses ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-8 text-center">
+          <span className="material-symbols-outlined text-4xl text-amber-500 mb-4">lock</span>
+          <h2 className="text-xl font-black text-[#181112] mb-2">Tickets not available</h2>
+          <p className="text-slate-600 mb-4 max-w-md mx-auto">
+            Your account isn&apos;t eligible for conference passes right now. If you believe this is a mistake, please contact support.
+          </p>
+          <Link
+            href="/company/support"
+            className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 font-bold text-slate-700 hover:bg-slate-200 transition-colors"
+          >
+            <span className="material-symbols-outlined">support</span>
+            Contact Support
+          </Link>
+        </div>
       ) : profile ? (
         <div className="">
           <div className="rounded-xl border-2 border-green-500 bg-white p-8 shadow-lg">

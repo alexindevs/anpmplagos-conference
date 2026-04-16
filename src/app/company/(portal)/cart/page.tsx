@@ -98,7 +98,7 @@ export default function CompanyCartPage() {
         <div>
           <h1 className="text-2xl font-black text-[#181112]">Conference cart</h1>
           <p className="text-sm text-slate-600 mt-1">
-            Review items for {companyName || "your company"}, then pay once. Prices are finalized at checkout.
+            Review items for {companyName || "your company"}, then pay once. You&apos;ll see the final prices at checkout.
           </p>
         </div>
         <Link
@@ -177,7 +177,7 @@ export default function CompanyCartPage() {
                   {hasUnknownPrices && totalKobo === 0 ? "—" : formatKoboToNaira(totalKobo)}
                 </p>
                 {hasUnknownPrices ? (
-                  <p className="text-xs text-slate-500 mt-1">Some lines omit price in the cart payload; Paystack will show the final amount.</p>
+                  <p className="text-xs text-slate-500 mt-1">Some items do not show a price here; the payment screen will show the total before you pay.</p>
                 ) : null}
               </div>
               <button

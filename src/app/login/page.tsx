@@ -85,7 +85,7 @@ export default function LoginPage() {
         <div className="rounded-2xl border-2 border-secondary/20 bg-white p-8 shadow-xl shadow-secondary/10">
           <div className="mb-6 flex items-center justify-center gap-2 border-b border-slate-100 pb-6">
             <Image
-              src="/anpmp-logo.jpg"
+              src="/anpmp-logo.jpeg"
               alt="ANPMP"
               width={48}
               height={48}

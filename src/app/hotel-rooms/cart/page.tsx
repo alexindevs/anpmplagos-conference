@@ -76,7 +76,7 @@ export default function HotelCartPage() {
         <div>
           <h1 className="text-2xl font-black text-[#181112]">Hotel cart</h1>
           <p className="text-sm text-slate-600 mt-1">
-            Review room lines, then pay once. Totals are finalized at checkout.
+            Review your room selections, then pay once. The final total will be shown at checkout.
           </p>
         </div>
         <Link href="/hotel-rooms" className="text-sm font-bold text-primary hover:underline shrink-0">

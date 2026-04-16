@@ -67,6 +67,7 @@ export default function RegisterPage() {
     saved,
     email,
     password,
+    title,
     fullName,
     phone,
     bio,
@@ -76,6 +77,8 @@ export default function RegisterPage() {
     spousePhone,
     primarySpecialty,
     hospitalOrg,
+    organizationAddress,
+    zone,
     anpmpId,
     inMedicalField,
     occupation,
@@ -88,13 +91,13 @@ export default function RegisterPage() {
     contactEmail,
     primaryContactName,
     primaryContactPhone,
-    representatives,
     profilePictures,
     isDragging,
     setStep,
     setRegType,
     setEmail,
     setPassword,
+    setTitle,
     setFullName,
     setPhone,
     setBio,
@@ -104,6 +107,8 @@ export default function RegisterPage() {
     setSpousePhone,
     setPrimarySpecialty,
     setHospitalOrg,
+    setOrganizationAddress,
+    setZone,
     setAnpmpId,
     setInMedicalField,
     setOccupation,
@@ -114,9 +119,6 @@ export default function RegisterPage() {
     setContactEmail,
     setPrimaryContactName,
     setPrimaryContactPhone,
-    addRepresentative,
-    removeRepresentative,
-    updateRepresentative,
     setProfilePictures,
     setIsDragging,
     setSaved,
@@ -145,6 +147,7 @@ export default function RegisterPage() {
         regType,
         email,
         password,
+        title,
         fullName,
         phone,
         bio,
@@ -154,6 +157,8 @@ export default function RegisterPage() {
         spousePhone,
         primarySpecialty,
         hospitalOrg,
+        organizationAddress,
+        zone,
         anpmpId,
         inMedicalField,
         occupation,
@@ -166,7 +171,6 @@ export default function RegisterPage() {
         contactEmail,
         primaryContactName,
         primaryContactPhone,
-        representatives,
         profilePictures,
       },
       {
@@ -391,11 +395,25 @@ export default function RegisterPage() {
                     Personal Details
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {regType === "member" && (
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-medium text-gray-700">Title (optional)</label>
+                        <input
+                          className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
+                          placeholder="e.g. Dr, Prof"
+                          type="text"
+                          value={title}
+                          onChange={(e) => setTitle(e.target.value)}
+                          autoComplete="honorific-prefix"
+                        />
+                        <p className="text-xs text-gray-500">Honorific or title (optional). Shown on your member profile.</p>
+                      </div>
+                    )}
                     <div className="flex flex-col gap-2">
                       <label className="text-sm font-medium text-gray-700">Full Name</label>
                       <input
                         className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
-                        placeholder="Dr. John Doe"
+                        placeholder={regType === "member" ? "John Doe" : "Dr. John Doe"}
                         type="text"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
@@ -485,22 +503,23 @@ export default function RegisterPage() {
                     </h2>
                     <div className="grid grid-cols-1 gap-6">
                       <div className="flex flex-col gap-2">
-                        <label className="text-sm font-medium text-gray-700">ANPMP Membership ID</label>
+                        <label className="text-sm font-medium text-gray-700">Organization</label>
                         <input
                           className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
-                          placeholder="ID-123456"
+                          placeholder="Hospital or organization name"
                           type="text"
-                          value={anpmpId}
-                          onChange={(e) => setAnpmpId(e.target.value)}
+                          value={hospitalOrg}
+                          onChange={(e) => setHospitalOrg(e.target.value)}
+                          required
                         />
-                        <p className="text-xs text-gray-500">Your ANPMP membership ID (e.g., ID-123456)</p>
                       </div>
                       <div className="flex flex-col gap-2">
-                        <label className="text-sm font-medium text-gray-700">Primary Specialty</label>
+                        <label className="text-sm font-medium text-gray-700">Specialty</label>
                         <select
                           className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
                           value={primarySpecialty}
                           onChange={(e) => setPrimarySpecialty(e.target.value)}
+                          required
                         >
                           <option value="">Select...</option>
                           <option value="general">General Practice</option>
@@ -511,14 +530,38 @@ export default function RegisterPage() {
                         </select>
                       </div>
                       <div className="flex flex-col gap-2">
-                        <label className="text-sm font-medium text-gray-700">Hospital/Organization Name</label>
+                        <label className="text-sm font-medium text-gray-700">Organization address (required)</label>
+                        <textarea
+                          className="rounded-lg border border-gray-300 bg-white px-3 py-2 min-h-[88px] focus:ring-primary focus:border-primary"
+                          placeholder="Street address and location of your organization"
+                          value={organizationAddress}
+                          onChange={(e) => setOrganizationAddress(e.target.value)}
+                          required
+                          maxLength={2000}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-medium text-gray-700">Zone (required)</label>
                         <input
                           className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
-                          placeholder="Lagos State Teaching Hospital"
+                          placeholder="Your ANPMP zone or chapter"
                           type="text"
-                          value={hospitalOrg}
-                          onChange={(e) => setHospitalOrg(e.target.value)}
+                          value={zone}
+                          onChange={(e) => setZone(e.target.value)}
+                          required
                         />
+                        <p className="text-xs text-gray-500">Chapter or zone grouping as defined by ANPMP.</p>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-medium text-gray-700">ANPMP Membership ID</label>
+                        <input
+                          className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
+                          placeholder="ID-123456"
+                          type="text"
+                          value={anpmpId}
+                          onChange={(e) => setAnpmpId(e.target.value)}
+                        />
+                        <p className="text-xs text-gray-500">Your ANPMP membership ID (e.g., ID-123456)</p>
                       </div>
                     </div>
                   </section>
@@ -684,56 +727,6 @@ export default function RegisterPage() {
                     </div>
                   </div>
                 </section>
-
-                <section className="bg-white rounded-xl p-6 shadow-sm mx-4 border border-gray-100">
-                  <h2 className="text-[#181112] text-[22px] font-bold leading-tight pb-6">
-                    Booth Representatives
-                  </h2>
-                  <div className="space-y-4">
-                    {representatives.map((r, i) => (
-                      <div key={i} className="flex flex-col gap-3 p-4 border border-gray-100 rounded-lg">
-                        <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-                          <input
-                            className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:ring-primary focus:border-primary"
-                            placeholder="Name"
-                            value={r.name}
-                            onChange={(e) => updateRepresentative(i, "name", e.target.value)}
-                          />
-                          <input
-                            className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:ring-primary focus:border-primary"
-                            placeholder="Title"
-                            value={r.title}
-                            onChange={(e) => updateRepresentative(i, "title", e.target.value)}
-                          />
-                          <input
-                            className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:ring-primary focus:border-primary"
-                            placeholder="Phone"
-                            type="tel"
-                            value={r.phone}
-                            onChange={(e) => updateRepresentative(i, "phone", e.target.value)}
-                          />
-                          {representatives.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removeRepresentative(i)}
-                              className="text-red-600 text-sm hover:underline shrink-0"
-                            >
-                              Remove
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={addRepresentative}
-                      className="flex items-center gap-2 text-primary font-medium text-sm hover:underline"
-                    >
-                      <span className="material-symbols-outlined text-[20px]">add</span>
-                      Add representative
-                    </button>
-                  </div>
-                </section>
               </>
             )}
 
@@ -759,6 +752,36 @@ export default function RegisterPage() {
                   ) {
                     alert("Please enter a company description before continuing.");
                     return;
+                  }
+                  if (regType === "member") {
+                    if (!email.trim()) {
+                      alert("Please enter your email address.");
+                      return;
+                    }
+                    if (!fullName.trim()) {
+                      alert("Please enter your full name.");
+                      return;
+                    }
+                    if (!phone.trim()) {
+                      alert("Please enter your phone number.");
+                      return;
+                    }
+                    if (!hospitalOrg.trim()) {
+                      alert("Please enter your organization.");
+                      return;
+                    }
+                    if (!primarySpecialty.trim()) {
+                      alert("Please select your specialty.");
+                      return;
+                    }
+                    if (!organizationAddress.trim()) {
+                      alert("Please enter your organization address.");
+                      return;
+                    }
+                    if (!zone.trim()) {
+                      alert("Please enter your zone.");
+                      return;
+                    }
                   }
                   setStep(3);
                 }}
@@ -792,6 +815,9 @@ export default function RegisterPage() {
                 <>
                   <div>
                     <p className="text-xs font-semibold text-gray-500 uppercase">Personal Details</p>
+                    {regType === "member" && title.trim() ? (
+                      <p className="text-sm text-gray-600">Title: {title.trim()}</p>
+                    ) : null}
                     <p className="text-[#181112]">{fullName || "—"}</p>
                     <p className="text-sm text-gray-600">{phone || "—"}</p>
                   </div>
@@ -806,8 +832,12 @@ export default function RegisterPage() {
                     <p className="text-xs font-semibold text-gray-500 uppercase">Professional</p>
                     {regType === "member" ? (
                       <>
-                        <p className="text-[#181112]">{primarySpecialty || "—"}</p>
                         <p className="text-sm text-gray-600">{hospitalOrg || "—"}</p>
+                        <p className="text-[#181112]">{primarySpecialty || "—"}</p>
+                        <p className="text-sm text-gray-600 mt-1 whitespace-pre-wrap">
+                          {organizationAddress.trim() || "—"}
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1">Zone: {zone.trim() || "—"}</p>
                       </>
                     ) : inMedicalField === true ? (
                       <>
@@ -842,16 +872,6 @@ export default function RegisterPage() {
                     <p className="text-[#181112]">{primaryContactName || "—"}</p>
                     <p className="text-sm text-gray-600">{primaryContactPhone || "—"}</p>
                   </div>
-                  {representatives.some((r) => r.name || r.title || r.phone) && (
-                    <div>
-                      <p className="text-xs font-semibold text-gray-500 uppercase">Representatives</p>
-                      <ul className="list-disc list-inside text-sm text-gray-600">
-                        {representatives.filter((r) => r.name || r.title || r.phone).map((r, i) => (
-                          <li key={i}>{r.name || "—"} ({r.title || "—"}) {r.phone && `— ${r.phone}`}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
                 </>
               )}
               </div>

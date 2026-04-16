@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { PortalSidebarHeaderLogo } from "@/app/components/PortalSidebarHeaderLogo";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { logout } from "@/lib/auth-api";
@@ -68,11 +69,7 @@ export function AdminSidebar({
       } ${className}`}
     >
       <div className="flex min-w-0 items-center gap-3 p-4">
-        <div className="shrink-0 rounded-full bg-primary/10 p-2">
-          <div className="flex size-8 items-center justify-center rounded-full bg-primary text-white">
-            <span className="material-symbols-outlined text-[20px]">event_seat</span>
-          </div>
-        </div>
+        <PortalSidebarHeaderLogo />
         {expanded ? (
           <div className="min-w-0">
             <h1 className="truncate text-sm font-bold leading-tight text-[#181112] dark:text-white">ANPMP Lagos Admin</h1>

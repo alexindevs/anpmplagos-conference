@@ -105,7 +105,7 @@ function PlanCard({
     <div className="flex flex-col overflow-hidden rounded-xl border border-secondary/20 border-t-2 border-t-secondary/60 bg-white shadow-sm">
       <div className="p-5 flex flex-col flex-1">
         <div className="flex items-start justify-between gap-3 mb-3">
-          <div>
+          <div className="min-w-0">
             <h3 className="font-black text-[#181112] text-lg">{plan.name}</h3>
             <span
               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold mt-2 ${tierStyle.bg} ${tierStyle.color}`}
@@ -113,7 +113,7 @@ function PlanCard({
               {tierStyle.label} Tier
             </span>
           </div>
-          <div className="text-right">
+          <div className="shrink-0 text-right">
             <p className="text-2xl font-black text-primary">{formatKoboToNaira(plan.priceInKobo)}</p>
           </div>
         </div>
@@ -202,17 +202,13 @@ function PaginationBar({
 }
 
 function TierPlanSection({
-  tierKey,
   tierPlans,
-  tierInfo,
   currentTierRank,
   addingId,
   addPending,
   onAddPlan,
 }: {
-  tierKey: string;
   tierPlans: SponsorshipPlanCatalogItem[];
-  tierInfo: { label: string; color: string; bg: string };
   currentTierRank: number;
   addingId: string | null;
   addPending: boolean;
@@ -221,22 +217,7 @@ function TierPlanSection({
   const { page, setPage, totalPages, pageItems } = useClientPagination(tierPlans);
   return (
     <section className="space-y-4">
-      <div className="flex items-center gap-2">
-        <span className={`material-symbols-outlined ${tierInfo.color}`}>
-          {tierKey === "headliner"
-            ? "campaign"
-            : tierKey === "platinum"
-              ? "workspace_premium"
-              : tierKey === "gold"
-                ? "verified"
-                : tierKey === "bronze"
-                  ? "shield"
-                  : "stars"}
-        </span>
-        <h2 className={`text-xl font-black ${tierInfo.color}`}>{tierInfo.label} plans</h2>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {pageItems.map((plan) => (
           <PlanCard
             key={plan.id}
@@ -284,7 +265,7 @@ export function BundlesTab() {
 
   const tierDisplay =
     !currentTier || currentTier === "default"
-      ? { label: "Directory listing", color: "text-slate-600", bg: "bg-slate-100" }
+      ? { label: "Default", color: "text-slate-600", bg: "bg-slate-100" }
       : (TIER_DISPLAY[currentTier] ?? {
           label: currentTier.charAt(0).toUpperCase() + currentTier.slice(1),
           color: "text-slate-600",
@@ -366,11 +347,11 @@ export function BundlesTab() {
           <Link href="/company/cart" className="font-bold text-secondary hover:underline">
             conference cart
           </Link>
-          , then checkout once. Bundle booth, session slots, and marketing links are fulfilled when payment completes.
+          , then checkout once. Your booth, sessions, and marketing slots will be confirmed after payment.
         </p>
         <p className="text-xs text-slate-600 rounded-lg border border-amber-200 bg-amber-50/90 px-3 py-2">
-          Do not mix a <strong className="text-[#181112]">standalone booth</strong> line with a plan that includes a{" "}
-          <strong className="text-[#181112]">booth bundle</strong>. Only one booth-bundle plan per checkout.
+          Please note: You can only purchase one sponsorship plan with a booth at a time. Do not add a separate booth to
+          your cart if your plan already includes one.
         </p>
       </div>
 
@@ -378,13 +359,10 @@ export function BundlesTab() {
         {tierOrder.map((tierKey) => {
           const tierPlans = groupedPlans[tierKey];
           if (tierPlans.length === 0) return null;
-          const tierInfo = TIER_DISPLAY[tierKey];
           return (
             <TierPlanSection
               key={tierKey}
-              tierKey={tierKey}
               tierPlans={tierPlans}
-              tierInfo={tierInfo}
               currentTierRank={currentTierRank}
               addingId={addingId}
               addPending={addCartMutation.isPending}

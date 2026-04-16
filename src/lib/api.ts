@@ -329,13 +329,14 @@ export async function deleteExhibitorProduct(id: string): Promise<{ success: boo
 }
 
 /** Floor / sponsorship tier for a booth slot (admin create). Matches backend enum casing. */
-export type BoothTier = "headliner" | "platinum" | "gold" | "silver";
+export type BoothTier = "headliner" | "platinum" | "gold" | "silver" | "bronze";
 
 export const BOOTH_TIER_OPTIONS: readonly BoothTier[] = [
   "headliner",
   "platinum",
   "gold",
   "silver",
+  "bronze",
 ] as const;
 
 export type AdminCreateBoothInput = {
@@ -2501,6 +2502,8 @@ export interface MemberRegistrationInput {
   password: string;
   fullName: string;
   phone: string;
+  /** Honorific (e.g. Dr); omit or empty → stored as null server-side. */
+  title?: string;
   anpmpId: string;
   bio?: string;
   hasSpouse: boolean;
@@ -2509,6 +2512,8 @@ export interface MemberRegistrationInput {
   spousePhone?: string;
   primarySpecialty: string;
   hospitalOrg: string;
+  organizationAddress: string;
+  zone: string;
   avatar?: File | null;
 }
 
@@ -2540,6 +2545,7 @@ export interface MemberProfile {
   userId: string;
   fullName: string;
   phone: string;
+  title?: string | null;
   anpmpId: string;
   bio?: string | null;
   hasSpouse: boolean;
@@ -2548,6 +2554,8 @@ export interface MemberProfile {
   spousePhone?: string | null;
   primarySpecialty: string;
   hospitalOrg: string;
+  organizationAddress?: string | null;
+  zone?: string | null;
   avatar?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -2590,6 +2598,7 @@ export async function createIndividualRegistration(
   if (input.bio) fd.append("bio", input.bio);
 
   if (input.regType === "member") {
+    if (input.title?.trim()) fd.append("title", input.title.trim());
     fd.append("anpmpId", input.anpmpId);
     fd.append("hasSpouse", input.hasSpouse ? "true" : "false");
     if (input.hasSpouse) {
@@ -2599,6 +2608,8 @@ export async function createIndividualRegistration(
     }
     fd.append("primarySpecialty", input.primarySpecialty);
     fd.append("hospitalOrg", input.hospitalOrg);
+    fd.append("organizationAddress", input.organizationAddress);
+    fd.append("zone", input.zone);
   } else {
     fd.append("inMedicalField", input.inMedicalField ? "true" : "false");
     if (input.inMedicalField) {
@@ -2721,4 +2732,9 @@ export async function getHotelPassData(userId: string): Promise<HotelPassData> {
 
 export async function getMyEventPasses(): Promise<EventPassSummary> {
   return apiFetch<EventPassSummary>("/api/event-pass");
+}
+
+/** GET /api/event-pass/company/pass-purchase-eligibility — JWT; any authenticated portal user. */
+export async function getPassPurchaseEligibility(): Promise<{ isEligible: boolean }> {
+  return apiFetch<{ isEligible: boolean }>("/api/event-pass/company/pass-purchase-eligibility");
 }

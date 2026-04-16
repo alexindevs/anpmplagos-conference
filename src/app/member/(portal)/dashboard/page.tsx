@@ -23,7 +23,10 @@ export default function MemberDashboardPage() {
   const memberProfile = profile as MemberProfile | undefined;
   const attendeeProfile = profile as AttendeeProfile | undefined;
 
-  const fullName = profile?.fullName || user?.member?.fullName || user?.attendee?.fullName || "Member";
+  const displayFullName = profile?.fullName || user?.member?.fullName || user?.attendee?.fullName || "Member";
+  const memberTitle =
+    isMember && memberProfile?.title?.trim() ? `${memberProfile.title.trim()} ` : "";
+  const fullName = `${memberTitle}${displayFullName}`.trim() || displayFullName;
   const userId = user?.id || "";
 
   const ticketPrice = isMember ? PRICE_MEMBER : PRICE_NON_MEMBER;
@@ -109,6 +112,12 @@ export default function MemberDashboardPage() {
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {isMember && memberProfile?.title?.trim() ? (
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Title</p>
+                      <p className="mt-1 text-sm font-semibold text-[#181112]">{memberProfile.title.trim()}</p>
+                    </div>
+                  ) : null}
                   <div>
                     <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Full Name</p>
                     <p className="mt-1 text-sm font-semibold text-[#181112]">{profile?.fullName || "—"}</p>
@@ -128,12 +137,22 @@ export default function MemberDashboardPage() {
                         <p className="mt-1 text-sm font-semibold text-[#181112]">{memberProfile.anpmpId || "—"}</p>
                       </div>
                       <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Primary Specialty</p>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Specialty</p>
                         <p className="mt-1 text-sm font-semibold text-[#181112]">{memberProfile.primarySpecialty ? memberProfile.primarySpecialty.charAt(0).toUpperCase() + memberProfile.primarySpecialty.slice(1) : "—"}</p>
                       </div>
                       <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Hospital/Organization</p>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Organization</p>
                         <p className="mt-1 text-sm font-semibold text-[#181112]">{memberProfile.hospitalOrg || "—"}</p>
+                      </div>
+                      <div className="md:col-span-2">
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Organization address</p>
+                        <p className="mt-1 text-sm font-semibold text-[#181112] whitespace-pre-wrap">
+                          {memberProfile.organizationAddress?.trim() || "—"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Zone</p>
+                        <p className="mt-1 text-sm font-semibold text-[#181112]">{memberProfile.zone?.trim() || "—"}</p>
                       </div>
                     </>
                   )}

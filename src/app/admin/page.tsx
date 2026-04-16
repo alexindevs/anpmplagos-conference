@@ -234,7 +234,7 @@ export default function AdminPage() {
                 disabled={isLoading}
                 className="group relative flex w-full justify-center rounded-lg bg-secondary px-4 py-2 text-sm font-bold text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 disabled:opacity-70"
               >
-                {isLoading ? "Verifying..." : "Verify Code"}
+                {isLoading ? "Checking…" : "Submit code"}
               </button>
             </div>
             <div className="text-center">

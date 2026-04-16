@@ -111,7 +111,7 @@ export default function HotelPage() {
               <div className="inline-block relative mb-6">
                 <div className="size-28 md:size-32 rounded-full overflow-hidden border-4 border-white shadow-xl">
                   <img
-                    src={data.avatar || "/anpmp-logo.jpg"}
+                    src={data.avatar || "/anpmp-logo.jpeg"}
                     alt={data.name}
                     className="w-full h-full object-cover"
                   />

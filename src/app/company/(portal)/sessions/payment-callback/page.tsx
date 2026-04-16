@@ -10,11 +10,11 @@ const SESSION_KINDS = new Set(["masterclass", "panel", "presentation"]);
 
 function sessionSuccessMessage(kind: string | undefined): string {
   if (kind === "masterclass")
-    return "Your payment was received. Your masterclass slot will appear under “Your bookings” on the Masterclasses page once it is finalized.";
+    return "Your payment was received. Your masterclass will appear under “Your bookings” on the Masterclasses page shortly.";
   if (kind === "panel")
-    return "Your payment was received. Your panel session slot will appear under “Your bookings” on the Panel sessions page once it is finalized.";
+    return "Your payment was received. Your panel session will appear under “Your bookings” on the Panel sessions page shortly.";
   if (kind === "presentation")
-    return "Your payment was received. Your presentation slot will appear under “Your bookings” on the Presentations page once it is finalized.";
+    return "Your payment was received. Your presentation will appear under “Your bookings” on the Presentations page shortly.";
   return "Your payment was processed successfully.";
 }
 
@@ -68,7 +68,7 @@ function CompanySessionsPaymentCallbackContent() {
             <div className="size-16 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
           </div>
           <h1 className="text-3xl font-black text-[#181112] mb-4">Confirming payment</h1>
-          <p className="text-gray-600">Please wait while we finalize your booking…</p>
+          <p className="text-gray-600">Please wait while we confirm your booking…</p>
         </div>
       </main>
     );
