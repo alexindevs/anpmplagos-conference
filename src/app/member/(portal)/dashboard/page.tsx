@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useAuthSession } from "@/hooks/use-auth-session";
+import { AutomaticCheckoutDiscountNote } from "@/app/components/AutomaticCheckoutDiscountNote";
+import { applyAutomaticDiscountKobo, getAutomaticCheckoutDiscountPercent } from "@/lib/automatic-checkout-discount";
 import { getMyRegistration, formatKoboToNaira, type MemberProfile, type AttendeeProfile } from "@/lib/api";
 import { MemberPortalShell } from "../../components/MemberPortalShell";
 import Image from "next/image";
@@ -30,6 +32,8 @@ export default function MemberDashboardPage() {
   const userId = user?.id || "";
 
   const ticketPrice = isMember ? PRICE_MEMBER : PRICE_NON_MEMBER;
+  const regDiscountPct = getAutomaticCheckoutDiscountPercent();
+  const registrationDueKobo = applyAutomaticDiscountKobo(ticketPrice, regDiscountPct);
   const isPaid = registration?.payment?.status === "success";
   const isPending = registration?.user?.registrationStatus === "pending_payment";
 
@@ -92,6 +96,8 @@ export default function MemberDashboardPage() {
                   </div>
                 )}
 
+                {isPending && regDiscountPct > 0 ? <AutomaticCheckoutDiscountNote className="mb-4" /> : null}
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                     <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Registration Type</p>
@@ -99,7 +105,14 @@ export default function MemberDashboardPage() {
                   </div>
                   <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
                     <p className="text-xs font-bold uppercase tracking-wider text-primary">Ticket Price</p>
-                    <p className="mt-1 text-lg font-black text-primary">{formatKoboToNaira(ticketPrice)}</p>
+                    {isPending && regDiscountPct > 0 ? (
+                      <div className="mt-1">
+                        <p className="text-sm text-slate-500 line-through tabular-nums">{formatKoboToNaira(ticketPrice)}</p>
+                        <p className="text-lg font-black text-primary tabular-nums">{formatKoboToNaira(registrationDueKobo)}</p>
+                      </div>
+                    ) : (
+                      <p className="mt-1 text-lg font-black text-primary tabular-nums">{formatKoboToNaira(ticketPrice)}</p>
+                    )}
                   </div>
                 </div>
               </section>

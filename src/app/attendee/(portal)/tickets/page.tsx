@@ -15,6 +15,8 @@ import {
   getPassPurchaseEligibility,
   ApiError,
 } from "@/lib/api";
+import { AutomaticCheckoutDiscountNote } from "@/app/components/AutomaticCheckoutDiscountNote";
+import { applyAutomaticDiscountKobo, getAutomaticCheckoutDiscountPercent } from "@/lib/automatic-checkout-discount";
 import { AttendeePortalShell } from "../../components/AttendeePortalShell";
 import Link from "next/link";
 
@@ -35,6 +37,8 @@ export default function AttendeeTicketsPage() {
   const fullName = profile?.fullName || user?.attendee?.fullName || "Attendee";
   const userId = user?.id || "";
 
+  const regDiscountPct = getAutomaticCheckoutDiscountPercent();
+  const registrationDueKobo = applyAutomaticDiscountKobo(PRICE_NON_MEMBER, regDiscountPct);
   const isPaid = registration?.payment?.status === "success";
   const isPending = registration?.user?.registrationStatus === "pending_payment";
 
@@ -296,6 +300,8 @@ export default function AttendeeTicketsPage() {
                   Complete your payment to confirm your registration
                 </p>
 
+                <AutomaticCheckoutDiscountNote className="mb-4" />
+
                 <div className="border-t border-b border-slate-200 py-6 my-6">
                   <div className="grid grid-cols-2 gap-6">
                     <div>
@@ -304,7 +310,14 @@ export default function AttendeeTicketsPage() {
                     </div>
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Amount Due</p>
-                      <p className="mt-1 text-lg font-bold text-primary">{formatKoboToNaira(PRICE_NON_MEMBER)}</p>
+                      {regDiscountPct > 0 ? (
+                        <div className="mt-1">
+                          <p className="text-sm text-slate-500 line-through tabular-nums">{formatKoboToNaira(PRICE_NON_MEMBER)}</p>
+                          <p className="text-lg font-bold text-primary tabular-nums">{formatKoboToNaira(registrationDueKobo)}</p>
+                        </div>
+                      ) : (
+                        <p className="mt-1 text-lg font-bold text-primary tabular-nums">{formatKoboToNaira(PRICE_NON_MEMBER)}</p>
+                      )}
                     </div>
                   </div>
                 </div>

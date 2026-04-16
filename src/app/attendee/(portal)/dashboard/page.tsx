@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useAuthSession } from "@/hooks/use-auth-session";
+import { AutomaticCheckoutDiscountNote } from "@/app/components/AutomaticCheckoutDiscountNote";
+import { applyAutomaticDiscountKobo, getAutomaticCheckoutDiscountPercent } from "@/lib/automatic-checkout-discount";
 import { getMyRegistration, formatKoboToNaira, type AttendeeProfile } from "@/lib/api";
 import { AttendeePortalShell } from "../../components/AttendeePortalShell";
 import Image from "next/image";
@@ -64,15 +66,19 @@ export default function AttendeeDashboardPage() {
                     {isPaid ? 'Registration Confirmed' : isPending ? 'Payment Pending' : 'Registration Incomplete'}
                   </p>
                   <p className="text-sm text-slate-500">
-                    {isPaid 
-                      ? 'Your conference registration is confirmed and paid.'
-                      : isPending 
-                        ? `Complete your payment of ${formatKoboToNaira(PRICE_NON_MEMBER)} to confirm registration.`
-                        : 'Please complete your registration process.'
-                    }
+                    {isPaid
+                      ? "Your conference registration is confirmed and paid."
+                      : isPending
+                        ? `Complete your payment of ${formatKoboToNaira(registrationDueKobo)} to confirm registration.`
+                        : "Please complete your registration process."}
                   </p>
                 </div>
               </div>
+              {isPending && regDiscountPct > 0 ? (
+                <div className="mt-4">
+                  <AutomaticCheckoutDiscountNote />
+                </div>
+              ) : null}
             </div>
 
             {/* Profile Information */}

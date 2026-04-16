@@ -5,7 +5,12 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { useCheckoutConferenceCart, useConferenceCart, useRemoveConferenceCartItem } from "@/hooks/use-conference-cart";
+import { AutomaticCheckoutDiscountNote } from "@/app/components/AutomaticCheckoutDiscountNote";
 import { ApiError, formatKoboToNaira, parseKoboField, type CartItem } from "@/lib/api";
+import {
+  discountAmountKobo,
+  getAutomaticCheckoutDiscountPercent,
+} from "@/lib/automatic-checkout-discount";
 import { getCompanyNameFromAuthUser, isCompanyRegType } from "@/lib/auth-api";
 import { boothPrimaryName } from "@/lib/booth-display";
 
@@ -45,6 +50,10 @@ function lineAmountKobo(item: CartItem): number | null {
   return null;
 }
 
+function isDiscountEligibleCartLine(item: CartItem): boolean {
+  return item.type === "booth" || item.type === "sponsorship_plan";
+}
+
 export default function CompanyCartPage() {
   const router = useRouter();
   const { data: user, isPending: userLoading } = useAuthSession();
@@ -65,6 +74,18 @@ export default function CompanyCartPage() {
     return sum + (line ?? 0);
   }, 0);
   const hasUnknownPrices = items.some((it) => lineAmountKobo(it) == null);
+
+  const discountPercent = getAutomaticCheckoutDiscountPercent();
+  const eligibleSubtotalKobo = items
+    .filter(isDiscountEligibleCartLine)
+    .reduce((sum, it) => sum + (lineAmountKobo(it) ?? 0), 0);
+  const discountKobo =
+    discountPercent > 0 && eligibleSubtotalKobo > 0
+      ? discountAmountKobo(eligibleSubtotalKobo, discountPercent)
+      : 0;
+  const estimatedDueKobo = Math.max(0, totalKobo - discountKobo);
+  const showDiscountBreakdown =
+    discountPercent > 0 && eligibleSubtotalKobo > 0 && !hasUnknownPrices && totalKobo > 0;
 
   const handleCheckout = () => {
     checkoutMutation.mutate(undefined, {
@@ -140,6 +161,7 @@ export default function CompanyCartPage() {
         </div>
       ) : (
         <div className="space-y-6">
+          <AutomaticCheckoutDiscountNote />
           <div className="rounded-xl border border-secondary/20 bg-white shadow-sm overflow-hidden">
             <ul className="divide-y divide-slate-100">
               {items.map((item) => {
@@ -171,11 +193,28 @@ export default function CompanyCartPage() {
               })}
             </ul>
             <div className="border-t border-slate-100 bg-slate-50 px-4 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-xs font-bold uppercase text-slate-500">Estimated total</p>
-                <p className="text-xl font-black text-[#181112] tabular-nums">
-                  {hasUnknownPrices && totalKobo === 0 ? "—" : formatKoboToNaira(totalKobo)}
-                </p>
+              <div className="space-y-1">
+                {showDiscountBreakdown ? (
+                  <>
+                    <p className="text-xs font-bold uppercase text-slate-500">Subtotal</p>
+                    <p className="text-lg font-black text-[#181112] tabular-nums">{formatKoboToNaira(totalKobo)}</p>
+                    <div className="text-sm text-slate-600 pt-1 space-y-0.5">
+                      <p className="tabular-nums">
+                        <span className="text-slate-500">Automatic discount ({discountPercent}% on booth &amp; plan lines):</span>{" "}
+                        <span className="font-bold text-emerald-700">−{formatKoboToNaira(discountKobo)}</span>
+                      </p>
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-500 pt-1">Estimated due</p>
+                      <p className="text-xl font-black text-[#181112] tabular-nums">{formatKoboToNaira(estimatedDueKobo)}</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs font-bold uppercase text-slate-500">Estimated total</p>
+                    <p className="text-xl font-black text-[#181112] tabular-nums">
+                      {hasUnknownPrices && totalKobo === 0 ? "—" : formatKoboToNaira(totalKobo)}
+                    </p>
+                  </>
+                )}
                 {hasUnknownPrices ? (
                   <p className="text-xs text-slate-500 mt-1">Some items do not show a price here; the payment screen will show the total before you pay.</p>
                 ) : null}
