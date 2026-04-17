@@ -59,7 +59,7 @@ export function AttendeeHotelRoomsShell({
             <div className="flex items-center gap-3">
               <PortalSidebarHeaderLogo />
               <div className="min-w-0">
-                <p className="text-sm font-bold text-charcoal leading-tight">Hotel booking</p>
+                <p className="text-sm font-bold text-charcoal leading-tight">ANPMP Lagos Hotel Booking Portal</p>
                 <p className="text-xs text-slate-500 truncate">ANPMP Lagos Conference 2026</p>
               </div>
             </div>

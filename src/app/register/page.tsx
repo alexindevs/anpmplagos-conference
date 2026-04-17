@@ -207,19 +207,19 @@ export default function RegisterPage() {
               </Link>
             ) : regType === "member" ? (
               <Link
-                href="/member/dashboard"
+                href="/login"
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-white font-bold hover:bg-red-700 transition-colors shadow-lg"
               >
                 <span className="material-symbols-outlined">account_circle</span>
-                Access Member Portal
+                Login Now
               </Link>
             ) : (
               <Link
-                href="/attendee/dashboard"
+                href="/login"
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-white font-bold hover:bg-red-700 transition-colors shadow-lg"
               >
                 <span className="material-symbols-outlined">person</span>
-                Access Attendee Portal
+                Login Now
               </Link>
             )}
             <Link
@@ -550,7 +550,6 @@ export default function RegisterPage() {
                           onChange={(e) => setZone(e.target.value)}
                           required
                         />
-                        <p className="text-xs text-gray-500">Chapter or zone grouping as defined by ANPMP.</p>
                       </div>
                       <div className="flex flex-col gap-2">
                         <label className="text-sm font-medium text-gray-700">ANPMP Membership ID</label>
