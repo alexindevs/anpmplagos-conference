@@ -2,19 +2,15 @@
 
 import { useEffect, useId, useState } from "react";
 import { usePathname } from "next/navigation";
-import { getMe, refresh, type AuthUser } from "@/lib/auth-api";
+import { getMe, refresh, isAdminUser, isModeratorUser, type AuthUser } from "@/lib/auth-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { AdminSidebar } from "./AdminSidebar";
 
-function redirectPathForNonAdmin(regType: AuthUser["regType"]): string {
-  if (regType === "company" || regType === "exhibitor" || regType === "sponsor")
+function redirectPathForNonAdmin(u: AuthUser): string {
+  if (isModeratorUser(u)) return "/moderator/dashboard";
+  if (u.regType === "company" || u.regType === "exhibitor" || u.regType === "sponsor")
     return "/company/dashboard";
   return "/";
-}
-
-/** Backend may set `regType: "admin"` and/or nest `admin` on the user. */
-function isAdminUser(u: AuthUser): boolean {
-  return u.regType === "admin" || u.admin != null;
 }
 
 function useMdUp(): boolean {
@@ -72,7 +68,7 @@ export function AdminPortalShell({ children }: { children: React.ReactNode }) {
 
       if (!isAdminUser(u)) {
         // Full navigation; keep loading until the page unloads (avoids a stuck "Redirecting" state).
-        window.location.replace(redirectPathForNonAdmin(u.regType));
+        window.location.replace(redirectPathForNonAdmin(u));
         return;
       }
 

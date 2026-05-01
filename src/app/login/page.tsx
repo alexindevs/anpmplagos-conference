@@ -4,24 +4,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { login, AuthApiError, type AuthUser } from "@/lib/auth-api";
+import { login, AuthApiError, isModeratorUser, type AuthUser } from "@/lib/auth-api";
 import { authSessionQueryKey } from "@/hooks/use-auth-session";
 import { useAuthStore } from "@/stores/auth-store";
 
-function isAdminUser(u: AuthUser): boolean {
-  return u.regType === "admin" || u.admin != null;
-}
-
 function redirectAfterLogin(u: AuthUser): string {
-  if (isAdminUser(u)) return "/admin/dashboard";
+  if (isModeratorUser(u)) return "/moderator/dashboard";
+  if (u.regType === "admin") return "/admin/dashboard";
   if (u.regType === "company" || u.regType === "exhibitor" || u.regType === "sponsor")
     return "/company/dashboard";
-  if (u.regType === "member") {
-    return "/member/dashboard";
-  }
-  if (u.regType === "attendee") {
-    return "/attendee/dashboard";
-  }
+  if (u.regType === "member") return "/member/dashboard";
+  if (u.regType === "attendee") return "/attendee/dashboard";
   return "/register";
 }
 
@@ -138,6 +131,15 @@ export default function LoginPage() {
                 className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-[#181112] placeholder:text-slate-400 outline-none transition-colors focus:border-secondary focus:ring-2 focus:ring-secondary/20"
                 placeholder="••••••••"
               />
+            </div>
+
+            <div className="flex items-center justify-end">
+              <Link
+                href="/forgot-password"
+                className="text-xs font-medium text-slate-500 hover:text-primary"
+              >
+                Forgot password?
+              </Link>
             </div>
 
             <button

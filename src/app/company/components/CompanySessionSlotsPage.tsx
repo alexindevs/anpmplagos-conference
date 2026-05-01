@@ -127,11 +127,14 @@ export function CompanySessionSlotsPage({
 
   const payMutation = useMutation({
     mutationFn: async (sessionId: string) => {
-      const res = await initializeSessionPayment({ type: sessionKind, sessionId });
-      return res.authorizationUrl;
+      return initializeSessionPayment({ type: sessionKind, sessionId });
     },
-    onSuccess: (url) => {
-      window.location.href = url;
+    onSuccess: (res) => {
+      if (res.manualMode) {
+        router.push(`/payment/manual-pending?reference=${encodeURIComponent(res.reference)}`);
+      } else {
+        window.location.href = res.authorizationUrl;
+      }
     },
     onError: (e) => {
       setCheckoutError(e instanceof ApiError ? e.message : "Payment could not be started.");

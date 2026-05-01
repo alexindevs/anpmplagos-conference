@@ -2041,6 +2041,7 @@ export interface PaymentInitializeResponse {
   accessCode: string;
   amount: number;
   baseAmount: number;
+  manualMode?: boolean;
 }
 
 export type PaymentStatus = "pending" | "success" | "failed" | "refunded";
@@ -2076,6 +2077,7 @@ export interface Payment {
   advertSlotId?: string | null;
   brandingSlotId?: string | null;
   paidAt?: string | null;
+  claimedPaidAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -2108,6 +2110,7 @@ function normalizePaymentInitializeResponseFromWire(raw: unknown): PaymentInitia
     accessCode: String(o.accessCode ?? ""),
     amount: parseKoboField(o.amount),
     baseAmount: parseKoboField(o.baseAmount),
+    ...(o.manualMode === true ? { manualMode: true } : {}),
   };
 }
 
@@ -2123,6 +2126,7 @@ function normalizeOrderCheckoutResponseFromWire(raw: unknown): OrderCheckoutResp
     accessCode: String(o.accessCode ?? ""),
     amount: parseKoboField(o.amount),
     baseAmount: parseKoboField(o.baseAmount),
+    ...(o.manualMode === true ? { manualMode: true } : {}),
   };
 }
 
@@ -2364,6 +2368,7 @@ export interface OrderCheckoutResponse {
   accessCode: string;
   amount: number;
   baseAmount: number;
+  manualMode?: boolean;
 }
 
 export async function checkoutOrder(cartKind: CartKind): Promise<OrderCheckoutResponse> {
@@ -2372,6 +2377,24 @@ export async function checkoutOrder(cartKind: CartKind): Promise<OrderCheckoutRe
     body: JSON.stringify({ cartKind }),
   });
   return normalizeOrderCheckoutResponseFromWire(raw);
+}
+
+export async function cancelPayment(reference: string): Promise<void> {
+  await apiFetch<unknown>(`/api/payments/${encodeURIComponent(reference)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function claimPaymentMade(reference: string): Promise<void> {
+  await apiFetch<unknown>(`/api/payments/${encodeURIComponent(reference)}/claim-paid`, {
+    method: "POST",
+  });
+}
+
+export async function adminVerifyManualPayment(reference: string): Promise<void> {
+  await apiFetch<unknown>(`/api/payments/admin/${encodeURIComponent(reference)}/verify`, {
+    method: "POST",
+  });
 }
 
 // ==================== Support tickets ====================
@@ -2584,6 +2607,7 @@ export interface RegistrationPaymentInitializeResponse {
   accessCode: string;
   amount: number;
   baseAmount: number;
+  manualMode?: boolean;
 }
 
 export async function createIndividualRegistration(
@@ -2737,4 +2761,577 @@ export async function getMyEventPasses(): Promise<EventPassSummary> {
 /** GET /api/event-pass/company/pass-purchase-eligibility — JWT; any authenticated portal user. */
 export async function getPassPurchaseEligibility(): Promise<{ isEligible: boolean }> {
   return apiFetch<{ isEligible: boolean }>("/api/event-pass/company/pass-purchase-eligibility");
+}
+
+// ==================== Attendance Moderator APIs ====================
+
+export interface EventDay {
+  id: string;
+  label: string;
+  date: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { attendances: number };
+}
+
+export interface AttendanceEntry {
+  entryIndex: number;
+  markedAt: string;
+}
+
+export interface ScanResult {
+  regType: "member" | "attendee" | "company";
+  userId: string;
+  name: string;
+  avatar: string | null;
+  // member only
+  hasSpouse?: boolean;
+  spouseName?: string | null;
+  spouseEmail?: string | null;
+  spousePhone?: string | null;
+  // company only
+  tier?: string;
+  maxEntries?: number;
+  // all
+  todayEntries: AttendanceEntry[];
+  alreadyFull: boolean;
+}
+
+export interface AttendanceSummary {
+  members: { uniqueCheckedIn: number; memberEntries: number; spouseEntries: number };
+  attendees: { uniqueCheckedIn: number };
+  companies: { uniqueCompanies: number; totalEntries: number };
+}
+
+export interface ModeratorSummary {
+  id: string;
+  name: string;
+  email: string;
+  userId: string;
+  avatar: string | null;
+  status: string;
+  createdAt: string;
+}
+
+export interface PendingInvite {
+  id: string;
+  email: string;
+  expiresAt: string;
+  status: string;
+  createdAt: string;
+}
+
+// ── Moderator portal endpoints ──────────────────────────────────────────────
+
+export async function getActiveDays(): Promise<EventDay[]> {
+  return apiFetch<EventDay[]>("/api/attendance/days/active");
+}
+
+export async function getAllDaysForModerator(): Promise<EventDay[]> {
+  return apiFetch<EventDay[]>("/api/attendance/days/all");
+}
+
+export async function getScanDetails(userId: string, eventDayId?: string): Promise<ScanResult> {
+  const params: Record<string, string> = {};
+  if (eventDayId) params.eventDayId = eventDayId;
+  return apiFetch<ScanResult>(`/api/attendance/scan/${encodeURIComponent(userId)}`, { params });
+}
+
+export async function markAttendance(
+  userId: string,
+  eventDayId: string
+): Promise<{ entryIndex: number; markedAt: string; message: string }> {
+  return apiFetch<{ entryIndex: number; markedAt: string; message: string }>("/api/attendance/mark", {
+    method: "POST",
+    body: JSON.stringify({ userId, eventDayId }),
+  });
+}
+
+export interface CheckinRecord {
+  id: string;
+  userId: string;
+  entryIndex: number;
+  markedAt: string;
+  user: {
+    id: string;
+    regType: string;
+    email: string;
+    member?: { fullName: string; avatar?: string | null } | null;
+    attendee?: { fullName: string; avatar?: string | null } | null;
+    company?: { companyName: string; logo?: string | null } | null;
+  };
+  markedBy: {
+    id: string;
+    email: string;
+    admin?: { name: string } | null;
+  };
+}
+
+export interface DayCheckinsResponse {
+  items: CheckinRecord[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export async function getDayCheckins(
+  dayId: string,
+  page = 1,
+  limit = 100,
+): Promise<DayCheckinsResponse> {
+  return apiFetch<DayCheckinsResponse>(
+    `/api/attendance/days/${encodeURIComponent(dayId)}/checkins`,
+    { params: { page: String(page), limit: String(limit) } },
+  );
+}
+
+// ── Admin: conference days ───────────────────────────────────────────────────
+
+export async function getAdminConferenceDays(): Promise<EventDay[]> {
+  return apiFetch<EventDay[]>("/api/admin/conference-days");
+}
+
+export async function createAdminConferenceDay(data: {
+  label: string;
+  date: string;
+  isActive?: boolean;
+}): Promise<EventDay> {
+  return apiFetch<EventDay>("/api/admin/conference-days", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateAdminConferenceDay(
+  id: string,
+  data: Partial<{ label: string; date: string; isActive: boolean }>
+): Promise<EventDay> {
+  return apiFetch<EventDay>(`/api/admin/conference-days/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteAdminConferenceDay(id: string): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>(`/api/admin/conference-days/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function getAdminDayAttendance(
+  dayId: string,
+  query: { page?: number; limit?: number } = {}
+): Promise<{ items: unknown[]; page: number; limit: number; total: number; totalPages: number }> {
+  const params: Record<string, string> = {};
+  if (query.page) params.page = String(query.page);
+  if (query.limit) params.limit = String(query.limit);
+  return apiFetch(`/api/admin/conference-days/${encodeURIComponent(dayId)}/attendance`, { params });
+}
+
+export async function getAdminDayAttendanceSummary(dayId: string): Promise<AttendanceSummary> {
+  return apiFetch<AttendanceSummary>(
+    `/api/admin/conference-days/${encodeURIComponent(dayId)}/attendance/summary`
+  );
+}
+
+// ── Admin: moderators ────────────────────────────────────────────────────────
+
+export async function inviteModeratorAdmin(email: string): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>("/api/admin/moderators/invite", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function listModeratorsAdmin(): Promise<{
+  moderators: ModeratorSummary[];
+  pendingInvites: PendingInvite[];
+}> {
+  return apiFetch("/api/admin/moderators");
+}
+
+export async function deactivateModeratorAdmin(id: string): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>(`/api/admin/moderators/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function revokeModeratorInvite(id: string): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>(`/api/admin/moderators/invites/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+/**
+ * Downloads an attendance PDF report and triggers a browser save dialog.
+ * @param eventDayId  - specific day ID, or undefined for all days
+ * @param isAdmin     - true → uses admin endpoint; false → uses moderator endpoint
+ */
+export async function downloadAttendancePdf(
+  eventDayId?: string,
+  isAdmin = true,
+): Promise<void> {
+  const basePath = isAdmin
+    ? "/api/admin/conference-days/report/pdf"
+    : "/api/attendance/report/pdf";
+  const url = new URL(basePath, API_BASE);
+  if (eventDayId) url.searchParams.set("eventDayId", eventDayId);
+
+  const res = await fetch(url.toString(), { credentials: "include" });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new ApiError(res.status, (body as Record<string, string>)?.message ?? "Failed to download report");
+  }
+
+  const blob = await res.blob();
+  const objectUrl = URL.createObjectURL(blob);
+
+  const cd = res.headers.get("content-disposition") ?? "";
+  const match = cd.match(/filename="([^"]+)"/);
+  const filename = match?.[1] ?? "attendance-report.pdf";
+
+  const a = document.createElement("a");
+  a.href = objectUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(objectUrl);
+}
+
+// ─── Receipts ──────────────────────────────────────────────────────────────
+
+export interface ReceiptLineItem {
+  type: string;
+  title: string;
+  quantity: number;
+  unitPriceKobo: number;
+  totalKobo: number;
+  bundlePerks?: string[];
+  bundleAllocations?: {
+    booth?: { name: string; tier: string };
+    masterclass?: { title: string; duration: string; day: string };
+    presentation?: { title: string; duration: string; day: string };
+    advertSlots?: Array<{ title: string }>;
+    brandingSlots?: Array<{ title: string }>;
+  };
+}
+
+export interface ReceiptData {
+  id: string;
+  reference: string;
+  kind: PaymentKind | "registration";
+  status: PaymentStatus;
+  baseAmountKobo: number;
+  totalAmountKobo: number;
+  provider: string;
+  paidAt: string | null;
+  createdAt: string;
+  user: { id: string; email: string; regType: string; name?: string };
+  company?: { id: string; companyName: string };
+  items: ReceiptLineItem[];
+}
+
+export interface ReceiptListResponse {
+  data: ReceiptData[];
+  pagination: { page: number; pageSize: number; total: number; totalPages: number };
+}
+
+export async function getMyReceipts(params?: {
+  page?: number;
+  pageSize?: number;
+  kind?: string;
+  status?: string;
+}): Promise<ReceiptListResponse> {
+  const p: Record<string, string> = {};
+  if (params?.page) p.page = String(params.page);
+  if (params?.pageSize) p.pageSize = String(params.pageSize);
+  if (params?.kind) p.kind = params.kind;
+  if (params?.status) p.status = params.status;
+  return apiFetch<ReceiptListResponse>("/api/receipts", { params: p });
+}
+
+export async function getAllReceiptsAdmin(params?: {
+  page?: number;
+  pageSize?: number;
+  kind?: string;
+  status?: string;
+}): Promise<ReceiptListResponse> {
+  const p: Record<string, string> = {};
+  if (params?.page) p.page = String(params.page);
+  if (params?.pageSize) p.pageSize = String(params.pageSize);
+  if (params?.kind) p.kind = params.kind;
+  if (params?.status) p.status = params.status;
+  return apiFetch<ReceiptListResponse>("/api/receipts/admin", { params: p });
+}
+
+export async function getReceiptById(id: string): Promise<ReceiptData> {
+  return apiFetch<ReceiptData>(`/api/receipts/${encodeURIComponent(id)}`);
+}
+
+/** Fetches the HTML receipt and opens it in a new window for printing. */
+export async function printReceiptById(id: string): Promise<void> {
+  const url = new URL(`/api/receipts/${encodeURIComponent(id)}/html`, API_BASE);
+  const res = await fetch(url.toString(), { credentials: "include" });
+  if (!res.ok) throw new ApiError(res.status, "Failed to load receipt for printing");
+  const html = await res.text();
+  const win = window.open("", "_blank", "width=820,height=700");
+  if (win) {
+    win.document.write(html);
+    win.document.close();
+    win.onload = () => {
+      win.focus();
+      win.print();
+    };
+  }
+}
+
+// ─── Elections ────────────────────────────────────────────────────────────────
+
+export interface VotingSettings {
+  id: string;
+  isActive: boolean;
+  activatedAt: string | null;
+  deactivatedAt: string | null;
+  updatedAt: string;
+  updatedById: string | null;
+}
+
+export interface ElectionPosition {
+  id: string;
+  title: string;
+  description: string | null;
+  order: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Candidate {
+  id: string;
+  name: string;
+  bio: string | null;
+  avatar: string | null;
+  positionId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ElectionPositionWithCandidates extends ElectionPosition {
+  candidates: Pick<Candidate, "id" | "name" | "bio" | "avatar" | "positionId">[];
+}
+
+export interface AdminPositionWithCounts extends ElectionPosition {
+  _count: { candidates: number; votes: number };
+}
+
+export interface CandidateWithVoteCount extends Candidate {
+  _count: { votes: number };
+}
+
+export interface CandidateResult {
+  id: string;
+  name: string;
+  bio: string | null;
+  avatar: string | null;
+  voteCount: number;
+  percentage: number;
+}
+
+export interface PositionResult {
+  id: string;
+  title: string;
+  description: string | null;
+  order: number;
+  isActive: boolean;
+  totalVotes: number;
+  candidates: CandidateResult[];
+}
+
+export interface ElectionsStats {
+  isActive: boolean;
+  activatedAt: string | null;
+  totalPositions: number;
+  totalVotes: number;
+  uniqueVoters: number;
+  completedVoters: number;
+}
+
+export interface MyVote {
+  positionId: string;
+  candidateId: string;
+  createdAt: string;
+  position: { title: string };
+  candidate: { name: string; avatar: string | null };
+}
+
+export interface AuditVote {
+  id: string;
+  votedAt: string;
+  voterEmail: string;
+  voterName: string;
+  positionTitle: string;
+  candidateName: string;
+  ipAddress: string | null;
+  userAgent: string | null;
+}
+
+export interface AuditPage {
+  data: AuditVote[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface CastVoteInput {
+  positionId: string;
+  candidateId: string;
+}
+
+export interface CreatePositionInput {
+  title: string;
+  description?: string;
+  order?: number;
+}
+
+export interface UpdatePositionInput {
+  title?: string;
+  description?: string;
+  order?: number;
+  isActive?: boolean;
+}
+
+// ── Member / public ──────────────────────────────────────────────────────────
+
+export async function getElectionsStatus(): Promise<{
+  isActive: boolean;
+  activatedAt: string | null;
+}> {
+  return apiFetch("/api/elections/status");
+}
+
+export async function getElectionsPositions(): Promise<
+  ElectionPositionWithCandidates[]
+> {
+  return apiFetch("/api/elections/positions");
+}
+
+export async function castVote(body: CastVoteInput): Promise<{
+  id: string;
+  positionId: string;
+  candidateId: string;
+  createdAt: string;
+  position: { title: string };
+  candidate: { name: string };
+}> {
+  return apiFetch("/api/elections/vote", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getMyVotes(): Promise<MyVote[]> {
+  return apiFetch("/api/elections/my-votes");
+}
+
+// ── Admin ─────────────────────────────────────────────────────────────────────
+
+export async function getAdminElectionsSettings(): Promise<VotingSettings> {
+  return apiFetch("/api/admin/elections/settings");
+}
+
+export async function toggleVoting(isActive: boolean): Promise<VotingSettings> {
+  return apiFetch("/api/admin/elections/settings", {
+    method: "PATCH",
+    body: JSON.stringify({ isActive }),
+  });
+}
+
+export async function getElectionsStats(): Promise<ElectionsStats> {
+  return apiFetch("/api/admin/elections/stats");
+}
+
+export async function getElectionsResults(): Promise<PositionResult[]> {
+  return apiFetch("/api/admin/elections/results");
+}
+
+export async function getAdminElectionsAudit(params: {
+  page: number;
+  limit: number;
+}): Promise<AuditPage> {
+  return apiFetch("/api/admin/elections/audit", {
+    params: { page: String(params.page), limit: String(params.limit) },
+  });
+}
+
+export function downloadElectionsAuditCsv() {
+  const url = new URL(
+    "/api/admin/elections/audit/export",
+    process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"
+  );
+  window.open(url.toString(), "_blank");
+}
+
+export async function listAdminPositions(): Promise<AdminPositionWithCounts[]> {
+  return apiFetch("/api/admin/elections/positions");
+}
+
+export async function createPosition(
+  body: CreatePositionInput
+): Promise<ElectionPosition> {
+  return apiFetch("/api/admin/elections/positions", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function updatePosition(
+  id: string,
+  body: UpdatePositionInput
+): Promise<ElectionPosition> {
+  return apiFetch(`/api/admin/elections/positions/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function deletePosition(id: string): Promise<void> {
+  return apiFetch(`/api/admin/elections/positions/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export async function listCandidates(
+  positionId: string
+): Promise<CandidateWithVoteCount[]> {
+  return apiFetch(`/api/admin/elections/positions/${positionId}/candidates`);
+}
+
+export async function createCandidate(
+  positionId: string,
+  body: FormData
+): Promise<Candidate> {
+  return apiFetch(`/api/admin/elections/positions/${positionId}/candidates`, {
+    method: "POST",
+    body,
+  });
+}
+
+export async function updateCandidate(
+  id: string,
+  body: FormData
+): Promise<Candidate> {
+  return apiFetch(`/api/admin/elections/candidates/${id}`, {
+    method: "PATCH",
+    body,
+  });
+}
+
+export async function deleteCandidate(id: string): Promise<void> {
+  return apiFetch(`/api/admin/elections/candidates/${id}`, {
+    method: "DELETE",
+  });
 }

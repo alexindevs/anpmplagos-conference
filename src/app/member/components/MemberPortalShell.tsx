@@ -3,16 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { PortalSidebarHeaderLogo } from "@/app/components/PortalSidebarHeaderLogo";
 import { ResponsivePortalShell } from "@/app/components/ResponsivePortalShell";
 import { authSessionQueryKey } from "@/hooks/use-auth-session";
 import { logout } from "@/lib/auth-api";
 import { useAuthStore } from "@/stores/auth-store";
+import { getElectionsStatus } from "@/lib/api";
 
 function navActive(pathname: string, href: string): boolean {
   if (href === "/hotel-rooms") return pathname === "/hotel-rooms" || pathname.startsWith("/hotel-rooms/");
   if (href === "/member/support") return pathname === "/member/support" || pathname.startsWith("/member/support/");
+  if (href === "/member/elections") return pathname === "/member/elections";
   return pathname === href;
 }
 
@@ -29,6 +31,14 @@ export function MemberPortalShell({
   const queryClient = useQueryClient();
   const clearUser = useAuthStore((s) => s.clearUser);
   const [loggingOut, setLoggingOut] = useState(false);
+
+  const { data: electionsStatus } = useQuery({
+    queryKey: ["elections", "status"],
+    queryFn: getElectionsStatus,
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  });
+  const votingActive = electionsStatus?.isActive ?? false;
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -75,10 +85,22 @@ export function MemberPortalShell({
               My Ticket
             </Link>
 
+            <Link href="/member/receipts" className={itemClass("/member/receipts")}>
+              <span className="material-symbols-outlined">receipt_long</span>
+              Receipts
+            </Link>
+
             <Link href="/hotel-rooms" className={itemClass("/hotel-rooms")}>
               <span className="material-symbols-outlined">hotel</span>
               Hotel rooms
             </Link>
+
+            {votingActive && (
+              <Link href="/member/elections" className={itemClass("/member/elections")}>
+                <span className="material-symbols-outlined">how_to_vote</span>
+                Elections
+              </Link>
+            )}
 
             <Link href="/member/support" className={itemClass("/member/support")}>
               <span className="material-symbols-outlined">help</span>

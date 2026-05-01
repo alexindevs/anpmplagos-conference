@@ -53,6 +53,16 @@ export function isCompanyRegType(user: AuthUser | null | undefined): boolean {
   );
 }
 
+export function isModeratorUser(user: AuthUser | null | undefined): boolean {
+  if (!user) return false;
+  return user.regType === "admin" && user.admin?.adminType === "moderator";
+}
+
+export function isAdminUser(user: AuthUser | null | undefined): boolean {
+  if (!user) return false;
+  return user.regType === "admin" && user.admin?.adminType !== "moderator";
+}
+
 export interface LoginResponse {
   user: AuthUser;
 }
@@ -120,5 +130,48 @@ export async function getMe(): Promise<AuthUser> {
 export async function logoutAll(): Promise<{ message: string }> {
   return authFetch<{ message: string }>("/api/auth/logout-all", {
     method: "POST",
+  });
+}
+
+export async function forgotPassword(email: string): Promise<{ message: string }> {
+  return authFetch<{ message: string }>("/api/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function validateResetToken(
+  token: string
+): Promise<{ email: string }> {
+  return authFetch<{ email: string }>(
+    `/api/auth/reset-password/validate?token=${encodeURIComponent(token)}`
+  );
+}
+
+export async function resetPassword(
+  token: string,
+  password: string
+): Promise<{ message: string }> {
+  return authFetch<{ message: string }>("/api/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ token, password }),
+  });
+}
+
+export async function validateModeratorInvite(
+  token: string
+): Promise<{ email: string; expiresAt: string }> {
+  return authFetch<{ email: string; expiresAt: string }>(
+    `/api/auth/moderator/validate-invite?token=${encodeURIComponent(token)}`
+  );
+}
+
+export async function registerModerator(
+  token: string,
+  password: string
+): Promise<{ user: AuthUser }> {
+  return authFetch<{ user: AuthUser }>("/api/auth/moderator/register", {
+    method: "POST",
+    body: JSON.stringify({ token, password }),
   });
 }

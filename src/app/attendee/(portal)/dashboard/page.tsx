@@ -28,6 +28,9 @@ export default function AttendeeDashboardPage() {
   const isPaid = registration?.payment?.status === "success";
   const isPending = registration?.user?.registrationStatus === "pending_payment";
 
+  const regDiscountPct = getAutomaticCheckoutDiscountPercent();
+  const registrationDueKobo = applyAutomaticDiscountKobo(PRICE_NON_MEMBER, regDiscountPct);
+
   const avatarUrl = profile?.avatar
     ? profile.avatar.startsWith("http")
       ? profile.avatar

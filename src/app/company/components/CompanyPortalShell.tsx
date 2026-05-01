@@ -97,8 +97,13 @@ export function CompanyPortalShell({
             </Link>
 
             <Link href="/company/tickets" className={itemClass("/company/tickets")}>
-              <span className="material-symbols-outlined">receipt_long</span>
+              <span className="material-symbols-outlined">confirmation_number</span>
               Tickets
+            </Link>
+
+            <Link href="/company/receipts" className={itemClass("/company/receipts")}>
+              <span className="material-symbols-outlined">receipt_long</span>
+              Receipts
             </Link>
 
             <Link href="/company/support" className={itemClass("/company/support")}>

@@ -90,7 +90,11 @@ export default function CompanyCartPage() {
   const handleCheckout = () => {
     checkoutMutation.mutate(undefined, {
       onSuccess: (res) => {
-        window.location.href = res.authorizationUrl;
+        if (res.manualMode) {
+          router.push(`/payment/manual-pending?reference=${encodeURIComponent(res.reference)}`);
+        } else {
+          window.location.href = res.authorizationUrl;
+        }
       },
     });
   };

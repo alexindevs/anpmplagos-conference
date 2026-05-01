@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuthSession } from "@/hooks/use-auth-session";
@@ -24,6 +25,7 @@ const PRICE_MEMBER = 4000000; // 40,000 NGN in kobo
 const PRICE_NON_MEMBER = 5500000; // 55,000 NGN in kobo
 
 export default function MemberTicketsPage() {
+  const router = useRouter();
   const { data: user } = useAuthSession();
   const [isInitializingPayment, setIsInitializingPayment] = useState(false);
   const [isGeneratingPasses, setIsGeneratingPasses] = useState(false);
@@ -77,6 +79,10 @@ export default function MemberTicketsPage() {
     setIsInitializingPayment(true);
     try {
       const paymentData = await initializeRegistrationPayment(userId);
+      if (paymentData.manualMode) {
+        router.push(`/payment/manual-pending?reference=${encodeURIComponent(paymentData.reference)}`);
+        return;
+      }
       window.location.href = paymentData.authorizationUrl;
     } catch (error) {
       console.error("Payment initialization failed:", error);
@@ -139,7 +145,7 @@ export default function MemberTicketsPage() {
     <MemberPortalShell userId={userId} fullName={fullName}>
       <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <div className="mb-6 border-l-4 border-primary pl-4">
-          <h1 className="text-2xl font-black text-[#181112]">My Conference Ticket</h1>
+          <h1 className="text-xl font-black text-[#181112] sm:text-2xl">My Conference Ticket</h1>
           <p className="text-sm text-slate-500 mt-1">View and manage your conference registration</p>
         </div>
 
@@ -166,7 +172,7 @@ export default function MemberTicketsPage() {
               <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-8 text-center">
                 <span className="material-symbols-outlined text-4xl text-amber-500 mb-4">lock</span>
                 <h2 className="text-xl font-black text-[#181112] mb-2">Tickets not available</h2>
-                <p className="text-slate-600 mb-4 max-w-md mx-auto">
+                <p className="text-slate-600 mb-4 mx-auto">
                   Your account isn&apos;t eligible for conference passes right now. If you believe this is a mistake, please contact support.
                 </p>
                 <Link
@@ -178,7 +184,7 @@ export default function MemberTicketsPage() {
                 </Link>
               </div>
             ) : isPaid ? (
-              <div className="rounded-xl border-2 border-green-500 bg-white p-8 shadow-lg">
+              <div className="rounded-xl border-2 border-green-500 bg-white p-5 shadow-lg sm:p-8">
                 <div className="flex items-center justify-center mb-6">
                   <div className="rounded-full bg-green-100 p-4">
                     <span className="material-symbols-outlined text-4xl text-green-600">check_circle</span>
@@ -191,7 +197,7 @@ export default function MemberTicketsPage() {
                 <p className="text-center text-slate-500 mb-6">Official Conference Ticket</p>
 
                 <div className="border-t border-b border-slate-200 py-6 my-6">
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Attendee</p>
                       <p className="mt-1 text-lg font-bold text-[#181112]">{profile?.fullName}</p>
@@ -218,7 +224,7 @@ export default function MemberTicketsPage() {
                 {registration?.payment && (
                   <div className="rounded-lg bg-slate-50 p-4 mb-6">
                     <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Payment Details</p>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
                       <div>
                         <span className="text-slate-500">Reference:</span>
                         <span className="ml-2 font-mono font-semibold">{registration.payment.reference}</span>
@@ -247,7 +253,7 @@ export default function MemberTicketsPage() {
                         type="button"
                         onClick={() => handleDownloadTicket(eventPasses?.conferencePass?.qrCodeUrl, `conference-ticket-${fullName}.png`)}
                         disabled={!eventPasses?.conferencePass?.qrCodeUrl || isGeneratingPasses}
-                        className="w-full flex items-center justify-between gap-4 p-4 bg-gradient-to-r from-fresh-green to-medical-green text-white font-bold shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex w-full flex-col gap-3 p-4 bg-gradient-to-r from-fresh-green to-medical-green text-white font-bold shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed sm:flex-row sm:items-center sm:justify-between"
                       >
                         <div className="flex items-center gap-3">
                           <span className="material-symbols-outlined text-2xl">confirmation_number</span>
@@ -267,7 +273,7 @@ export default function MemberTicketsPage() {
                             type="button"
                             onClick={() => handleDownloadTicket(eventPasses.hotelPass?.qrCodeUrl, `hotel-pass-${fullName}.png`)}
                             disabled={!eventPasses.hotelPass?.qrCodeUrl}
-                            className="w-full flex items-center justify-between gap-4 p-4 bg-gradient-to-r from-primary to-red-700 text-white font-bold shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex w-full flex-col gap-3 p-4 bg-gradient-to-r from-primary to-red-700 text-white font-bold shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed sm:flex-row sm:items-center sm:justify-between"
                           >
                             <div className="flex items-center gap-3">
                               <span className="material-symbols-outlined text-2xl">hotel</span>
@@ -291,7 +297,7 @@ export default function MemberTicketsPage() {
                 </div>
               </div>
             ) : isPending ? (
-              <div className="rounded-xl border-2 border-secondary bg-mint-whisper/40 p-8 shadow-lg">
+              <div className="rounded-xl border-2 border-secondary bg-mint-whisper/40 p-5 shadow-lg sm:p-8">
                 <div className="flex items-center justify-center mb-6">
                   <div className="rounded-full bg-secondary/10 p-4">
                     <span className="material-symbols-outlined text-4xl text-secondary">pending</span>
@@ -308,7 +314,7 @@ export default function MemberTicketsPage() {
                 <AutomaticCheckoutDiscountNote className="mb-4" />
 
                 <div className="border-t border-b border-slate-200 py-6 my-6">
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Attendee</p>
                       <p className="mt-1 text-lg font-bold text-[#181112]">{profile?.fullName}</p>
