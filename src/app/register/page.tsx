@@ -135,6 +135,7 @@ export default function RegisterPage() {
   const passwordOkSpecial = /[^A-Za-z0-9]/.test(password);
   const isPasswordValid =
     passwordOkLength && passwordOkLower && passwordOkUpper && passwordOkDigit && passwordOkSpecial;
+  const shouldShowPasswordChecklist = password.length > 0 && !isPasswordValid;
 
   const handleSave = () => {
     const passwordError = getRegistrationPasswordError(password);
@@ -363,26 +364,28 @@ export default function RegisterPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     aria-invalid={password.length > 0 && !isPasswordValid}
                   />
-                  <ul className="text-xs text-gray-500 space-y-1 list-none p-0 m-0">
-                    {[
-                      { ok: passwordOkLength, text: "Longer than 8 characters" },
-                      { ok: passwordOkLower, text: "One lowercase letter" },
-                      { ok: passwordOkUpper, text: "One uppercase letter" },
-                      { ok: passwordOkDigit, text: "One number" },
-                      { ok: passwordOkSpecial, text: "One special character" },
-                    ].map(({ ok, text }) => (
-                      <li key={text} className="flex items-center gap-2">
-                        <span
-                          className={`material-symbols-outlined text-[16px] ${
-                            ok ? "text-green-600" : "text-gray-300"
-                          }`}
-                        >
-                          {ok ? "check_circle" : "radio_button_unchecked"}
-                        </span>
-                        {text}
-                      </li>
-                    ))}
-                  </ul>
+                  {shouldShowPasswordChecklist && (
+                    <ul className="text-xs text-gray-500 space-y-1 list-none p-0 m-0">
+                      {[
+                        { ok: passwordOkLength, text: "Longer than 8 characters" },
+                        { ok: passwordOkLower, text: "One lowercase letter" },
+                        { ok: passwordOkUpper, text: "One uppercase letter" },
+                        { ok: passwordOkDigit, text: "One number" },
+                        { ok: passwordOkSpecial, text: "One special character" },
+                      ].map(({ ok, text }) => (
+                        <li key={text} className="flex items-center gap-2">
+                          <span
+                            className={`material-symbols-outlined text-[16px] ${
+                              ok ? "text-green-600" : "text-gray-300"
+                            }`}
+                          >
+                            {ok ? "check_circle" : "radio_button_unchecked"}
+                          </span>
+                          {text}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </div>
             </section>
