@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// The cookie name set by the backend on login. Check the Set-Cookie response
-// header in the Network tab when logging in to confirm this value.
-const SESSION_COOKIE_NAME = "token";
+// Cookie set by the backend on login (defined in src/auth/auth-cookies.ts).
+const SESSION_COOKIE_NAME = "access_token";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
