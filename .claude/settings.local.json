@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(grep -r '$queryRaw\\\\|$executeRaw' src '--include=*.ts')",
+      "Bash(grep -r \"Promise\\\\\\\\.reject\\\\|throw new\\\\|async\\\\s\" src --include=\"*.ts\")",
+      "Bash(npm install *)"
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { claimPaymentMade, ApiError } from "@/lib/api";
 
@@ -9,6 +9,14 @@ const ACCOUNT_NUMBER = process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER ?? "";
 const ACCOUNT_NAME = process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME ?? "";
 
 export default function ManualPaymentPendingPage() {
+  return (
+    <Suspense>
+      <ManualPaymentPendingContent />
+    </Suspense>
+  );
+}
+
+function ManualPaymentPendingContent() {
   const searchParams = useSearchParams();
   const reference = searchParams.get("reference") ?? "";
   const [claimed, setClaimed] = useState(false);
@@ -77,7 +85,7 @@ export default function ManualPaymentPendingPage() {
               )}
               <div className="flex items-center justify-between px-5 py-3">
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">Reference</span>
-                <span className="font-mono text-sm font-bold text-[#181112] dark:text-white">{reference}</span>
+                <span className="font-mono text-sm font-bold text-charcoal dark:text-white">{reference}</span>
               </div>
             </div>
           </div>

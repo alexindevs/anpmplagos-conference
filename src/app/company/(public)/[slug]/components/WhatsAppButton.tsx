@@ -23,7 +23,6 @@ export function WhatsAppButton({ slug, productId, className = "" }: WhatsAppButt
         toast.error("WhatsApp contact not available.");
       }
     } catch (error) {
-      console.error('Error opening WhatsApp:', error);
       if (error instanceof ApiError) {
         toast.error(error.message || "Unable to connect to WhatsApp. Please try again.");
       } else {

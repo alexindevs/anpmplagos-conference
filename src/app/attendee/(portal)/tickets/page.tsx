@@ -82,7 +82,6 @@ export default function AttendeeTicketsPage() {
       }
       window.location.href = paymentData.authorizationUrl;
     } catch (error) {
-      console.error("Payment initialization failed:", error);
       const errorMessage = error instanceof Error ? error.message : "Failed to initialize payment. Please try again.";
       toast.error(errorMessage);
       setIsInitializingPayment(false);
@@ -91,34 +90,24 @@ export default function AttendeeTicketsPage() {
 
   useEffect(() => {
     const generatePassesIfNeeded = async () => {
-      console.log("Pass generation check:", { isPaid, userId, isGeneratingPasses, hotelBookingsCount: hotelBookings.length, eventPasses });
-      
       if (!isPaid || !userId || !canAccessPasses || isGeneratingPasses) return;
-      
+
       const needsConferencePass = !eventPasses?.conferencePass;
       const needsHotelPass = hotelBookings.length > 0 && !eventPasses?.hotelPass;
-      
-      console.log("Pass needs:", { needsConferencePass, needsHotelPass });
-      
+
       if (!needsConferencePass && !needsHotelPass) return;
 
       setIsGeneratingPasses(true);
       try {
         if (needsConferencePass) {
-          console.log("Generating conference pass...");
           await generateConferencePass(userId);
         }
         if (needsHotelPass) {
-          console.log("Generating hotel pass...");
           await generateHotelPass(userId);
         }
         await refetchPasses();
-        console.log("Passes generated successfully");
       } catch (error) {
-        console.error("Pass generation error:", error);
-        if (error instanceof ApiError && error.status !== 400) {
-          console.error("Failed to generate passes:", error);
-        }
+        if (error instanceof ApiError && error.status === 400) return;
       } finally {
         setIsGeneratingPasses(false);
       }

@@ -6,6 +6,7 @@ import { useRef } from "react";
 import type { RegType } from "@/stores/registration-store";
 import { useRegistrationStore } from "@/stores/registration-store";
 import { useCreateRegistration, getSubmitErrorMessage } from "@/hooks/use-registration-api";
+import { toast } from "sonner";
 
 const PLANS: { id: RegType; name: string; price: string; description: string; icon: string; benefits: string[] }[] = [
   {
@@ -140,7 +141,7 @@ export default function RegisterPage() {
   const handleSave = () => {
     const passwordError = getRegistrationPasswordError(password);
     if (passwordError) {
-      alert(passwordError);
+      toast.error(passwordError);
       return;
     }
     createMutation.mutate(
@@ -745,43 +746,43 @@ export default function RegisterPage() {
                 onClick={() => {
                   const passwordError = getRegistrationPasswordError(password);
                   if (passwordError) {
-                    alert(passwordError);
+                    toast.error(passwordError);
                     return;
                   }
                   if (
                     regType === "company" &&
                     !companyDescription.trim()
                   ) {
-                    alert("Please enter a company description before continuing.");
+                    toast.error("Please enter a company description before continuing.");
                     return;
                   }
                   if (regType === "member") {
                     if (!email.trim()) {
-                      alert("Please enter your email address.");
+                      toast.error("Please enter your email address.");
                       return;
                     }
                     if (!fullName.trim()) {
-                      alert("Please enter your full name.");
+                      toast.error("Please enter your full name.");
                       return;
                     }
                     if (!phone.trim()) {
-                      alert("Please enter your phone number.");
+                      toast.error("Please enter your phone number.");
                       return;
                     }
                     if (!hospitalOrg.trim()) {
-                      alert("Please enter your organization.");
+                      toast.error("Please enter your organization.");
                       return;
                     }
                     if (!primarySpecialty.trim()) {
-                      alert("Please select your specialty.");
+                      toast.error("Please select your specialty.");
                       return;
                     }
                     if (!organizationAddress.trim()) {
-                      alert("Please enter your organization address.");
+                      toast.error("Please enter your organization address.");
                       return;
                     }
                     if (!zone.trim()) {
-                      alert("Please enter your zone.");
+                      toast.error("Please enter your zone.");
                       return;
                     }
                   }

@@ -2,13 +2,34 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { validateResetToken, resetPassword, AuthApiError } from "@/lib/auth-api";
 
 type PageState = "validating" | "invalid" | "form" | "submitting" | "success";
 
 export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="relative min-h-[calc(100vh-80px)] flex flex-col items-center justify-center px-4 py-16">
+          <div className="relative w-[80%] md:w-[50%] max-w-137.5">
+            <div className="rounded-2xl border-2 border-secondary/20 bg-white p-8 shadow-xl shadow-secondary/10">
+              <div className="flex items-center justify-center gap-3 py-8 text-slate-500">
+                <span className="material-symbols-outlined animate-spin text-2xl">progress_activity</span>
+                <span className="text-sm">Loading…</span>
+              </div>
+            </div>
+          </div>
+        </main>
+      }
+    >
+      <ResetPasswordContent />
+    </Suspense>
+  );
+}
+
+function ResetPasswordContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") ?? "";
 
