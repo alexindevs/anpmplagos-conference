@@ -7,6 +7,7 @@ import { applyAutomaticDiscountKobo, getAutomaticCheckoutDiscountPercent } from 
 import { getMyRegistration, formatKoboToNaira, type AttendeeProfile } from "@/lib/api";
 import { AttendeePortalShell } from "../../components/AttendeePortalShell";
 import Image from "next/image";
+import Link from "next/link";
 
 const PRICE_NON_MEMBER = 5500000; // 55,000 NGN in kobo
 
@@ -158,7 +159,7 @@ export default function AttendeeDashboardPage() {
             <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
               <h2 className="text-lg font-bold text-charcoal mb-4">Quick Actions</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <a
+                <Link
                   href="/attendee/tickets"
                   className="flex items-center gap-3 p-4 rounded-lg border border-slate-200 hover:border-primary hover:bg-primary/5 transition-colors"
                 >
@@ -167,8 +168,8 @@ export default function AttendeeDashboardPage() {
                     <p className="font-medium text-charcoal">View My Ticket</p>
                     <p className="text-sm text-slate-500">Conference registration ticket</p>
                   </div>
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/attendee/support"
                   className="flex items-center gap-3 p-4 rounded-lg border border-slate-200 hover:border-primary hover:bg-primary/5 transition-colors"
                 >

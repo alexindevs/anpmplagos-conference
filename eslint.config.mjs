@@ -13,6 +13,14 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // setState in effects is a common, legitimate pattern for resetting
+      // derived UI state (closing navs on route change, resetting forms on
+      // modal open/close, resetting pagination on filter change, etc.).
+      "react-hooks/set-state-in-effect": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;
