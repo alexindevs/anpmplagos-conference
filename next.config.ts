@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Produces a self-contained bundle in .next/standalone — used by the Docker image.
+  output: "standalone",
   /**
    * Default image-optimization fetch timeout is short; slow Cloudinary responses
    * cause "upstream image response timed out" on `/_next/image`. Increase if needed.
@@ -21,6 +23,11 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "s3.us-east-005.backblazeb2.com",
         pathname: "/**",
       },
     ],

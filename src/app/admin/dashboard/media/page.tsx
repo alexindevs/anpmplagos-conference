@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   ApiError,
   deleteAdminGalleryItem,
@@ -30,11 +31,14 @@ export default function MediaPage() {
   const uploadMutation = useMutation({
     mutationFn: postAdminGallery,
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: GALLERY_QUERY_KEY });
       setCaption("");
       setPickedFile(null);
       setFormError(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
+      toast.success("Image added successfully.");
+      setTimeout(() => {
+        void queryClient.invalidateQueries({ queryKey: GALLERY_QUERY_KEY });
+      }, 1000);
     },
     onError: (e) => {
       setFormError(e instanceof ApiError ? e.message : "Upload failed.");
@@ -44,7 +48,10 @@ export default function MediaPage() {
   const deleteMutation = useMutation({
     mutationFn: deleteAdminGalleryItem,
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: GALLERY_QUERY_KEY });
+      toast.success("Image deleted successfully.");
+      setTimeout(() => {
+        void queryClient.invalidateQueries({ queryKey: GALLERY_QUERY_KEY });
+      }, 1000);
     },
   });
 

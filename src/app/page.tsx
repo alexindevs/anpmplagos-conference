@@ -418,7 +418,7 @@ export default function Home() {
                 </span>
                 <div>
                   <h4 className="font-bold text-charcoal mb-1">Contact</h4>
-                  <p className="text-sm text-warm-gray">+234 1 277 2700</p>
+                  <p className="text-sm text-warm-gray">+234 703 661 6909</p>
                 </div>
               </div>
             </div>

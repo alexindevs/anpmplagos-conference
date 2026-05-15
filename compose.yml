@@ -1,0 +1,9 @@
+services:
+
+  frontend:
+    build: .
+    container_name: anpmp-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file: .env.local

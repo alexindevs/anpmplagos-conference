@@ -6,7 +6,9 @@
       "Bash(grep -r \"Promise\\\\\\\\.reject\\\\|throw new\\\\|async\\\\s\" src --include=\"*.ts\")",
       "Bash(npm install *)",
       "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(node -e \"const {register, collectDefaultMetrics} = require\\('prom-client'\\); console.log\\('ok', typeof register.metrics\\)\")"
     ]
   }
 }

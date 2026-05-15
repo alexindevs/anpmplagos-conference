@@ -86,13 +86,13 @@ export default async function Footer() {
                 <span className="material-symbols-outlined text-base">
                   mail
                 </span>
-                info@anpmpconference.org
+                admin@anpmplagos-conference.com
               </li>
               <li className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-base">
                   call
                 </span>
-                +234 1 277 2700
+                +234 703 661 6909
               </li>
               <li className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-base">
