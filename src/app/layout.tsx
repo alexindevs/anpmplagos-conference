@@ -25,8 +25,36 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ANPMP Lagos Conference Landing Page",
-  description: "ANPMP Lagos Conference Landing Page",
+  title: "ANPMP Lagos 2026 Annual Conference",
+  description:
+    "Join the Association of National Accountants of Nigeria (ANPMP) Lagos District Society for the 2026 Annual Conference. Registration, speakers, sponsorship and more.",
+  metadataBase: new URL("https://anpmplagos-conference.com"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: "https://anpmplagos-conference.com",
+    siteName: "ANPMP Lagos 2026 Annual Conference",
+    title: "ANPMP Lagos 2026 Annual Conference",
+    description:
+      "Join the Association of National Accountants of Nigeria (ANPMP) Lagos District Society for the 2026 Annual Conference.",
+    images: [
+      {
+        url: "/anpmp-logo.jpg",
+        width: 800,
+        height: 800,
+        alt: "ANPMP Lagos Conference Logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "ANPMP Lagos 2026 Annual Conference",
+    description:
+      "Join the Association of National Accountants of Nigeria (ANPMP) Lagos District Society for the 2026 Annual Conference.",
+    images: ["/anpmp-logo.jpg"],
+  },
 };
 
 export default function RootLayout({
