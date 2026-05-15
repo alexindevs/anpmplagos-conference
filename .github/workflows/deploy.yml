@@ -52,6 +52,11 @@ jobs:
           context: .
           push: true
           tags: ${{ env.IMAGE_NAME }}:latest
+          build-args: |
+            NEXT_PUBLIC_API_URL=https://api.anpmplagos-conference.com
+            NEXT_PUBLIC_BANK_NAME=Wema Bank
+            NEXT_PUBLIC_BANK_ACCOUNT_NUMBER=0268297721
+            NEXT_PUBLIC_BANK_ACCOUNT_NAME=ESTHER OJEHONMON
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
