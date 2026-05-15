@@ -178,7 +178,7 @@ export default function AttendeeDashboardPage() {
                     <p className="font-medium text-charcoal">Get Support</p>
                     <p className="text-sm text-slate-500">Contact our support team</p>
                   </div>
-                </a>
+                </Link>
               </div>
             </div>
           </div>
