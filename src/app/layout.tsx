@@ -27,7 +27,7 @@ const jetBrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "ANPMP Lagos 2026 Annual Conference",
   description:
-    "Join the Association of Nigerian Private Medical Practitioners (ANPMP) Lagos District Society for the 2026 Annual Conference. Registration, speakers, sponsorship and more.",
+    "Join the Association of Nigerian Private Medical Practitioners (ANPMP) Lagos Annual General Meeting / Scientific Conference 2026. Registration, speakers, sponsorship and more.",
   metadataBase: new URL("https://anpmplagos-conference.com"),
   alternates: {
     canonical: "/",
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     siteName: "ANPMP Lagos 2026 Annual Conference",
     title: "ANPMP Lagos 2026 Annual Conference",
     description:
-      "Join the Association of Nigerian Private Medical Practitioners (ANPMP) Lagos District Society for the 2026 Annual Conference.",
+      "Join the Association of Nigerian Private Medical Practitioners (ANPMP) Lagos Annual General Meeting / Scientific Conference 2026.",
     images: [
       {
         url: "/anpmp-logo.jpg",
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "ANPMP Lagos 2026 Annual Conference",
     description:
-      "Join the Association of Nigerian Private Medical Practitioners (ANPMP) Lagos District Society for the 2026 Annual Conference.",
+      "Join the Association of Nigerian Private Medical Practitioners (ANPMP) Lagos Annual General Meeting / Scientific Conference 2026.",
     images: ["/anpmp-logo.jpg"],
   },
 };
