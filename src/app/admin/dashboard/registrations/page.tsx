@@ -171,7 +171,7 @@ export default function RegistrationsPage() {
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-background-light/95 px-4 py-5 backdrop-blur dark:border-slate-800 dark:bg-background-dark/95 sm:px-6 sm:py-6 lg:px-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-black tracking-tight text-[#181112] dark:text-slate-100">
+            <h2 className="text-2xl font-black tracking-tight text-charcoal dark:text-slate-100">
               Registrations
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -259,7 +259,7 @@ export default function RegistrationsPage() {
                     {s.label}
                   </p>
                   <p
-                    className={`mt-1 text-2xl font-black text-[#181112] dark:text-white ${s.valueClass ?? ""}`}
+                    className={`mt-1 text-2xl font-black text-charcoal dark:text-white ${s.valueClass ?? ""}`}
                   >
                     {s.value.toLocaleString("en-NG")}
                   </p>
@@ -385,12 +385,12 @@ function RegistrationTableRow({ row }: { row: AdminRegistrationRow }) {
             )}
           </div>
           <div className="min-w-0">
-            <p className="font-bold text-[#181112] dark:text-white">{row.name}</p>
+            <p className="font-bold text-charcoal dark:text-white">{row.name}</p>
             <p className="text-xs text-slate-500 dark:text-white/50">{row.email}</p>
           </div>
         </div>
       </td>
-      <td className="px-6 py-4 text-sm text-[#181112] dark:text-white/90">{formatRegistrationType(row.type)}</td>
+      <td className="px-6 py-4 text-sm text-charcoal dark:text-white/90">{formatRegistrationType(row.type)}</td>
       <td className="px-6 py-4 text-sm text-slate-600 dark:text-white/70">{dateStr}</td>
       <td className="px-6 py-4">
         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${status.className}`}>

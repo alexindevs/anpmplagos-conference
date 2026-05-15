@@ -31,7 +31,7 @@ export default function AdminCompaniesPage() {
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-background-light/95 px-4 py-5 backdrop-blur dark:border-border-dark dark:bg-background-dark/95 sm:px-6 sm:py-6 lg:px-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-black tracking-tight text-[#181112] dark:text-white">Companies</h2>
+            <h2 className="text-2xl font-black tracking-tight text-charcoal dark:text-white">Companies</h2>
             <p className="text-sm text-slate-500 dark:text-white/50">
               Manage company accounts, profiles, and booth assignments
             </p>
@@ -78,7 +78,7 @@ export default function AdminCompaniesPage() {
             <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">
               Total companies
             </p>
-            <p className="mt-1 text-2xl font-black text-[#181112] dark:text-white">{stats.total}</p>
+            <p className="mt-1 text-2xl font-black text-charcoal dark:text-white">{stats.total}</p>
           </div>
           <div className="rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
             <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">Confirmed</p>
@@ -141,10 +141,10 @@ export default function AdminCompaniesPage() {
                 {(data?.items ?? []).map((row) => (
                   <tr key={row.id} className="transition-colors hover:bg-primary/5 dark:hover:bg-background-dark-softer">
                     <td className="px-6 py-4">
-                      <p className="font-bold text-[#181112] dark:text-white">{row.companyName}</p>
+                      <p className="font-bold text-charcoal dark:text-white">{row.companyName}</p>
                       <p className="text-xs text-slate-500 dark:text-white/50">{row.contactEmail}</p>
                     </td>
-                    <td className="px-6 py-4 text-sm text-[#181112] dark:text-white/70">{row.primaryContactName}</td>
+                    <td className="px-6 py-4 text-sm text-charcoal dark:text-white/70">{row.primaryContactName}</td>
                     <td className="px-6 py-4 text-sm text-slate-600 dark:text-white/70">
                       {row.booth?.name ?? row.booth?.code ?? row.booth?.floorSection ?? "—"}
                     </td>

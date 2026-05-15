@@ -16,8 +16,8 @@ export default function CompanyError({
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-8 text-center">
       <span className="material-symbols-outlined text-5xl text-red-500">error</span>
-      <h2 className="text-xl font-bold text-[#181112] dark:text-white">Something went wrong</h2>
-      <p className="max-w-md text-sm text-slate-500 dark:text-white/50">
+      <h2 className="text-xl font-bold text-charcoal dark:text-white">Something went wrong</h2>
+      <p className="text-sm text-slate-500 dark:text-white/50">
         An unexpected error occurred. You can try again or return to the dashboard.
       </p>
       <button

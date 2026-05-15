@@ -129,7 +129,7 @@ function SlotsTable({
                         <div className="size-12 rounded-lg bg-slate-100 dark:bg-background-dark-softer" />
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium text-[#181112] dark:text-white/90 max-w-[200px]">
+                    <td className="px-4 py-3 text-sm font-medium text-charcoal dark:text-white/90 max-w-[200px]">
                       <span className="line-clamp-2">{row.title}</span>
                     </td>
                     <td className="px-4 py-3 text-sm whitespace-nowrap">{formatKoboToNaira(row.price)}</td>
@@ -364,7 +364,7 @@ export default function AdminMarketingPage() {
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-background-light/95 px-4 py-5 backdrop-blur dark:border-border-dark dark:bg-background-dark/95 sm:px-6 sm:py-6 lg:px-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-xl font-black tracking-tight text-[#181112] dark:text-slate-100 sm:text-2xl">Marketing</h2>
+            <h2 className="text-xl font-black tracking-tight text-charcoal dark:text-slate-100 sm:text-2xl">Marketing</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">
               Advert slots and branding slots — inventory, holds, manual assignment, and what companies see in the
               company portal.
@@ -383,14 +383,14 @@ export default function AdminMarketingPage() {
         <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
             <p className="text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Advert slots</p>
-            <p className="mt-1 text-2xl font-black text-[#181112] dark:text-white">{stats.advertTotal}</p>
+            <p className="mt-1 text-2xl font-black text-charcoal dark:text-white">{stats.advertTotal}</p>
             <p className="text-[11px] text-slate-500 mt-1">
               {stats.advertAvail} available · {stats.advertTaken} taken
             </p>
           </div>
           <div className="rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
             <p className="text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Branding slots</p>
-            <p className="mt-1 text-2xl font-black text-[#181112] dark:text-white">{stats.brandingTotal}</p>
+            <p className="mt-1 text-2xl font-black text-charcoal dark:text-white">{stats.brandingTotal}</p>
             <p className="text-[11px] text-slate-500 mt-1">
               {stats.brandingAvail} available · {stats.brandingTaken} taken
             </p>
@@ -408,7 +408,7 @@ export default function AdminMarketingPage() {
 
         <section className="mb-12 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className="text-lg font-black text-[#181112] dark:text-white flex items-center gap-2">
+            <h3 className="text-lg font-black text-charcoal dark:text-white flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">ads_click</span>
               Advert slots
             </h3>
@@ -436,7 +436,7 @@ export default function AdminMarketingPage() {
 
         <section className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className="text-lg font-black text-[#181112] dark:text-white flex items-center gap-2">
+            <h3 className="text-lg font-black text-charcoal dark:text-white flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">palette</span>
               Branding slots
             </h3>

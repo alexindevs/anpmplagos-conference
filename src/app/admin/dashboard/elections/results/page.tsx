@@ -29,7 +29,7 @@ export default function ElectionsResultsPage() {
               <span>/</span>
               <span>Live Results</span>
             </div>
-            <h1 className="mt-1 text-2xl font-bold text-[#181112] dark:text-white">
+            <h1 className="mt-1 text-2xl font-bold text-charcoal dark:text-white">
               Live Results
             </h1>
             {dataUpdatedAt > 0 && (
@@ -79,7 +79,7 @@ export default function ElectionsResultsPage() {
                 className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-background-dark-soft"
               >
                 <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <h2 className="font-bold text-[#181112] dark:text-white">
+                  <h2 className="font-bold text-charcoal dark:text-white">
                     {pos.title}
                   </h2>
                   <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">
@@ -114,7 +114,7 @@ export default function ElectionsResultsPage() {
                                 </span>
                               )}
                             </div>
-                            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-[#181112] dark:text-white">
+                            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-charcoal dark:text-white">
                               {idx === 0 && pos.totalVotes > 0 && (
                                 <span className="mr-1">🏆</span>
                               )}

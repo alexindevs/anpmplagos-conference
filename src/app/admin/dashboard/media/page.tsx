@@ -103,7 +103,7 @@ export default function MediaPage() {
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-background-light/95 px-4 py-5 backdrop-blur dark:border-border-dark dark:bg-background-dark/95 sm:px-6 sm:py-6 lg:px-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-black tracking-tight text-[#181112] dark:text-slate-100">Media library</h2>
+            <h2 className="text-2xl font-black tracking-tight text-charcoal dark:text-slate-100">Media library</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">
               Upload gallery photos (shown on the public gallery). Videos stay embedded on the site as today.
             </p>
@@ -137,14 +137,14 @@ export default function MediaPage() {
             <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Gallery videos (embedded)
             </p>
-            <p className="mt-1 text-2xl font-black text-[#181112] dark:text-slate-100">2</p>
+            <p className="mt-1 text-2xl font-black text-charcoal dark:text-slate-100">2</p>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Day 1 and Day 2 highlight recordings on the public gallery.</p>
           </div>
           <div className="rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
             <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Gallery images
             </p>
-            <p className="mt-1 text-2xl font-black text-[#181112] dark:text-slate-100">
+            <p className="mt-1 text-2xl font-black text-charcoal dark:text-slate-100">
               {isLoading ? "…" : items.length}
             </p>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">JPEG or PNG, max 5MB each.</p>
@@ -152,7 +152,7 @@ export default function MediaPage() {
         </div>
 
         <div className="mb-10 rounded-xl border border-primary/5 bg-white p-6 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
-          <h3 className="mb-4 text-lg font-bold text-[#181112] dark:text-white">Upload image</h3>
+          <h3 className="mb-4 text-lg font-bold text-charcoal dark:text-white">Upload image</h3>
           <form onSubmit={handleSubmitUpload} className="flex flex-col gap-4">
             <input
               ref={fileInputRef}
@@ -183,7 +183,7 @@ export default function MediaPage() {
                 onChange={(e) => setCaption(e.target.value)}
                 rows={2}
                 placeholder="Short description shown under the photo"
-                className="w-full rounded-lg border border-slate-200 bg-background-light px-3 py-2 text-sm text-[#181112] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+                className="w-full rounded-lg border border-slate-200 bg-background-light px-3 py-2 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
               />
             </label>
             <button
@@ -197,7 +197,7 @@ export default function MediaPage() {
         </div>
 
         <div className="rounded-xl border border-primary/5 bg-white p-6 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
-          <h3 className="mb-4 text-lg font-bold text-[#181112] dark:text-white">Gallery images</h3>
+          <h3 className="mb-4 text-lg font-bold text-charcoal dark:text-white">Gallery images</h3>
           {isLoading ? (
             <p className="text-sm text-slate-500 dark:text-white/50">Loading…</p>
           ) : items.length === 0 ? (
@@ -241,7 +241,7 @@ export default function MediaPage() {
         </div>
 
         <div className="mt-10 rounded-xl border border-primary/5 bg-white p-6 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
-          <h3 className="mb-4 text-lg font-bold text-[#181112] dark:text-white">Last year&apos;s videos</h3>
+          <h3 className="mb-4 text-lg font-bold text-charcoal dark:text-white">Last year&apos;s videos</h3>
           <ul className="space-y-3 text-sm text-slate-700 dark:text-slate-200">
             <li className="flex flex-col gap-1">
               <span className="font-semibold">Day 1 – Social Night &amp; Opening</span>

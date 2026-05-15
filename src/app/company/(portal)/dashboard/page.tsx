@@ -239,7 +239,7 @@ export default function ExhibitorDashboardPage() {
               <div className="h-8 w-[260px] rounded-lg bg-slate-100 animate-pulse" />
             ) : (
               <>
-                <h1 className="text-2xl font-black text-[#181112]">
+                <h1 className="text-2xl font-black text-charcoal">
                   Welcome back, {companyName || "Exhibitor"}
                 </h1>
                 <p className="text-sm text-slate-500 mt-1">Here&apos;s what&apos;s happening with your exhibition status today.</p>
@@ -269,7 +269,7 @@ export default function ExhibitorDashboardPage() {
                   <div className="h-8 w-20 rounded bg-slate-100 animate-pulse mt-2" />
                 ) : (
                   <>
-                    <p className="text-2xl font-black text-[#181112] mt-2">
+                    <p className="text-2xl font-black text-charcoal mt-2">
                       {stats.profileViews.toLocaleString()}
                     </p>
                     {stats.profileViews > 0 && (
@@ -284,7 +284,7 @@ export default function ExhibitorDashboardPage() {
                   <div className="h-8 w-20 rounded bg-slate-100 animate-pulse mt-2" />
                 ) : (
                   <>
-                    <p className="text-2xl font-black text-[#181112] mt-2">
+                    <p className="text-2xl font-black text-charcoal mt-2">
                       {stats.totalMembers.toLocaleString()}
                     </p>
                   </>
@@ -296,7 +296,7 @@ export default function ExhibitorDashboardPage() {
                   <div className="h-8 w-20 rounded bg-slate-100 animate-pulse mt-2" />
                 ) : (
                   <>
-                    <p className="text-2xl font-black text-[#181112] mt-2">
+                    <p className="text-2xl font-black text-charcoal mt-2">
                       {stats.whatsappProductClicks.toLocaleString()}
                     </p>
                     <p className="text-xs text-slate-500 mt-2">Product inquiries via WhatsApp</p>
@@ -307,7 +307,7 @@ export default function ExhibitorDashboardPage() {
 
             {/* Booth Assignment */}
             <section className="rounded-xl border border-secondary/20 bg-white p-6 shadow-sm mb-6">
-              <h2 className="text-lg font-black text-[#181112] mb-4">Booth Assignment</h2>
+              <h2 className="text-lg font-black text-charcoal mb-4">Booth Assignment</h2>
               {displayBooth ? (
                 <div className="space-y-4">
                   <div className="flex items-start justify-between gap-4">
@@ -315,7 +315,7 @@ export default function ExhibitorDashboardPage() {
                       <div className="flex items-center gap-3 mb-2">
                         <span className="material-symbols-outlined text-2xl text-secondary">store</span>
                         <div>
-                          <p className="text-lg font-black text-[#181112]">{boothPrimaryName(displayBooth)}</p>
+                          <p className="text-lg font-black text-charcoal">{boothPrimaryName(displayBooth)}</p>
                           {displayBoothMetaLine ? (
                             <p className="text-sm text-slate-600">{displayBoothMetaLine}</p>
                           ) : null}
@@ -370,7 +370,7 @@ export default function ExhibitorDashboardPage() {
           {/* Quick Actions */}
           <aside className="xl:col-span-1">
             <section className="rounded-xl border border-secondary/20 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-black text-[#181112] mb-4">Quick Actions</h2>
+              <h2 className="text-lg font-black text-charcoal mb-4">Quick Actions</h2>
               <div className="space-y-3">
                 <button
                   type="button"
@@ -449,13 +449,13 @@ export default function ExhibitorDashboardPage() {
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Support Contact</p>
                 <div className="space-y-3">
                   <div>
-                    <p className="text-sm font-bold text-[#181112]">Pharm. Moji Aladesanmi</p>
+                    <p className="text-sm font-bold text-charcoal">Pharm. Moji Aladesanmi</p>
                     <a href="mailto:exhibition774@gmail.com" className="block text-sm text-secondary hover:underline">
                       exhibition774@gmail.com
                     </a>
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-[#181112]">Pharm. Ayodeji Oni</p>
+                    <p className="text-sm font-bold text-charcoal">Pharm. Ayodeji Oni</p>
                     <a href="tel:+2347038519794" className="block text-sm text-secondary hover:underline">
                       +234 703 851 9794
                     </a>
@@ -469,7 +469,7 @@ export default function ExhibitorDashboardPage() {
         {hasAssignedBooth ? (
           <section className="mt-6 rounded-xl border border-secondary/20 bg-white p-6 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <h2 className="text-lg font-black text-[#181112]">Your Representatives</h2>
+              <h2 className="text-lg font-black text-charcoal">Your Representatives</h2>
               <p className="text-xs text-slate-500">
                 Staff members managing your booth
               </p>
@@ -495,7 +495,7 @@ export default function ExhibitorDashboardPage() {
             ) : representatives.length === 0 ? (
               <div className="rounded-xl border border-dashed border-secondary/25 bg-slate-50/80 py-10 text-center">
                 <span className="material-symbols-outlined text-4xl text-slate-300">groups</span>
-                <p className="text-sm font-bold text-[#181112] mt-2">No representatives added</p>
+                <p className="text-sm font-bold text-charcoal mt-2">No representatives added</p>
                 <p className="text-xs text-slate-500 mt-1 mx-auto">
                   Add staff members who will be present at your booth.
                 </p>
@@ -525,7 +525,7 @@ export default function ExhibitorDashboardPage() {
                         key={rep.id}
                         className="border-b border-secondary/20 transition-colors last:border-b-0 hover:bg-secondary/5"
                       >
-                        <td className="py-3 px-4 text-sm font-bold text-[#181112]">{rep.name}</td>
+                        <td className="py-3 px-4 text-sm font-bold text-charcoal">{rep.name}</td>
                         <td className="py-3 px-4 text-sm text-slate-600">{rep.title || "—"}</td>
                         <td className="py-3 px-4 text-sm text-slate-600 font-mono">{rep.phone || "—"}</td>
                         <td className="py-3 px-4 text-right">
@@ -566,7 +566,7 @@ export default function ExhibitorDashboardPage() {
         {/* Your products */}
         <section className="mt-6 rounded-xl border border-secondary/20 bg-white p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <h2 className="text-lg font-black text-[#181112]">Your products</h2>
+            <h2 className="text-lg font-black text-charcoal">Your products</h2>
             <p className="text-xs text-slate-500">
               Shown on your public exhibitor profile when available
             </p>
@@ -592,7 +592,7 @@ export default function ExhibitorDashboardPage() {
           ) : sortedProducts.length === 0 ? (
             <div className="rounded-xl border border-dashed border-secondary/25 bg-slate-50/80 py-10 text-center">
               <span className="material-symbols-outlined text-4xl text-slate-300">inventory_2</span>
-              <p className="text-sm font-bold text-[#181112] mt-2">No products yet</p>
+              <p className="text-sm font-bold text-charcoal mt-2">No products yet</p>
               <p className="text-xs text-slate-500 mt-1 mx-auto">
                 When product management is enabled, you&apos;ll list services and equipment your booth offers here.
               </p>
@@ -616,7 +616,7 @@ export default function ExhibitorDashboardPage() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-black text-[#181112]">{product.name}</p>
+                      <p className="text-sm font-black text-charcoal">{product.name}</p>
                       {product.description ? (
                         <p className="text-sm text-slate-600 mt-1 whitespace-pre-wrap line-clamp-3">
                           {product.description}

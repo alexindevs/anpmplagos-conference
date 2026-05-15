@@ -306,7 +306,7 @@ function PlanModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 overflow-y-auto">
       <div className="my-8 w-full max-w-[90%] md:max-w-[50%] rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-border-dark dark:bg-background-dark-soft">
-        <h2 className="text-xl font-black text-[#181112] dark:text-white mb-4">
+        <h2 className="text-xl font-black text-charcoal dark:text-white mb-4">
           {plan ? "Edit sponsorship plan" : "Create sponsorship plan"}
         </h2>
 
@@ -559,7 +559,7 @@ function PlanModal({
             <p className="text-xs text-slate-500 dark:text-white/50 mb-3">
               Included automatically based on the selected booth, sessions, and marketing slots.
             </p>
-            <ul className="list-inside list-disc space-y-1.5 text-sm text-[#181112] dark:text-white/90">
+            <ul className="list-inside list-disc space-y-1.5 text-sm text-charcoal dark:text-white/90">
               {derivedPerks.map((line, i) => (
                 <li key={i}>{line}</li>
               ))}
@@ -702,7 +702,7 @@ export default function AdminSponsorshipPlansPage() {
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-background-light/95 px-4 py-5 backdrop-blur dark:border-border-dark dark:bg-background-dark/95 sm:px-6 sm:py-6 lg:px-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-black tracking-tight text-[#181112] dark:text-white">Sponsorship plans</h2>
+            <h2 className="text-2xl font-black tracking-tight text-charcoal dark:text-white">Sponsorship plans</h2>
             <p className="text-sm text-slate-500 dark:text-white/50">
               Create and manage sponsorship packages with booths, sessions, and marketing slots.
             </p>
@@ -782,7 +782,7 @@ export default function AdminSponsorshipPlansPage() {
                                 className="transition-colors hover:bg-slate-50 dark:hover:bg-background-dark-softer"
                               >
                                 <td className="px-4 py-3">
-                                  <div className="font-bold text-[#181112] dark:text-white">{plan.name}</div>
+                                  <div className="font-bold text-charcoal dark:text-white">{plan.name}</div>
                                   {plan.isActive === false && (
                                     <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 dark:bg-background-dark dark:text-white/50">
                                       INACTIVE

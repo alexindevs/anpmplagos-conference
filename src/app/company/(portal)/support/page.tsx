@@ -42,7 +42,7 @@ export default function CompanySupportPage() {
       <header className="sticky top-0 z-10 border-b border-secondary/15 bg-background-light/95 px-4 py-5 backdrop-blur sm:px-6 sm:py-6 lg:px-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div className="border-l-4 border-secondary pl-4">
-            <h1 className="text-2xl font-black text-[#181112]">Support</h1>
+            <h1 className="text-2xl font-black text-charcoal">Support</h1>
             <p className="mt-1 text-sm text-slate-600">
               Send a message to the conference team and track replies here.
             </p>
@@ -95,7 +95,7 @@ export default function CompanySupportPage() {
                 )}
                 {(data?.items ?? []).map((row) => (
                   <tr key={row.id} className="transition-colors hover:bg-secondary/5">
-                    <td className="px-4 py-3 font-semibold text-[#181112]">{row.title}</td>
+                    <td className="px-4 py-3 font-semibold text-charcoal">{row.title}</td>
                     <td className="px-4 py-3 text-slate-600">{supportCategoryLabel(row.category)}</td>
                     <td className="px-4 py-3">
                       <span

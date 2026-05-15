@@ -42,7 +42,7 @@ function CompanyMarketingPaymentCallbackContent() {
       <main className="flex flex-1 justify-center items-center py-16 px-4">
         <div className=" w-full max-w-[80%] md:max-w-[50%] text-center">
           <span className="material-symbols-outlined text-6xl text-red-600 mb-4">error</span>
-          <h1 className="text-3xl font-black text-[#181112] mb-4">Invalid payment link</h1>
+          <h1 className="text-3xl font-black text-charcoal mb-4">Invalid payment link</h1>
           <p className="text-gray-600 mb-6">This link is missing a payment reference.</p>
           <Link
             href="/company/sponsorship-plans?tab=adverts"
@@ -62,7 +62,7 @@ function CompanyMarketingPaymentCallbackContent() {
           <div className="mb-6 flex justify-center">
             <div className="size-16 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
           </div>
-          <h1 className="text-3xl font-black text-[#181112] mb-4">Confirming payment</h1>
+          <h1 className="text-3xl font-black text-charcoal mb-4">Confirming payment</h1>
           <p className="text-gray-600">Please wait while we confirm your marketing purchase…</p>
         </div>
       </main>
@@ -74,7 +74,7 @@ function CompanyMarketingPaymentCallbackContent() {
       <main className="flex flex-1 justify-center items-center py-16 px-4">
         <div className=" w-full max-w-[80%] md:max-w-[50%] text-center">
           <span className="material-symbols-outlined text-6xl text-red-600 mb-4">error</span>
-          <h1 className="text-3xl font-black text-[#181112] mb-4">Verification failed</h1>
+          <h1 className="text-3xl font-black text-charcoal mb-4">Verification failed</h1>
           <p className="text-gray-600 mb-6">
             {error instanceof Error ? error.message : "We couldn't confirm your payment."}
           </p>
@@ -130,7 +130,7 @@ function CompanyMarketingPaymentCallbackContent() {
             )}
           </div>
 
-          <h1 className="text-3xl font-black text-center text-[#181112] mb-3">
+          <h1 className="text-3xl font-black text-center text-charcoal mb-3">
             {isSuccess && "Payment successful"}
             {isFailed && "Payment failed"}
             {isRefunded && "Payment refunded"}
@@ -149,7 +149,7 @@ function CompanyMarketingPaymentCallbackContent() {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-xs font-semibold text-gray-500 uppercase">Reference</p>
-                  <p className="text-sm font-mono text-[#181112] break-all">{payment.reference}</p>
+                  <p className="text-sm font-mono text-charcoal break-all">{payment.reference}</p>
                 </div>
                 <span
                   className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase ${
@@ -169,21 +169,21 @@ function CompanyMarketingPaymentCallbackContent() {
               {payment.kind && (
                 <div>
                   <p className="text-xs font-semibold text-gray-500 uppercase">Payment type</p>
-                  <p className="text-sm text-[#181112] capitalize">{payment.kind.replace(/_/g, " ")}</p>
+                  <p className="text-sm text-charcoal capitalize">{payment.kind.replace(/_/g, " ")}</p>
                 </div>
               )}
 
               {payment.advertSlotId && (
                 <div>
                   <p className="text-xs font-semibold text-gray-500 uppercase">Advert slot</p>
-                  <p className="text-sm font-mono text-[#181112] break-all">{payment.advertSlotId}</p>
+                  <p className="text-sm font-mono text-charcoal break-all">{payment.advertSlotId}</p>
                 </div>
               )}
 
               {payment.brandingSlotId && (
                 <div>
                   <p className="text-xs font-semibold text-gray-500 uppercase">Branding slot</p>
-                  <p className="text-sm font-mono text-[#181112] break-all">{payment.brandingSlotId}</p>
+                  <p className="text-sm font-mono text-charcoal break-all">{payment.brandingSlotId}</p>
                 </div>
               )}
 
@@ -197,7 +197,7 @@ function CompanyMarketingPaymentCallbackContent() {
               {payment.paidAt && (
                 <div>
                   <p className="text-xs font-semibold text-gray-500 uppercase">Paid at</p>
-                  <p className="text-sm text-[#181112]">
+                  <p className="text-sm text-charcoal">
                     {new Date(payment.paidAt).toLocaleString("en-NG", {
                       dateStyle: "full",
                       timeStyle: "short",
@@ -265,7 +265,7 @@ function MarketingPaymentCallbackFallback() {
         <div className="mb-6 flex justify-center">
           <div className="size-16 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
         </div>
-        <h1 className="text-3xl font-black text-[#181112] mb-4">Loading</h1>
+        <h1 className="text-3xl font-black text-charcoal mb-4">Loading</h1>
         <p className="text-gray-600">Confirming your payment…</p>
       </div>
     </main>

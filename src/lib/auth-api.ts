@@ -175,3 +175,13 @@ export async function registerModerator(
     body: JSON.stringify({ token, password }),
   });
 }
+
+export async function deleteAdminAccount(
+  password: string,
+  adminCode: string
+): Promise<{ message: string }> {
+  return authFetch<{ message: string }>("/api/admin/me", {
+    method: "DELETE",
+    body: JSON.stringify({ password, adminCode }),
+  });
+}

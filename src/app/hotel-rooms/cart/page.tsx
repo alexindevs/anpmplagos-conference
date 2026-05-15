@@ -78,7 +78,7 @@ export default function HotelCartPage() {
     <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-black text-[#181112]">Hotel cart</h1>
+          <h1 className="text-2xl font-black text-charcoal">Hotel cart</h1>
           <p className="text-sm text-slate-600 mt-1">
             Review your room selections, then pay once. The final total will be shown at checkout.
           </p>
@@ -108,7 +108,7 @@ export default function HotelCartPage() {
       ) : items.length === 0 ? (
         <div className="rounded-xl border border-dashed border-primary/25 bg-white p-10 text-center shadow-sm">
           <span className="material-symbols-outlined text-5xl text-slate-300">shopping_cart</span>
-          <p className="mt-4 font-bold text-[#181112]">Your hotel cart is empty</p>
+          <p className="mt-4 font-bold text-charcoal">Your hotel cart is empty</p>
           <p className="text-sm text-slate-600 mt-2">Add rooms from the hotel directory, then return here to checkout.</p>
           <Link
             href="/hotel-rooms"
@@ -127,7 +127,7 @@ export default function HotelCartPage() {
                   <li key={item.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Hotel room</p>
-                      <p className="font-bold text-[#181112] truncate">{lineTitle(item)}</p>
+                      <p className="font-bold text-charcoal truncate">{lineTitle(item)}</p>
                       {item.quantity > 1 ? <p className="text-xs text-slate-500 mt-1">Qty {item.quantity}</p> : null}
                     </div>
                     <div className="flex items-center gap-4 shrink-0">
@@ -150,7 +150,7 @@ export default function HotelCartPage() {
             <div className="border-t border-slate-100 bg-slate-50 px-4 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-xs font-bold uppercase text-slate-500">Estimated total</p>
-                <p className="text-xl font-black text-[#181112] tabular-nums">{formatKoboToNaira(totalKobo)}</p>
+                <p className="text-xl font-black text-charcoal tabular-nums">{formatKoboToNaira(totalKobo)}</p>
               </div>
               <button
                 type="button"

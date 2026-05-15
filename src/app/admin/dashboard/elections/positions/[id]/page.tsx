@@ -210,7 +210,7 @@ export default function EditPositionPage() {
 
         {/* Edit position form */}
         <section className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-background-dark-soft">
-          <h2 className="mb-4 text-lg font-bold text-[#181112] dark:text-white">
+          <h2 className="mb-4 text-lg font-bold text-charcoal dark:text-white">
             Edit Position
           </h2>
           <div className="space-y-4">
@@ -222,7 +222,7 @@ export default function EditPositionPage() {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-[#181112] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-charcoal focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
               />
             </div>
             <div>
@@ -233,7 +233,7 @@ export default function EditPositionPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
-                className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-[#181112] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-charcoal focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
               />
             </div>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
@@ -246,7 +246,7 @@ export default function EditPositionPage() {
                   min={0}
                   value={order}
                   onChange={(e) => setOrder(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-[#181112] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-charcoal focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                 />
               </div>
               <button
@@ -264,7 +264,7 @@ export default function EditPositionPage() {
         {/* Candidates section */}
         <section className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-lg font-bold text-[#181112] dark:text-white">
+            <h2 className="text-lg font-bold text-charcoal dark:text-white">
               Candidates{" "}
               <span className="text-sm font-medium text-slate-500 dark:text-white/50">
                 ({candidates?.length ?? 0})
@@ -323,7 +323,7 @@ export default function EditPositionPage() {
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <p className="font-bold text-[#181112] dark:text-white">
+                    <p className="font-bold text-charcoal dark:text-white">
                       {c.name}
                     </p>
                     {c.bio && (
@@ -384,14 +384,14 @@ export default function EditPositionPage() {
             <div className="mb-4 flex items-start justify-between gap-3">
               <h2
                 id="candidate-modal-title"
-                className="text-lg font-bold text-[#181112] dark:text-white"
+                className="text-lg font-bold text-charcoal dark:text-white"
               >
                 {editingCandidate ? "Edit Candidate" : "Add Candidate"}
               </h2>
               <button
                 type="button"
                 onClick={dismissCandidateForm}
-                className="rounded-lg p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-[#181112] dark:text-white/50 dark:hover:bg-white/10 dark:hover:text-white"
+                className="rounded-lg p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-charcoal dark:text-white/50 dark:hover:bg-white/10 dark:hover:text-white"
                 aria-label="Close"
               >
                 <span className="material-symbols-outlined text-[22px]">close</span>
@@ -449,7 +449,7 @@ export default function EditPositionPage() {
                   type="text"
                   value={candidateName}
                   onChange={(e) => setCandidateName(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-[#181112] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-charcoal focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                 />
               </div>
 
@@ -461,7 +461,7 @@ export default function EditPositionPage() {
                   value={candidateBio}
                   onChange={(e) => setCandidateBio(e.target.value)}
                   rows={2}
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-[#181112] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-charcoal focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                 />
               </div>
             </div>
@@ -503,7 +503,7 @@ export default function EditPositionPage() {
           />
           <div className="flex min-h-full items-end justify-center p-4 sm:items-center">
             <div className="relative z-10 mb-4 w-full rounded-2xl bg-white p-5 shadow-xl sm:mb-0 sm:w-11/12 lg:w-8/12 xl:w-2/5 dark:bg-background-dark-soft">
-            <h2 className="text-lg font-bold text-[#181112] dark:text-white">
+            <h2 className="text-lg font-bold text-charcoal dark:text-white">
               Remove candidate?
             </h2>
             <p className="mt-2 text-sm text-slate-600 dark:text-white/60">

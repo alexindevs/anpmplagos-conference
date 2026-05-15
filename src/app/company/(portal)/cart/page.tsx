@@ -121,7 +121,7 @@ export default function CompanyCartPage() {
     <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-black text-[#181112]">Conference cart</h1>
+          <h1 className="text-2xl font-black text-charcoal">Conference cart</h1>
           <p className="text-sm text-slate-600 mt-1">
             Review items for {companyName || "your company"}, then pay once. You&apos;ll see the final prices at checkout.
           </p>
@@ -154,7 +154,7 @@ export default function CompanyCartPage() {
       ) : items.length === 0 ? (
         <div className="rounded-xl border border-secondary/20 bg-white p-10 text-center shadow-sm">
           <span className="material-symbols-outlined text-5xl text-slate-300">shopping_cart</span>
-          <p className="mt-4 font-bold text-[#181112]">Your cart is empty</p>
+          <p className="mt-4 font-bold text-charcoal">Your cart is empty</p>
           <p className="text-sm text-slate-600 mt-2">Add booths, sponsorship plans, sessions, or marketing slots from the shop.</p>
           <Link
             href="/company/sponsorship-plans"
@@ -174,7 +174,7 @@ export default function CompanyCartPage() {
                   <li key={item.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{item.type.replace(/_/g, " ")}</p>
-                      <p className="font-bold text-[#181112] truncate">{lineTitle(item)}</p>
+                      <p className="font-bold text-charcoal truncate">{lineTitle(item)}</p>
                       {item.quantity > 1 ? (
                         <p className="text-xs text-slate-500 mt-1">Qty {item.quantity}</p>
                       ) : null}
@@ -201,20 +201,20 @@ export default function CompanyCartPage() {
                 {showDiscountBreakdown ? (
                   <>
                     <p className="text-xs font-bold uppercase text-slate-500">Subtotal</p>
-                    <p className="text-lg font-black text-[#181112] tabular-nums">{formatKoboToNaira(totalKobo)}</p>
+                    <p className="text-lg font-black text-charcoal tabular-nums">{formatKoboToNaira(totalKobo)}</p>
                     <div className="text-sm text-slate-600 pt-1 space-y-0.5">
                       <p className="tabular-nums">
                         <span className="text-slate-500">Automatic discount ({discountPercent}% on booth &amp; plan lines):</span>{" "}
                         <span className="font-bold text-emerald-700">−{formatKoboToNaira(discountKobo)}</span>
                       </p>
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500 pt-1">Estimated due</p>
-                      <p className="text-xl font-black text-[#181112] tabular-nums">{formatKoboToNaira(estimatedDueKobo)}</p>
+                      <p className="text-xl font-black text-charcoal tabular-nums">{formatKoboToNaira(estimatedDueKobo)}</p>
                     </div>
                   </>
                 ) : (
                   <>
                     <p className="text-xs font-bold uppercase text-slate-500">Estimated total</p>
-                    <p className="text-xl font-black text-[#181112] tabular-nums">
+                    <p className="text-xl font-black text-charcoal tabular-nums">
                       {hasUnknownPrices && totalKobo === 0 ? "—" : formatKoboToNaira(totalKobo)}
                     </p>
                   </>

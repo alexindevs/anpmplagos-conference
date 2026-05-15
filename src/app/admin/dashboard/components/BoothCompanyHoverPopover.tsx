@@ -105,7 +105,7 @@ export function BoothCompanyHoverPopover({
             Booth {booth.name}
             {booth.size ? ` · ${booth.size}` : ""}
           </p>
-          <h4 className="mt-1 text-sm font-black leading-tight text-[#181112] dark:text-white">{name}</h4>
+          <h4 className="mt-1 text-sm font-black leading-tight text-charcoal dark:text-white">{name}</h4>
           <p className="text-[10px] text-slate-500 dark:text-white/50">
             {companyKindLabel(tb.kind)} · ID <span className="font-mono">{tb.id.slice(0, 8)}…</span>
           </p>
@@ -154,16 +154,16 @@ export function BoothCompanyHoverPopover({
           {data.tagline?.trim() ? (
             <div>
               <dt className="font-bold text-slate-500 dark:text-white/50">Tagline</dt>
-              <dd className="text-[#181112] dark:text-white/90">{data.tagline}</dd>
+              <dd className="text-charcoal dark:text-white/90">{data.tagline}</dd>
             </div>
           ) : null}
           <div>
             <dt className="font-bold text-slate-500 dark:text-white/50">Contact email</dt>
-            <dd className="break-all text-[#181112] dark:text-white/90">{data.contactEmail || "—"}</dd>
+            <dd className="break-all text-charcoal dark:text-white/90">{data.contactEmail || "—"}</dd>
           </div>
           <div>
             <dt className="font-bold text-slate-500 dark:text-white/50">Primary contact</dt>
-            <dd className="text-[#181112] dark:text-white/90">
+            <dd className="text-charcoal dark:text-white/90">
               {data.primaryContactName || "—"}
               {data.primaryContactPhone?.trim() ? (
                 <span className="block text-slate-600 dark:text-white/70">{data.primaryContactPhone}</span>
@@ -183,23 +183,23 @@ export function BoothCompanyHoverPopover({
           {data.tier ? (
             <div>
               <dt className="font-bold text-slate-500 dark:text-white/50">Tier</dt>
-              <dd className="text-[#181112] dark:text-white/90">{String(data.tier)}</dd>
+              <dd className="text-charcoal dark:text-white/90">{String(data.tier)}</dd>
             </div>
           ) : null}
           {data.status ? (
             <div>
               <dt className="font-bold text-slate-500 dark:text-white/50">Status</dt>
-              <dd className="text-[#181112] dark:text-white/90">{data.status}</dd>
+              <dd className="text-charcoal dark:text-white/90">{data.status}</dd>
             </div>
           ) : null}
           <div>
             <dt className="font-bold text-slate-500 dark:text-white/50">Booth price (slot)</dt>
-            <dd className="font-semibold text-[#181112] dark:text-white">{formatKoboToNaira(booth.price)}</dd>
+            <dd className="font-semibold text-charcoal dark:text-white">{formatKoboToNaira(booth.price)}</dd>
           </div>
           {data.user?.email ? (
             <div>
               <dt className="font-bold text-slate-500 dark:text-white/50">Account email</dt>
-              <dd className="break-all text-[#181112] dark:text-white/90">{data.user.email}</dd>
+              <dd className="break-all text-charcoal dark:text-white/90">{data.user.email}</dd>
             </div>
           ) : null}
         </dl>

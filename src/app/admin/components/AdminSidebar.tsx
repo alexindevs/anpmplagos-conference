@@ -75,7 +75,7 @@ export function AdminSidebar({
         <PortalSidebarHeaderLogo />
         {expanded ? (
           <div className="min-w-0">
-            <h1 className="truncate text-sm font-bold leading-tight text-[#181112] dark:text-white">ANPMP Lagos Admin</h1>
+            <h1 className="truncate text-sm font-bold leading-tight text-charcoal dark:text-white">ANPMP Lagos Admin</h1>
             <p className="truncate text-xs font-medium text-primary">Conference 2026</p>
           </div>
         ) : null}
@@ -128,7 +128,7 @@ export function AdminSidebar({
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-bold text-[#181112] dark:text-white">
+              <p className="truncate text-xs font-bold text-charcoal dark:text-white">
                 {user?.admin?.name ?? user?.email ?? "Admin"}
               </p>
               <p className="truncate text-[10px] text-slate-500 dark:text-white/50">

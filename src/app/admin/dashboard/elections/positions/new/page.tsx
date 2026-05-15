@@ -58,7 +58,7 @@ export default function NewPositionPage() {
           <span>New</span>
         </div>
 
-        <h1 className="text-2xl font-bold text-[#181112] dark:text-white">
+        <h1 className="text-2xl font-bold text-charcoal dark:text-white">
           New Position
         </h1>
 
@@ -75,7 +75,7 @@ export default function NewPositionPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. President"
-              className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-[#181112] placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-white/30"
+              className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-charcoal placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-white/30"
             />
           </div>
 
@@ -88,7 +88,7 @@ export default function NewPositionPage() {
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
               placeholder="Optional description of this position…"
-              className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-[#181112] placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-white/30"
+              className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-charcoal placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-white/30"
             />
           </div>
 
@@ -102,7 +102,7 @@ export default function NewPositionPage() {
               min={0}
               value={order}
               onChange={(e) => setOrder(e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-[#181112] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5 dark:text-white sm:w-32"
+              className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-charcoal focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5 dark:text-white sm:w-32"
             />
             <p className="mt-1 text-xs text-slate-400 dark:text-white/30">
               Lower numbers appear first.

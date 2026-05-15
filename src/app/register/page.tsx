@@ -192,7 +192,7 @@ export default function RegisterPage() {
           <div className="mb-6 flex justify-center">
             <span className="material-symbols-outlined text-6xl text-green-600">check_circle</span>
           </div>
-          <h1 className="text-3xl font-black text-[#181112] mb-4">Registration Saved</h1>
+          <h1 className="text-3xl font-black text-charcoal mb-4">Registration Saved</h1>
           <p className="text-gray-600 mb-8">
             {regType === "company"
               ? "Your company registration has been saved successfully. Log in to manage your company profile, select booths, and book masterclasses or panel sessions."
@@ -242,7 +242,7 @@ export default function RegisterPage() {
         {/* Progress Stepper */}
         <div className="flex flex-col gap-3 p-4 mb-6">
           <div className="flex gap-6 justify-between">
-            <p className="text-[#181112] text-base font-semibold">
+            <p className="text-charcoal text-base font-semibold">
               Step {step} of 3
             </p>
             <p className="text-gray-600 text-sm font-normal">
@@ -261,7 +261,7 @@ export default function RegisterPage() {
         {/* Hero */}
         <div className="flex flex-wrap justify-between gap-3 p-4 border-l-4 border-primary bg-white shadow-sm rounded-r-lg mb-8">
           <div className="flex min-w-72 flex-col gap-2">
-            <h1 className="text-[#181112] text-4xl font-black leading-tight tracking-tight">
+            <h1 className="text-charcoal text-4xl font-black leading-tight tracking-tight">
               Conference Registration
             </h1>
             <p className="text-gray-600 text-base">
@@ -273,7 +273,7 @@ export default function RegisterPage() {
         {/* Step 1: Plan selection */}
         {step === 1 && (
           <section className="mb-10">
-            <h2 className="text-[#181112] text-[22px] font-bold leading-tight px-4 pb-4">
+            <h2 className="text-charcoal text-[22px] font-bold leading-tight px-4 pb-4">
               1. Select Registration Type
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-4">
@@ -303,7 +303,7 @@ export default function RegisterPage() {
                     </span>
                     <span className="text-secondary font-bold text-xl">{plan.price}</span>
                   </div>
-                  <h3 className="text-lg font-bold text-[#181112]">{plan.name}</h3>
+                  <h3 className="text-lg font-bold text-charcoal">{plan.name}</h3>
                   <p className="text-sm text-gray-500 mt-1">{plan.description}</p>
                   <ul className="mt-4 pt-4 border-t border-gray-100 space-y-2">
                     {plan.benefits.map((b) => (
@@ -395,7 +395,7 @@ export default function RegisterPage() {
                 {(regType === "member" || regType === "non-member") && (
               <>
                 <section className="bg-white rounded-xl p-6 shadow-sm mx-4 border border-gray-100">
-                  <h2 className="text-[#181112] text-[22px] font-bold leading-tight pb-6">
+                  <h2 className="text-charcoal text-[22px] font-bold leading-tight pb-6">
                     Personal Details
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -462,7 +462,7 @@ export default function RegisterPage() {
                 {/* Spouse details - only for members who have spouse */}
                 {regType === "member" && hasSpouse && (
                   <section className="bg-white rounded-xl p-6 shadow-sm mx-4 border border-gray-100">
-                    <h2 className="text-[#181112] text-[22px] font-bold leading-tight pb-6">
+                    <h2 className="text-charcoal text-[22px] font-bold leading-tight pb-6">
                       Spouse Details
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -502,7 +502,7 @@ export default function RegisterPage() {
 
                 {regType === "member" && (
                   <section className="bg-white rounded-xl p-6 shadow-sm mx-4 border border-gray-100">
-                    <h2 className="text-[#181112] text-[22px] font-bold leading-tight pb-6">
+                    <h2 className="text-charcoal text-[22px] font-bold leading-tight pb-6">
                       Professional Information
                     </h2>
                     <div className="grid grid-cols-1 gap-6">
@@ -571,7 +571,7 @@ export default function RegisterPage() {
                 )}
                 {regType === "non-member" && (
                   <section className="bg-white rounded-xl p-6 shadow-sm mx-4 border border-gray-100">
-                    <h2 className="text-[#181112] text-[22px] font-bold leading-tight pb-6">
+                    <h2 className="text-charcoal text-[22px] font-bold leading-tight pb-6">
                       Professional Information
                     </h2>
                     <div className="grid grid-cols-1 gap-6">
@@ -651,7 +651,7 @@ export default function RegisterPage() {
             {regType === "company" && (
               <>
                 <section className="bg-white rounded-xl p-6 shadow-sm mx-4 border border-gray-100">
-                  <h2 className="text-[#181112] text-[22px] font-bold leading-tight pb-6">
+                  <h2 className="text-charcoal text-[22px] font-bold leading-tight pb-6">
                     Company Profile
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -800,7 +800,7 @@ export default function RegisterPage() {
         {/* Step 3: Review & Save */}
         {step === 3 && (
           <section className="mx-4 mb-10">
-            <h2 className="text-[#181112] text-[22px] font-bold leading-tight pb-6">
+            <h2 className="text-charcoal text-[22px] font-bold leading-tight pb-6">
               Review & Save
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -808,11 +808,11 @@ export default function RegisterPage() {
               <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-gray-100 space-y-6">
               <div>
                 <p className="text-xs font-semibold text-gray-500 uppercase">Registration Type</p>
-                <p className="text-lg font-bold text-[#181112] capitalize">{regType?.replace("-", " ")}</p>
+                <p className="text-lg font-bold text-charcoal capitalize">{regType?.replace("-", " ")}</p>
               </div>
               <div>
                 <p className="text-xs font-semibold text-gray-500 uppercase">Account</p>
-                <p className="text-[#181112]">{email || "—"}</p>
+                <p className="text-charcoal">{email || "—"}</p>
               </div>
               {(regType === "member" || regType === "non-member") && (
                 <>
@@ -821,13 +821,13 @@ export default function RegisterPage() {
                     {regType === "member" && title.trim() ? (
                       <p className="text-sm text-gray-600">Title: {title.trim()}</p>
                     ) : null}
-                    <p className="text-[#181112]">{fullName || "—"}</p>
+                    <p className="text-charcoal">{fullName || "—"}</p>
                     <p className="text-sm text-gray-600">{phone || "—"}</p>
                   </div>
                   {regType === "member" && hasSpouse && (
                     <div>
                       <p className="text-xs font-semibold text-gray-500 uppercase">Spouse</p>
-                      <p className="text-[#181112]">{spouseName || "—"}</p>
+                      <p className="text-charcoal">{spouseName || "—"}</p>
                       <p className="text-sm text-gray-600">{spouseEmail || "—"}</p>
                     </div>
                   )}
@@ -836,7 +836,7 @@ export default function RegisterPage() {
                     {regType === "member" ? (
                       <>
                         <p className="text-sm text-gray-600">{hospitalOrg || "—"}</p>
-                        <p className="text-[#181112]">{primarySpecialty || "—"}</p>
+                        <p className="text-charcoal">{primarySpecialty || "—"}</p>
                         <p className="text-sm text-gray-600 mt-1 whitespace-pre-wrap">
                           {organizationAddress.trim() || "—"}
                         </p>
@@ -844,13 +844,13 @@ export default function RegisterPage() {
                       </>
                     ) : inMedicalField === true ? (
                       <>
-                        <p className="text-[#181112]">{primarySpecialty || "—"}</p>
+                        <p className="text-charcoal">{primarySpecialty || "—"}</p>
                         <p className="text-sm text-gray-600">{hospitalOrg || "—"}</p>
                       </>
                     ) : inMedicalField === false ? (
-                      <p className="text-[#181112]">{occupation || "—"}</p>
+                      <p className="text-charcoal">{occupation || "—"}</p>
                     ) : (
-                      <p className="text-[#181112]">—</p>
+                      <p className="text-charcoal">—</p>
                     )}
                   </div>
                 </>
@@ -859,7 +859,7 @@ export default function RegisterPage() {
                 <>
                   <div>
                     <p className="text-xs font-semibold text-gray-500 uppercase">Company</p>
-                    <p className="text-lg font-bold text-[#181112]">{companyName || "—"}</p>
+                    <p className="text-lg font-bold text-charcoal">{companyName || "—"}</p>
                     {tagline && <p className="text-sm text-gray-600">{tagline}</p>}
                     {companyDescription.trim() ? (
                       <p className="text-sm text-gray-600 mt-2 whitespace-pre-wrap">{companyDescription.trim()}</p>
@@ -872,7 +872,7 @@ export default function RegisterPage() {
                   </div>
                   <div>
                     <p className="text-xs font-semibold text-gray-500 uppercase">Primary Contact</p>
-                    <p className="text-[#181112]">{primaryContactName || "—"}</p>
+                    <p className="text-charcoal">{primaryContactName || "—"}</p>
                     <p className="text-sm text-gray-600">{primaryContactPhone || "—"}</p>
                   </div>
                 </>

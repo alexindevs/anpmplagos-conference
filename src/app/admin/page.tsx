@@ -126,7 +126,7 @@ export default function AdminPage() {
     <main className="flex min-h-[calc(100vh-80px)] flex-col items-center justify-center bg-gray-50 px-4 py-12">
       <div className="w-[80%] md:w-[50%] max-w-[550px] space-y-8 rounded-2xl bg-white p-8 shadow-lg border border-gray-100">
         <div className="text-center">
-          <h2 className="text-3xl font-black tracking-tight text-[#181112]">
+          <h2 className="text-3xl font-black tracking-tight text-charcoal">
             {mode === "login" && "Admin Login"}
             {mode === "claim" && "Setup Admin Access"}
             {mode === "register" && "Create Admin Account"}

@@ -88,12 +88,12 @@ export default function HotelRoomsPage() {
       <section className="flex w-full max-w-[1280px] flex-col gap-6 px-4 py-10 sm:px-10 mx-auto">
         <div className="flex flex-col gap-3 border-l-4 border-primary bg-white p-6 shadow-sm rounded-r-lg sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-4xl font-black leading-tight tracking-tight text-[#181112]">
+            <h1 className="text-4xl font-black leading-tight tracking-tight text-charcoal">
               Conference hotel rooms
             </h1>
             <p className="text-lg leading-normal text-[#896165] mt-2">
               Reserve official partner hotel slots for ANPMP Lagos Conference 2026. Add rooms to your{" "}
-              <strong className="text-[#181112]">hotel cart</strong>, then checkout once.
+              <strong className="text-charcoal">hotel cart</strong>, then checkout once.
             </p>
           </div>
           {!sessionLoading && user && registrationOk && (
@@ -110,7 +110,7 @@ export default function HotelRoomsPage() {
         {!sessionLoading && user && (
           <div className="rounded-xl border border-primary/15 bg-white shadow-sm overflow-hidden">
             <div className="border-b border-primary/10 bg-primary/5 px-4 py-4 sm:px-6">
-              <h2 className="text-lg font-black text-[#181112] flex items-center gap-2">
+              <h2 className="text-lg font-black text-charcoal flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">summarize</span>
                 Your hotel bookings
               </h2>
@@ -132,7 +132,7 @@ export default function HotelRoomsPage() {
                   <div className="grid gap-4 sm:grid-cols-2 mb-6">
                     <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-4">
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Rooms booked</p>
-                      <p className="mt-1 text-3xl font-black text-[#181112]">{bookedCount}</p>
+                      <p className="mt-1 text-3xl font-black text-charcoal">{bookedCount}</p>
                     </div>
                     <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
                       <p className="text-xs font-bold uppercase tracking-wider text-primary">Total spent on hotels</p>
@@ -157,7 +157,7 @@ export default function HotelRoomsPage() {
                         <tbody>
                           {myBookedRooms.map((room) => (
                             <tr key={room.id} className="border-b border-slate-100 last:border-0">
-                              <td className="py-2.5 px-3 font-semibold text-[#181112]">{room.hotelName || "—"}</td>
+                              <td className="py-2.5 px-3 font-semibold text-charcoal">{room.hotelName || "—"}</td>
                               <td className="py-2.5 px-3 text-slate-600">{room.roomType}</td>
                               <td className="py-2.5 px-3 text-right font-bold text-primary whitespace-nowrap">
                                 {formatKoboToNaira(room.price)}
@@ -212,7 +212,7 @@ export default function HotelRoomsPage() {
         {!isLoading && !isError && rooms.length === 0 && (
           <div className="rounded-xl border border-dashed border-primary/25 bg-white p-12 text-center shadow-sm">
             <span className="material-symbols-outlined text-5xl text-slate-300">hotel</span>
-            <p className="mt-4 text-lg font-bold text-[#181112]">No rooms available right now</p>
+            <p className="mt-4 text-lg font-bold text-charcoal">No rooms available right now</p>
             <p className="mt-2 text-sm text-slate-600">
               Check back later — new inventory may be added by the organisers.
             </p>
@@ -224,7 +224,7 @@ export default function HotelRoomsPage() {
             {groupedByHotel.map(([hotelName, hotelRooms]) => (
               <section key={hotelName} className="rounded-xl border border-primary/10 bg-white shadow-sm overflow-hidden">
                 <div className="border-b border-primary/10 bg-primary/5 px-4 py-4 sm:px-6">
-                  <h2 className="text-xl font-black text-[#181112] flex items-center gap-2">
+                  <h2 className="text-xl font-black text-charcoal flex items-center gap-2">
                     <span className="material-symbols-outlined text-primary">apartment</span>
                     {hotelName}
                   </h2>
@@ -256,7 +256,7 @@ export default function HotelRoomsPage() {
                           key={room.id}
                           className="border-b border-primary/10 last:border-b-0 hover:bg-primary/3 transition-colors"
                         >
-                          <td className="py-4 px-4 text-sm font-bold text-[#181112]">{room.roomType}</td>
+                          <td className="py-4 px-4 text-sm font-bold text-charcoal">{room.roomType}</td>
                           <td className="py-4 px-4 text-sm text-slate-600 max-w-xs">
                             {room.description?.trim() ? room.description : "—"}
                           </td>

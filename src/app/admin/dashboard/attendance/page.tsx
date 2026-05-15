@@ -46,7 +46,7 @@ export default function AttendancePage() {
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-background-light/95 px-4 py-5 backdrop-blur dark:border-border-dark dark:bg-background-dark/95 sm:px-6 sm:py-6 lg:px-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-2xl font-black tracking-tight text-[#181112] dark:text-white">Attendance Management</h2>
+            <h2 className="text-2xl font-black tracking-tight text-charcoal dark:text-white">Attendance Management</h2>
             <p className="text-sm text-slate-500 dark:text-white/50">
               Manage conference days, attendance moderators, and view check-in records.
             </p>
@@ -103,7 +103,7 @@ function PdfDownloadWidget({ isAdmin }: { isAdmin: boolean }) {
         <select
           value={selectedDay}
           onChange={(e) => setSelectedDay(e.target.value)}
-          className="w-full rounded-lg border border-slate-200 bg-background-light px-3 py-2 text-sm text-[#181112] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white sm:flex-1"
+          className="w-full rounded-lg border border-slate-200 bg-background-light px-3 py-2 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white sm:flex-1"
         >
           <option value="all">All Days</option>
           {days?.map((d: EventDay) => (
@@ -207,7 +207,7 @@ function ConferenceDaysSection({
   return (
     <section>
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-lg font-bold text-[#181112] dark:text-white">Conference Days</h2>
+        <h2 className="text-lg font-bold text-charcoal dark:text-white">Conference Days</h2>
         <button
           onClick={() => setShowForm((v) => !v)}
           className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90 sm:w-auto"
@@ -222,7 +222,7 @@ function ConferenceDaysSection({
           onSubmit={handleCreate}
           className="mb-6 space-y-4 rounded-xl border border-primary/5 bg-white p-5 shadow-sm dark:border-border-dark dark:bg-background-dark-soft sm:p-6"
         >
-          <h3 className="font-bold text-[#181112] dark:text-white">New Conference Day</h3>
+          <h3 className="font-bold text-charcoal dark:text-white">New Conference Day</h3>
           {formError && (
             <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-200">{formError}</p>
           )}
@@ -233,7 +233,7 @@ function ConferenceDaysSection({
                 value={newLabel}
                 onChange={(e) => setNewLabel(e.target.value)}
                 placeholder="e.g. Day 1"
-                className="w-full rounded-lg border border-slate-200 bg-background-light px-3 py-2 text-sm text-[#181112] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+                className="w-full rounded-lg border border-slate-200 bg-background-light px-3 py-2 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
               />
             </div>
             <div>
@@ -242,7 +242,7 @@ function ConferenceDaysSection({
                 type="date"
                 value={newDate}
                 onChange={(e) => setNewDate(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-background-light px-3 py-2 text-sm text-[#181112] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+                className="w-full rounded-lg border border-slate-200 bg-background-light px-3 py-2 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
               />
             </div>
           </div>
@@ -309,7 +309,7 @@ function ConferenceDaysSection({
                         className="w-full rounded-lg border border-slate-200 bg-background-light px-2 py-1 text-sm outline-none focus:border-primary dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
                       />
                     ) : (
-                      <span className="font-bold text-[#181112] dark:text-white">{day.label}</span>
+                      <span className="font-bold text-charcoal dark:text-white">{day.label}</span>
                     )}
                   </td>
                   <td className="px-4 py-4 text-slate-600 dark:text-white/70 sm:px-6">
@@ -442,7 +442,7 @@ function ModeratorsSection() {
   return (
     <section>
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-lg font-bold text-[#181112] dark:text-white">Attendance Moderators</h2>
+        <h2 className="text-lg font-bold text-charcoal dark:text-white">Attendance Moderators</h2>
         <button
           onClick={() => setShowInvite((v) => !v)}
           className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
@@ -457,7 +457,7 @@ function ModeratorsSection() {
           onSubmit={handleInvite}
           className="mb-6 rounded-xl border border-primary/5 bg-white p-6 shadow-sm dark:border-border-dark dark:bg-background-dark-soft"
         >
-          <h3 className="mb-4 font-bold text-[#181112] dark:text-white">Invite New Moderator</h3>
+          <h3 className="mb-4 font-bold text-charcoal dark:text-white">Invite New Moderator</h3>
           {inviteError && (
             <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-200">{inviteError}</p>
           )}
@@ -471,7 +471,7 @@ function ModeratorsSection() {
               onChange={(e) => setInviteEmail(e.target.value)}
               placeholder="moderator@example.com"
               required
-              className="w-full rounded-lg border border-slate-200 bg-background-light px-4 py-2 text-sm text-[#181112] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white sm:flex-1"
+              className="w-full rounded-lg border border-slate-200 bg-background-light px-4 py-2 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white sm:flex-1"
             />
             <button
               type="submit"
@@ -506,7 +506,7 @@ function ModeratorsSection() {
                 {data.moderators.map((mod: ModeratorSummary) => (
                   <li key={mod.id} className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                     <div>
-                      <p className="font-bold text-[#181112] dark:text-white">{mod.name}</p>
+                      <p className="font-bold text-charcoal dark:text-white">{mod.name}</p>
                       <p className="text-xs text-slate-500 dark:text-white/50">{mod.email}</p>
                     </div>
                     <button
@@ -535,7 +535,7 @@ function ModeratorsSection() {
                 {data.pendingInvites.map((invite: PendingInvite) => (
                   <li key={invite.id} className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                     <div>
-                      <p className="font-bold text-[#181112] dark:text-white">{invite.email}</p>
+                      <p className="font-bold text-charcoal dark:text-white">{invite.email}</p>
                       <p className="text-xs text-slate-500 dark:text-white/50">
                         Expires {new Date(invite.expiresAt).toLocaleDateString("en-NG", { dateStyle: "medium" })}
                       </p>
@@ -581,7 +581,7 @@ function AttendanceSummarySection({ dayId }: { dayId: string }) {
 
   return (
     <section>
-      <h2 className="mb-6 text-lg font-bold text-[#181112] dark:text-white">
+      <h2 className="mb-6 text-lg font-bold text-charcoal dark:text-white">
         Attendance: <span className="text-secondary">{day?.label ?? "Selected Day"}</span>
       </h2>
 
@@ -635,7 +635,7 @@ function StatCard({
         <span className="material-symbols-outlined text-2xl text-secondary">{icon}</span>
         <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">{label}</p>
       </div>
-      <p className="mt-3 text-4xl font-black text-[#181112] dark:text-white">{value}</p>
+      <p className="mt-3 text-4xl font-black text-charcoal dark:text-white">{value}</p>
       <p className="mt-1 text-xs text-slate-500 dark:text-white/50">{sub}</p>
     </div>
   );

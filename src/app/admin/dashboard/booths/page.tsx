@@ -172,7 +172,7 @@ export default function BoothManagementPage() {
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-background-light/95 px-4 py-5 backdrop-blur dark:border-border-dark dark:bg-background-dark/95 sm:px-6 sm:py-6 lg:px-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-xl font-black tracking-tight text-[#181112] dark:text-white sm:text-2xl">
+            <h2 className="text-xl font-black tracking-tight text-charcoal dark:text-white sm:text-2xl">
               Booth Management
             </h2>
             <p className="text-sm text-slate-500 dark:text-white/50">
@@ -219,7 +219,7 @@ export default function BoothManagementPage() {
             <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">
               Total Booths
             </p>
-            <p className="mt-1 text-2xl font-black text-[#181112] dark:text-white">{stats.total}</p>
+            <p className="mt-1 text-2xl font-black text-charcoal dark:text-white">{stats.total}</p>
           </div>
           <div className="rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
             <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">
@@ -320,7 +320,7 @@ export default function BoothManagementPage() {
                         key={row.id}
                         className="transition-colors hover:bg-primary/5 dark:hover:bg-background-dark-softer"
                       >
-                        <td className="px-6 py-4 font-bold text-[#181112] dark:text-white">
+                        <td className="px-6 py-4 font-bold text-charcoal dark:text-white">
                           {boothTitle(row)}
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600 dark:text-white/70">
@@ -405,7 +405,7 @@ export default function BoothManagementPage() {
           aria-labelledby="assign-booth-title"
         >
           <div className=" w-full max-w-[80%] md:max-w-[50%] rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-border-dark dark:bg-background-dark-soft">
-            <h3 id="assign-booth-title" className="text-lg font-black text-[#181112] dark:text-white">
+            <h3 id="assign-booth-title" className="text-lg font-black text-charcoal dark:text-white">
               Assign company to booth
             </h3>
             <p className="mt-1 text-sm text-slate-500 dark:text-white/50">
@@ -421,7 +421,7 @@ export default function BoothManagementPage() {
                 id="assign-company"
                 value={selectedCompanyId}
                 onChange={(e) => setSelectedCompanyId(e.target.value)}
-                className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-[#181112] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+                className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
               >
                 <option value="">Select a company…</option>
                 {companiesSorted.map((c) => (

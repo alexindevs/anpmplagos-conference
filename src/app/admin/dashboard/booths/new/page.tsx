@@ -74,7 +74,7 @@ export default function AddNewBoothPage() {
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-background-light/95 px-4 py-5 backdrop-blur dark:border-border-dark dark:bg-background-dark/95 sm:px-6 sm:py-6 lg:px-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-black tracking-tight text-[#181112] dark:text-slate-100">
+            <h2 className="text-2xl font-black tracking-tight text-charcoal dark:text-slate-100">
               Add New Booth
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -111,7 +111,7 @@ export default function AddNewBoothPage() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Premium corner booth A-12"
-                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-[#181112] outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-slate-100"
+                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-charcoal outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-slate-100"
               />
             </div>
             <div>
@@ -126,7 +126,7 @@ export default function AddNewBoothPage() {
                 required
                 value={tier}
                 onChange={(e) => setTier(e.target.value as BoothTier)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-[#181112] outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-slate-100"
+                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-charcoal outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-slate-100"
               >
                 {BOOTH_TIER_OPTIONS.map((t) => (
                   <option key={t} value={t}>
@@ -149,7 +149,7 @@ export default function AddNewBoothPage() {
                 value={size}
                 onChange={(e) => setSize(e.target.value)}
                 placeholder="e.g. 3m × 3m, 9 sqm"
-                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-[#181112] outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-slate-100"
+                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-charcoal outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-slate-100"
               />
             </div>
             <div>
@@ -167,7 +167,7 @@ export default function AddNewBoothPage() {
                 value={priceNaira}
                 onChange={(e) => setPriceNaira(e.target.value)}
                 placeholder="e.g. 500000"
-                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-[#181112] outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-slate-100"
+                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-charcoal outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-slate-100"
               />
             </div>
             <div>
@@ -183,7 +183,7 @@ export default function AddNewBoothPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="e.g. Near main entrance"
-                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-[#181112] outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-slate-100"
+                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-charcoal outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-slate-100"
               />
             </div>
             <div>

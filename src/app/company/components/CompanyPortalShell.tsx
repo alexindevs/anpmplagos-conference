@@ -69,7 +69,7 @@ export function CompanyPortalShell({
             <div className="flex items-center gap-3">
               <PortalSidebarHeaderLogo />
               <div className="min-w-0">
-                <p className="text-sm font-bold text-[#181112] leading-tight">ANPMP Lagos Company Portal</p>
+                <p className="text-sm font-bold text-charcoal leading-tight">ANPMP Lagos Company Portal</p>
                 <p className="text-xs text-slate-500 truncate">ANPMP Lagos Conference 2026</p>
               </div>
             </div>
@@ -115,7 +115,7 @@ export function CompanyPortalShell({
           <div className="space-y-3 border-t border-secondary/10 px-4 py-5">
             <div className="rounded-xl border border-secondary/20 bg-secondary/5 p-3">
               <p className="text-xs font-bold uppercase tracking-wider text-secondary">Company ID</p>
-              <p className="text-xs font-mono text-[#181112] mt-1">{companyId ? `${companyId}` : "—"}</p>
+              <p className="text-xs font-mono text-charcoal mt-1">{companyId ? `${companyId}` : "—"}</p>
             </div>
             <button
               type="button"

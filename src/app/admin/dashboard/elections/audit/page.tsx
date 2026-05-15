@@ -28,7 +28,7 @@ export default function ElectionsAuditPage() {
               <span>/</span>
               <span>Audit Log</span>
             </div>
-            <h1 className="mt-1 text-2xl font-bold text-[#181112] dark:text-white">
+            <h1 className="mt-1 text-2xl font-bold text-charcoal dark:text-white">
               Vote Audit Log
             </h1>
             {data && (
@@ -101,7 +101,7 @@ export default function ElectionsAuditPage() {
                       className="bg-white hover:bg-slate-50 dark:bg-transparent dark:hover:bg-white/5"
                     >
                       <td className="px-4 py-3">
-                        <p className="font-semibold text-[#181112] dark:text-white">
+                        <p className="font-semibold text-charcoal dark:text-white">
                           {vote.voterName}
                         </p>
                         <p className="text-xs text-slate-400 dark:text-white/30">
@@ -111,7 +111,7 @@ export default function ElectionsAuditPage() {
                       <td className="px-4 py-3 text-slate-600 dark:text-white/70">
                         {vote.positionTitle}
                       </td>
-                      <td className="px-4 py-3 font-semibold text-[#181112] dark:text-white">
+                      <td className="px-4 py-3 font-semibold text-charcoal dark:text-white">
                         {vote.candidateName}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500 dark:text-white/50">

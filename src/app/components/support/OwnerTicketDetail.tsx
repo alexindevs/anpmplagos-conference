@@ -65,7 +65,7 @@ export function OwnerTicketDetail({
             <span className="material-symbols-outlined text-lg">arrow_back</span>
             {listLabel}
           </Link>
-          <h1 className="text-2xl font-black text-[#181112]">{data.title}</h1>
+          <h1 className="text-2xl font-black text-charcoal">{data.title}</h1>
           <p className="mt-1 text-sm text-slate-500">
             {supportCategoryLabel(data.category)} · Submitted{" "}
             {new Date(data.createdAt).toLocaleString(undefined, {
@@ -81,7 +81,7 @@ export function OwnerTicketDetail({
 
       <section className="rounded-xl border border-secondary/20 bg-white p-6 shadow-sm">
         <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500">Your message</h2>
-        <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[#181112]">{data.description}</p>
+        <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-charcoal">{data.description}</p>
       </section>
 
       {data.screenshotUrls.length > 0 ? (
@@ -116,7 +116,7 @@ export function OwnerTicketDetail({
                     timeStyle: "short",
                   })}
                 </p>
-                <p className="mt-3 whitespace-pre-wrap text-sm text-[#181112]">{r.responseText}</p>
+                <p className="mt-3 whitespace-pre-wrap text-sm text-charcoal">{r.responseText}</p>
               </li>
             ))}
           </ul>

@@ -109,7 +109,7 @@ export default function CompanySupportNewPage() {
             <span className="material-symbols-outlined text-lg">arrow_back</span>
             Back to support
           </Link>
-          <h1 className="text-2xl font-black text-[#181112]">New support request</h1>
+          <h1 className="text-2xl font-black text-charcoal">New support request</h1>
           <p className="mt-1 text-sm text-slate-600">
             Describe your question or issue. The team will reply by email and you can follow progress here.
           </p>

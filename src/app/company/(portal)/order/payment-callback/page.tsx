@@ -85,7 +85,7 @@ function OrderPaymentCallbackContent() {
             <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-secondary/10">
               <div className="size-8 animate-spin rounded-full border-4 border-secondary/30 border-t-secondary" />
             </div>
-            <h1 className="text-xl font-black text-[#181112] mb-2">Confirming payment</h1>
+            <h1 className="text-xl font-black text-charcoal mb-2">Confirming payment</h1>
             <p className="text-sm text-slate-600">{message}</p>
           </>
         )}
@@ -95,7 +95,7 @@ function OrderPaymentCallbackContent() {
             <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-green-100">
               <span className="material-symbols-outlined text-3xl text-green-600">check_circle</span>
             </div>
-            <h1 className="text-xl font-black text-[#181112] mb-2">Payment successful</h1>
+            <h1 className="text-xl font-black text-charcoal mb-2">Payment successful</h1>
             <p className="text-sm text-slate-600 mb-6">{message}</p>
             <div className="flex flex-col gap-2">
               {!sessionLoading && user && isCompanyRegType(user) ? (
@@ -186,7 +186,7 @@ function OrderPaymentCallbackContent() {
             <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-red-50">
               <span className="material-symbols-outlined text-3xl text-red-600">cancel</span>
             </div>
-            <h1 className="text-xl font-black text-[#181112] mb-2">Payment not completed</h1>
+            <h1 className="text-xl font-black text-charcoal mb-2">Payment not completed</h1>
             <p className="text-sm text-slate-600 mb-6">{message}</p>
             <div className="flex flex-col gap-2">
               <Link
@@ -204,7 +204,7 @@ function OrderPaymentCallbackContent() {
             <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-amber-50">
               <span className="material-symbols-outlined text-3xl text-amber-600">error</span>
             </div>
-            <h1 className="text-xl font-black text-[#181112] mb-2">Something went wrong</h1>
+            <h1 className="text-xl font-black text-charcoal mb-2">Something went wrong</h1>
             <p className="text-sm text-slate-600 mb-6">{message}</p>
             <Link
               href={cartHref}

@@ -55,7 +55,7 @@ export default function ElectionsPositionsPage() {
               <span>/</span>
               <span>Positions</span>
             </div>
-            <h1 className="mt-1 text-2xl font-bold text-[#181112] dark:text-white">
+            <h1 className="mt-1 text-2xl font-bold text-charcoal dark:text-white">
               Positions &amp; Candidates
             </h1>
           </div>
@@ -105,7 +105,7 @@ export default function ElectionsPositionsPage() {
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-bold text-[#181112] dark:text-white">
+                  <p className="truncate font-bold text-charcoal dark:text-white">
                     {pos.title}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-white/50">
@@ -156,7 +156,7 @@ export default function ElectionsPositionsPage() {
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/40 p-4 sm:items-center">
           <div className="mb-4 w-full rounded-2xl bg-white p-5 shadow-xl sm:mb-0 sm:w-11/12 lg:w-8/12 xl:w-5/12 dark:bg-background-dark-soft">
-            <h2 className="text-lg font-bold text-[#181112] dark:text-white">
+            <h2 className="text-lg font-bold text-charcoal dark:text-white">
               Delete position?
             </h2>
             <p className="mt-2 text-sm text-slate-600 dark:text-white/60">

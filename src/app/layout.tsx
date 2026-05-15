@@ -72,7 +72,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${dmSerifDisplay.variable} ${plusJakartaSans.variable} ${jetBrainsMono.variable} font-display bg-background-light dark:bg-background-dark text-[#181112] antialiased`}
+        className={`${dmSerifDisplay.variable} ${plusJakartaSans.variable} ${jetBrainsMono.variable} font-display bg-background-light dark:bg-background-dark text-charcoal antialiased`}
       >
         <QueryProvider>
           <Header />

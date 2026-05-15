@@ -95,7 +95,7 @@ export default function CompanyTicketsPage() {
   return (
     <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <div className="mb-6 border-l-4 border-secondary pl-4">
-        <h1 className="text-xl font-black text-[#181112] sm:text-2xl">Company Conference Ticket</h1>
+        <h1 className="text-xl font-black text-charcoal sm:text-2xl">Company Conference Ticket</h1>
         <p className="text-sm text-slate-500 mt-1">View and manage your company&apos;s conference registration</p>
       </div>
 
@@ -104,7 +104,7 @@ export default function CompanyTicketsPage() {
       ) : profile && eligibilityError ? (
         <div className="rounded-xl border border-red-200 bg-white p-8 text-center">
           <span className="material-symbols-outlined text-4xl text-red-300 mb-4">error</span>
-          <h2 className="text-xl font-black text-[#181112] mb-2">Couldn&apos;t verify ticket access</h2>
+          <h2 className="text-xl font-black text-charcoal mb-2">Couldn&apos;t verify ticket access</h2>
           <p className="text-slate-500 mb-4">
             Something went wrong while checking your pass eligibility. Please try again or contact support.
           </p>
@@ -119,7 +119,7 @@ export default function CompanyTicketsPage() {
       ) : profile && !canAccessPasses ? (
         <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-5 text-center sm:p-8">
           <span className="material-symbols-outlined text-4xl text-amber-500 mb-4">lock</span>
-          <h2 className="text-xl font-black text-[#181112] mb-2">Tickets not available</h2>
+          <h2 className="text-xl font-black text-charcoal mb-2">Tickets not available</h2>
           <p className="text-slate-600 mb-4 mx-auto w-full sm:w-4/5">
             Your account isn&apos;t eligible for conference passes right now. If you believe this is a mistake, please contact support.
           </p>
@@ -140,7 +140,7 @@ export default function CompanyTicketsPage() {
                 </div>
               </div>
 
-              <h2 className="text-2xl font-black text-center text-[#181112] mb-2">
+              <h2 className="text-2xl font-black text-center text-charcoal mb-2">
                 ANPMP Lagos Conference 2026
               </h2>
               <p className="text-center text-slate-500 mb-6">Official Conference Ticket</p>
@@ -149,11 +149,11 @@ export default function CompanyTicketsPage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Company</p>
-                    <p className="mt-1 text-lg font-bold text-[#181112]">{companyName}</p>
+                    <p className="mt-1 text-lg font-bold text-charcoal">{companyName}</p>
                   </div>
                   <div>
                     <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Registration Type</p>
-                    <p className="mt-1 text-lg font-bold text-[#181112]">
+                    <p className="mt-1 text-lg font-bold text-charcoal">
                       Company/Exhibitor
                     </p>
                   </div>
@@ -188,7 +188,7 @@ export default function CompanyTicketsPage() {
 
               <div className="space-y-6">
                 <div className="border-t border-slate-200 pt-6">
-                  <h3 className="text-lg font-black text-[#181112] mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-black text-charcoal mb-4 flex items-center gap-2">
                     <span className="material-symbols-outlined text-secondary">qr_code_2</span>
                     Download Your Tickets
                   </h3>
@@ -245,7 +245,7 @@ export default function CompanyTicketsPage() {
       ) : (
         <div className="rounded-xl border border-slate-200 bg-white p-8 text-center">
           <span className="material-symbols-outlined text-4xl text-slate-300 mb-4">help</span>
-          <h2 className="text-xl font-black text-[#181112] mb-2">Profile Not Found</h2>
+          <h2 className="text-xl font-black text-charcoal mb-2">Profile Not Found</h2>
           <p className="text-slate-500 mb-4">
             We couldn&apos;t load your company profile. Please contact support for assistance.
           </p>

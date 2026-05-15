@@ -17,7 +17,7 @@ export function FAQItem({ question, answer }: FAQItemProps) {
         className="flex w-full items-center justify-between p-6 text-left focus:outline-none"
         aria-expanded={isOpen}
       >
-        <h3 className="text-lg font-bold text-[#181112] pr-8">{question}</h3>
+        <h3 className="text-lg font-bold text-charcoal pr-8">{question}</h3>
         <span 
           className={`material-symbols-outlined text-primary transition-transform duration-300 ${
             isOpen ? "rotate-180" : ""

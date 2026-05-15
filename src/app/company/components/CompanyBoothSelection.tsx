@@ -129,7 +129,7 @@ function BoothCardReadonly({
         <div className="flex items-start justify-between mb-3 gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <span className="material-symbols-outlined shrink-0 text-2xl text-secondary">{headerIcon}</span>
-            <h3 className="text-lg font-bold text-[#181112] truncate">{headline}</h3>
+            <h3 className="text-lg font-bold text-charcoal truncate">{headline}</h3>
           </div>
           {badge ? (
             <span className="shrink-0 rounded-full bg-secondary/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-secondary">
@@ -144,7 +144,7 @@ function BoothCardReadonly({
           <div className="mb-3 space-y-1 rounded-lg border border-secondary/15 bg-slate-50/80 px-3 py-2.5">
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Primary contact</p>
             {primaryContactName?.trim() ? (
-              <p className="text-sm font-semibold text-[#181112]">{primaryContactName.trim()}</p>
+              <p className="text-sm font-semibold text-charcoal">{primaryContactName.trim()}</p>
             ) : null}
             {primaryContactPhone?.trim() ? (
               <a
@@ -160,7 +160,7 @@ function BoothCardReadonly({
         {isDirectory ? (
           <p className="text-xs text-slate-600 mb-2">
             <span className="font-bold uppercase tracking-wider text-slate-500">Booth</span>{" "}
-            <span className="font-semibold text-[#181112]">
+            <span className="font-semibold text-charcoal">
               {boothPrimaryName(booth)}
               {metaLine ? ` · ${metaLine}` : ""}
             </span>
@@ -354,7 +354,7 @@ export function CompanyBoothSelection() {
 
   return (
     <div className="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        <h2 className="mb-6 text-2xl font-black text-[#181112]">Booths</h2>
+        <h2 className="mb-6 text-2xl font-black text-charcoal">Booths</h2>
 
         {isError && (
           <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
@@ -373,12 +373,12 @@ export function CompanyBoothSelection() {
             {/* 1. Your booth */}
             {myBooth ? (
               <section>
-                <h2 className="text-lg font-black text-[#181112] mb-1">Your booth</h2>
+                <h2 className="text-lg font-black text-charcoal mb-1">Your booth</h2>
                 <p className="text-sm text-slate-600 mb-4">
                   Currently assigned to {companyName || "your company"}.
                   {myTierLabel ? (
                     <span className="block mt-2">
-                      <span className="font-bold text-[#181112]">Your tier:</span>{" "}
+                      <span className="font-bold text-charcoal">Your tier:</span>{" "}
                       <span className="rounded-full bg-secondary/15 px-2 py-0.5 text-xs font-bold text-secondary">
                         {myTierLabel}
                       </span>
@@ -391,7 +391,7 @@ export function CompanyBoothSelection() {
               </section>
             ) : (
               <section className="rounded-xl border border-dashed border-secondary/30 bg-secondary/5 px-4 py-4">
-                <p className="text-sm font-semibold text-[#181112]">No booth assigned yet</p>
+                <p className="text-sm font-semibold text-charcoal">No booth assigned yet</p>
                 <p className="text-sm text-slate-600 mt-1">
                   Choose an available booth below, then use <span className="font-semibold">Add booth to cart</span> in
                   the summary. Checkout once from your{" "}
@@ -402,7 +402,7 @@ export function CompanyBoothSelection() {
                 </p>
                 {myTierLabel ? (
                   <p className="text-sm mt-3">
-                    <span className="font-bold text-[#181112]">Your tier:</span>{" "}
+                    <span className="font-bold text-charcoal">Your tier:</span>{" "}
                     <span className="rounded-full bg-secondary/15 px-2 py-0.5 text-xs font-bold text-secondary">
                       {myTierLabel}
                     </span>
@@ -413,7 +413,7 @@ export function CompanyBoothSelection() {
 
             {/* 2. Other companies (ordered in data: same tier then other tiers) */}
             <section>
-              <h2 className="text-lg font-black text-[#181112] mb-4">Other companies</h2>
+              <h2 className="text-lg font-black text-charcoal mb-4">Other companies</h2>
               {publicListLoading ? (
                 <div className="flex items-center gap-3 py-8 text-slate-600">
                   <div className="size-6 animate-spin rounded-full border-2 border-secondary/30 border-t-secondary" />
@@ -450,7 +450,7 @@ export function CompanyBoothSelection() {
 
             {/* 3. Available to book */}
             <section>
-              <h2 className="text-lg font-black text-[#181112] mb-4">Available booths</h2>
+              <h2 className="text-lg font-black text-charcoal mb-4">Available booths</h2>
               {boothsLoading ? (
                 <div className="flex justify-center py-12">
                   <div className="flex items-center gap-3">
@@ -495,7 +495,7 @@ export function CompanyBoothSelection() {
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex items-center gap-2 min-w-0">
                               <span className="material-symbols-outlined shrink-0 text-2xl text-secondary">store</span>
-                              <h3 className="text-lg font-bold text-[#181112] truncate">
+                              <h3 className="text-lg font-bold text-charcoal truncate">
                                 {boothPrimaryName(booth)}
                               </h3>
                             </div>
@@ -550,7 +550,7 @@ export function CompanyBoothSelection() {
           {/* Summary - right col */}
           <aside className="xl:col-span-1">
             <div className="sticky top-4 rounded-xl border border-secondary/20 bg-white p-6 shadow-sm">
-              <h3 className="text-lg font-black text-[#181112] mb-4">Selection Summary</h3>
+              <h3 className="text-lg font-black text-charcoal mb-4">Selection Summary</h3>
               {selectedBooth ? (
                 <div className="space-y-3 mb-6">
                   <div>
@@ -566,7 +566,7 @@ export function CompanyBoothSelection() {
                         />
                       </div>
                     ) : null}
-                    <p className="text-base font-bold text-[#181112] mt-1">
+                    <p className="text-base font-bold text-charcoal mt-1">
                       {boothPrimaryName(selectedBooth)}
                     </p>
                     {selectedBoothMetaLine ? (

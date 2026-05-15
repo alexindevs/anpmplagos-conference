@@ -57,7 +57,7 @@ export function AttendeePortalShell({
             <div className="flex items-center gap-3">
               <PortalSidebarHeaderLogo />
               <div className="min-w-0">
-                <p className="text-sm font-bold text-[#181112] leading-tight">ANPMP Lagos Attendee Portal</p>
+                <p className="text-sm font-bold text-charcoal leading-tight">ANPMP Lagos Attendee Portal</p>
                 <p className="text-xs text-slate-500 truncate">ANPMP Lagos Conference 2026</p>
               </div>
             </div>
@@ -88,7 +88,7 @@ export function AttendeePortalShell({
           <div className="space-y-3 border-t border-primary/10 px-4 py-5">
             <div className="rounded-xl border border-primary/10 bg-primary/5 p-3">
               <p className="text-xs font-bold uppercase tracking-wider text-primary">Attendee</p>
-              <p className="text-sm font-mono text-[#181112] mt-1 truncate">{fullName || "—"}</p>
+              <p className="text-sm font-mono text-charcoal mt-1 truncate">{fullName || "—"}</p>
             </div>
             <button
               type="button"

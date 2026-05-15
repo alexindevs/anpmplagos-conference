@@ -90,7 +90,7 @@ export function CreateMarketingSlotModal({ open, kind, isSubmitting, onClose, on
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" role="dialog" aria-modal="true">
       <div className="w-full max-w-[80%] md:max-w-[50%] rounded-xl border border-primary/10 bg-white shadow-xl dark:border-border-dark dark:bg-background-dark-soft">
         <div className="border-b border-primary/10 px-6 py-4 dark:border-border-dark">
-          <h3 className="text-lg font-black text-[#181112] dark:text-white">New {label}</h3>
+          <h3 className="text-lg font-black text-charcoal dark:text-white">New {label}</h3>
         </div>
         <form onSubmit={handleSubmit} className="px-6 py-4 space-y-4 max-h-[min(80vh,640px)] overflow-y-auto">
           {localError && (

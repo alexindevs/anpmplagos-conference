@@ -239,7 +239,7 @@ export default async function SponsorsPage() {
                       <span className="material-symbols-outlined text-2xl">{config.icon}</span>
                     </div>
                     <div>
-                      <h2 className="text-3xl font-black tracking-tight text-[#181112]">
+                      <h2 className="text-3xl font-black tracking-tight text-charcoal">
                         {config.label}
                       </h2>
                     </div>
@@ -278,7 +278,7 @@ export default async function SponsorsPage() {
                           <div className="flex flex-1 flex-col justify-between">
                             <div>
                               <div className="flex items-start justify-between gap-2">
-                                <h3 className="text-lg font-bold leading-tight text-[#181112] transition-colors group-hover:text-primary">
+                                <h3 className="text-lg font-bold leading-tight text-charcoal transition-colors group-hover:text-primary">
                                   {c.companyName}
                                 </h3>
                                 {displayTierName ? (
@@ -319,7 +319,7 @@ export default async function SponsorsPage() {
         <section className="w-full px-4 pb-16 sm:px-10">
           <div className="mx-auto max-w-[1280px] rounded-xl border border-dashed border-primary/25 bg-background-light px-6 py-12 text-center">
             <span className="material-symbols-outlined text-5xl text-slate-300">storefront</span>
-            <p className="mt-4 text-lg font-bold text-[#181112]">No companies listed yet</p>
+            <p className="mt-4 text-lg font-bold text-charcoal">No companies listed yet</p>
             <p className="mt-2 text-sm text-[#896165]">
               Check back soon — profiles appear here once companies complete registration.
             </p>

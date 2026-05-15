@@ -44,7 +44,7 @@ function ManualPaymentPendingContent() {
           <div className="flex items-center gap-3">
             <span className="material-symbols-outlined text-3xl text-primary">account_balance</span>
             <div>
-              <h1 className="text-xl font-black tracking-tight text-[#181112] dark:text-white">
+              <h1 className="text-xl font-black tracking-tight text-charcoal dark:text-white">
                 Bank Transfer Payment
               </h1>
               <p className="mt-0.5 text-sm text-slate-500 dark:text-white/50">
@@ -68,19 +68,19 @@ function ManualPaymentPendingContent() {
               {BANK_NAME && (
                 <div className="flex items-center justify-between px-5 py-3">
                   <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">Bank</span>
-                  <span className="font-bold text-[#181112] dark:text-white">{BANK_NAME}</span>
+                  <span className="font-bold text-charcoal dark:text-white">{BANK_NAME}</span>
                 </div>
               )}
               {ACCOUNT_NUMBER && (
                 <div className="flex items-center justify-between px-5 py-3">
                   <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">Account Number</span>
-                  <span className="font-mono font-bold text-lg text-[#181112] dark:text-white">{ACCOUNT_NUMBER}</span>
+                  <span className="font-mono font-bold text-lg text-charcoal dark:text-white">{ACCOUNT_NUMBER}</span>
                 </div>
               )}
               {ACCOUNT_NAME && (
                 <div className="flex items-center justify-between px-5 py-3">
                   <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">Account Name</span>
-                  <span className="font-bold text-[#181112] dark:text-white">{ACCOUNT_NAME}</span>
+                  <span className="font-bold text-charcoal dark:text-white">{ACCOUNT_NAME}</span>
                 </div>
               )}
               <div className="flex items-center justify-between px-5 py-3">

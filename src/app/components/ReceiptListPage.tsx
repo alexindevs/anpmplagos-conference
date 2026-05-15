@@ -111,7 +111,7 @@ function ReceiptDetail({ receipt }: { receipt: ReceiptData }) {
             <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">
               Reference
             </p>
-            <p className="mt-0.5 font-mono text-xs text-[#181112] dark:text-white">
+            <p className="mt-0.5 font-mono text-xs text-charcoal dark:text-white">
               {receipt.reference}
             </p>
           </div>
@@ -119,7 +119,7 @@ function ReceiptDetail({ receipt }: { receipt: ReceiptData }) {
             <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">
               Provider
             </p>
-            <p className="mt-0.5 font-semibold capitalize text-[#181112] dark:text-white">
+            <p className="mt-0.5 font-semibold capitalize text-charcoal dark:text-white">
               {receipt.provider}
             </p>
           </div>
@@ -128,7 +128,7 @@ function ReceiptDetail({ receipt }: { receipt: ReceiptData }) {
               <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">
                 Paid At
               </p>
-              <p className="mt-0.5 text-[#181112] dark:text-white">
+              <p className="mt-0.5 text-charcoal dark:text-white">
                 {new Date(receipt.paidAt).toLocaleString("en-NG", {
                   dateStyle: "medium",
                   timeStyle: "short",
@@ -169,7 +169,7 @@ function ReceiptDetail({ receipt }: { receipt: ReceiptData }) {
                     return (
                       <tr key={i} className="align-top">
                         <td className="px-4 py-3">
-                          <p className="font-bold text-[#181112] dark:text-white">
+                          <p className="font-bold text-charcoal dark:text-white">
                             {item.title}
                           </p>
                           {showAllocated && alloc ? (
@@ -228,7 +228,7 @@ function ReceiptDetail({ receipt }: { receipt: ReceiptData }) {
                         <td className="px-4 py-3 text-right text-slate-600 dark:text-white/70">
                           {formatKoboToNaira(item.unitPriceKobo)}
                         </td>
-                        <td className="px-4 py-3 text-right font-bold text-[#181112] dark:text-white">
+                        <td className="px-4 py-3 text-right font-bold text-charcoal dark:text-white">
                           {formatKoboToNaira(item.totalKobo)}
                         </td>
                       </tr>
@@ -256,7 +256,7 @@ function ReceiptDetail({ receipt }: { receipt: ReceiptData }) {
                     >
                       Total
                     </td>
-                    <td className="px-4 py-2.5 text-right text-sm font-black text-[#181112] dark:text-white">
+                    <td className="px-4 py-2.5 text-right text-sm font-black text-charcoal dark:text-white">
                       {formatKoboToNaira(receipt.totalAmountKobo)}
                     </td>
                   </tr>
@@ -356,7 +356,7 @@ export function ReceiptListPage({ isAdmin = false, accent = "primary", hideHeade
       {/* Header */}
       {!hideHeader && (
         <div className="mb-6">
-          <h1 className="text-2xl font-black tracking-tight text-[#181112] dark:text-white">Payment History</h1>
+          <h1 className="text-2xl font-black tracking-tight text-charcoal dark:text-white">Payment History</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-white/50">
             {isAdmin ? "All payments across all accounts." : "Your transaction receipts and payment history."}
           </p>
@@ -386,7 +386,7 @@ export function ReceiptListPage({ isAdmin = false, accent = "primary", hideHeade
         <select
           value={kindFilter}
           onChange={(e) => { setKindFilter(e.target.value); setPage(1); }}
-          className="w-full rounded-lg border border-slate-200 bg-background-light px-4 py-2 text-sm text-[#181112] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white sm:ml-auto sm:w-auto"
+          className="w-full rounded-lg border border-slate-200 bg-background-light px-4 py-2 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white sm:ml-auto sm:w-auto"
         >
           <option value="">All Types</option>
           {Object.entries(KIND_LABELS).map(([k, v]) => (
@@ -467,11 +467,11 @@ export function ReceiptListPage({ isAdmin = false, accent = "primary", hideHeade
                       </td>
                       {isAdmin && (
                         <td className="px-6 py-4">
-                          <p className="font-bold text-[#181112] dark:text-white">{receipt.user.name || receipt.user.email}</p>
+                          <p className="font-bold text-charcoal dark:text-white">{receipt.user.name || receipt.user.email}</p>
                           <p className="text-xs text-slate-500 dark:text-white/50">{receipt.user.regType}</p>
                         </td>
                       )}
-                      <td className="px-6 py-4 text-right font-bold text-[#181112] dark:text-white">
+                      <td className="px-6 py-4 text-right font-bold text-charcoal dark:text-white">
                         {formatKoboToNaira(receipt.totalAmountKobo)}
                       </td>
                       <td className="px-6 py-4 text-slate-500 dark:text-white/70">

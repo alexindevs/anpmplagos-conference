@@ -120,7 +120,7 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-[80%] md:max-w-[50%] flex flex-col overflow-hidden max-h-[min(90vh,720px)]">
         <div className="flex items-center justify-between p-6 border-b border-secondary/20 shrink-0">
-          <h2 className="text-xl font-black text-[#181112]">
+          <h2 className="text-xl font-black text-charcoal">
             {product ? "Edit product" : "Add product"}
           </h2>
           <button
@@ -170,7 +170,7 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold text-[#181112] transition-colors hover:border-secondary hover:text-secondary"
+                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold text-charcoal transition-colors hover:border-secondary hover:text-secondary"
               >
                 {imageFile || existingImageUrl ? "Change image" : "Upload image"}
               </button>

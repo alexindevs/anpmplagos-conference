@@ -43,7 +43,7 @@ export default function ElectionsOverviewPage() {
 
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-[#181112] dark:text-white">
+          <h1 className="text-2xl font-bold text-charcoal dark:text-white">
             Elections
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-white/50">
@@ -69,7 +69,7 @@ export default function ElectionsOverviewPage() {
                 >
                   how_to_vote
                 </span>
-                <h2 className="text-lg font-bold text-[#181112] dark:text-white">
+                <h2 className="text-lg font-bold text-charcoal dark:text-white">
                   Voting is{" "}
                   <span
                     className={isActive ? "text-green-600" : "text-slate-400"}
@@ -144,7 +144,7 @@ export default function ElectionsOverviewPage() {
               <span className="material-symbols-outlined text-[24px] text-primary">
                 {stat.icon}
               </span>
-              <p className="mt-2 text-2xl font-bold text-[#181112] dark:text-white">
+              <p className="mt-2 text-2xl font-bold text-charcoal dark:text-white">
                 {stat.value}
               </p>
               <p className="text-xs text-slate-500 dark:text-white/50">
@@ -164,7 +164,7 @@ export default function ElectionsOverviewPage() {
               list_alt
             </span>
             <div>
-              <p className="font-bold text-[#181112] dark:text-white">
+              <p className="font-bold text-charcoal dark:text-white">
                 Positions & Candidates
               </p>
               <p className="text-xs text-slate-500 dark:text-white/50">
@@ -181,7 +181,7 @@ export default function ElectionsOverviewPage() {
               bar_chart
             </span>
             <div>
-              <p className="font-bold text-[#181112] dark:text-white">
+              <p className="font-bold text-charcoal dark:text-white">
                 Live Results
               </p>
               <p className="text-xs text-slate-500 dark:text-white/50">
@@ -198,7 +198,7 @@ export default function ElectionsOverviewPage() {
               fact_check
             </span>
             <div>
-              <p className="font-bold text-[#181112] dark:text-white">
+              <p className="font-bold text-charcoal dark:text-white">
                 Audit Log
               </p>
               <p className="text-xs text-slate-500 dark:text-white/50">

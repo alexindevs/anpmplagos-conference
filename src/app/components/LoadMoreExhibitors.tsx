@@ -21,7 +21,7 @@ export default function LoadMoreExhibitors() {
             className="size-10 animate-spin rounded-full border-4 border-secondary/30 border-t-secondary"
             aria-hidden
           />
-          <span className="text-sm font-medium text-[#181112]">
+          <span className="text-sm font-medium text-charcoal">
             Loading...
           </span>
         </div>

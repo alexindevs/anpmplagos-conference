@@ -70,14 +70,14 @@ export function ResponsivePortalShell({
         <button
           type="button"
           onClick={() => setNavOpen((o) => !o)}
-          className="flex size-10 shrink-0 items-center justify-center rounded-lg text-[#181112] transition-colors hover:bg-slate-100"
+          className="flex size-10 shrink-0 items-center justify-center rounded-lg text-charcoal transition-colors hover:bg-slate-100"
           aria-expanded={navOpen}
           aria-controls={navId}
           aria-label={navOpen ? "Close menu" : "Open menu"}
         >
           <span className="material-symbols-outlined text-[28px]">{navOpen ? "close" : "menu"}</span>
         </button>
-        <span className="min-w-0 truncate text-sm font-bold text-[#181112]">{mobileTitle}</span>
+        <span className="min-w-0 truncate text-sm font-bold text-charcoal">{mobileTitle}</span>
       </div>
 
       {navOpen ? (

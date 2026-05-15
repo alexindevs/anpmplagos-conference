@@ -72,7 +72,7 @@ export function ShopPageClient() {
     <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between border-l-4 border-secondary pl-4">
         <div>
-          <h1 className="text-2xl font-black text-[#181112]">Sponsorship &amp; catalog</h1>
+          <h1 className="text-2xl font-black text-charcoal">Sponsorship &amp; catalog</h1>
           <p className="text-sm text-slate-600 mt-2">
             Sponsorship bundles, booths, marketing slots, and sessions — add items to your cart and pay once.
           </p>

@@ -53,7 +53,7 @@ function CatalogCard({
 }) {
   return (
     <div className="flex flex-col rounded-xl border border-secondary/20 border-t-2 border-t-secondary/60 bg-white p-5 shadow-sm">
-      <h4 className="font-bold text-[#181112] line-clamp-2">{slot.title}</h4>
+      <h4 className="font-bold text-charcoal line-clamp-2">{slot.title}</h4>
       <p className="text-lg font-black text-primary mt-2">{formatKoboToNaira(slot.priceInKobo)}</p>
       {slot.description?.trim() ? (
         <p className="text-sm text-slate-600 mt-2 line-clamp-4 whitespace-pre-wrap">{slot.description}</p>
@@ -197,7 +197,7 @@ export function CompanySessionSlotsPage({
     (meQuery.isError && meQuery.error instanceof Error ? meQuery.error.message : null);
 
   const shellClass = embedded ? "space-y-8" : "flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8";
-  const titleClass = embedded ? "text-xl font-black text-[#181112]" : "text-2xl font-black text-[#181112]";
+  const titleClass = embedded ? "text-xl font-black text-charcoal" : "text-2xl font-black text-charcoal";
   const kindNoun = sessionKind === "masterclass" ? "masterclass" : "presentation";
   const yourSlotsHeading = embedded ? `Your ${kindNoun} slots` : "Your bookings";
   const availSlotsHeading = embedded ? `Available ${kindNoun} slots` : "Available to purchase";
@@ -211,7 +211,7 @@ export function CompanySessionSlotsPage({
         className={
           embedded
             ? "text-sm font-bold uppercase tracking-wider text-slate-500 mb-3"
-            : "text-lg font-black text-[#181112] mb-1"
+            : "text-lg font-black text-charcoal mb-1"
         }
       >
         {yourSlotsHeading}
@@ -251,7 +251,7 @@ export function CompanySessionSlotsPage({
             <tbody>
               {owned.map((row) => (
                 <tr key={row.id} className="border-b border-slate-100 last:border-0">
-                  <td className="py-2.5 px-3 font-semibold text-[#181112]">{row.title}</td>
+                  <td className="py-2.5 px-3 font-semibold text-charcoal">{row.title}</td>
                   <td className="py-2.5 px-3 text-right font-bold text-primary whitespace-nowrap">
                     {formatKoboToNaira(row.priceInKobo)}
                   </td>
@@ -271,7 +271,7 @@ export function CompanySessionSlotsPage({
           className={
             embedded
               ? "text-sm font-bold uppercase tracking-wider text-slate-500 mb-3"
-              : "text-lg font-black text-[#181112] mb-1"
+              : "text-lg font-black text-charcoal mb-1"
           }
         >
           Incomplete payment
@@ -288,7 +288,7 @@ export function CompanySessionSlotsPage({
               className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200/80 bg-amber-50/50 px-4 py-3"
             >
               <div>
-                <p className="text-sm font-semibold text-[#181112]">Awaiting payment</p>
+                <p className="text-sm font-semibold text-charcoal">Awaiting payment</p>
                 <p className="text-sm text-primary font-bold">{formatKoboToNaira(p.amount || p.baseAmount)}</p>
               </div>
               <button
@@ -311,7 +311,7 @@ export function CompanySessionSlotsPage({
         className={
           embedded
             ? "text-sm font-bold uppercase tracking-wider text-slate-500 mb-3"
-            : "text-lg font-black text-[#181112] mb-1"
+            : "text-lg font-black text-charcoal mb-1"
         }
       >
         {availSlotsHeading}
@@ -385,7 +385,7 @@ export function CompanySessionSlotsPage({
     <>
       {embedded ? (
         <div>
-          <h2 className="text-xl font-black text-[#181112] flex items-center gap-2">
+          <h2 className="text-xl font-black text-charcoal flex items-center gap-2">
             <span className="material-symbols-outlined text-secondary">{icon}</span>
             {heading}
           </h2>

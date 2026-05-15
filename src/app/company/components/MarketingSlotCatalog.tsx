@@ -28,7 +28,7 @@ export function MarketingCatalogCard({
         )}
       </div>
       <div className="p-4 flex flex-col flex-1">
-        <h4 className="font-bold text-[#181112] line-clamp-2">{slot.title}</h4>
+        <h4 className="font-bold text-charcoal line-clamp-2">{slot.title}</h4>
         <p className="text-lg font-black text-primary mt-2">{formatKoboToNaira(slot.price)}</p>
         {slot.description?.trim() ? (
           <p className="text-xs text-slate-600 mt-2 line-clamp-3">{slot.description}</p>
@@ -88,7 +88,7 @@ export function MarketingMySlotsTable({ rows, emptyLabel }: { rows: CompanyMarke
                     <div className="size-10 rounded bg-slate-100" />
                   )}
                 </td>
-                <td className="py-2.5 px-3 font-semibold text-[#181112]">{slot.title}</td>
+                <td className="py-2.5 px-3 font-semibold text-charcoal">{slot.title}</td>
                 <td className="py-2.5 px-3 text-right font-bold text-primary whitespace-nowrap">
                   {formatKoboToNaira(slot.price)}
                 </td>

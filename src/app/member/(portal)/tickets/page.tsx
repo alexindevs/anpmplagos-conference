@@ -134,7 +134,7 @@ export default function MemberTicketsPage() {
     <MemberPortalShell userId={userId} fullName={fullName}>
       <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <div className="mb-6 border-l-4 border-primary pl-4">
-          <h1 className="text-xl font-black text-[#181112] sm:text-2xl">My Conference Ticket</h1>
+          <h1 className="text-xl font-black text-charcoal sm:text-2xl">My Conference Ticket</h1>
           <p className="text-sm text-slate-500 mt-1">View and manage your conference registration</p>
         </div>
 
@@ -145,7 +145,7 @@ export default function MemberTicketsPage() {
             {isPaid && eligibilityError ? (
               <div className="rounded-xl border border-red-200 bg-white p-8 text-center">
                 <span className="material-symbols-outlined text-4xl text-red-300 mb-4">error</span>
-                <h2 className="text-xl font-black text-[#181112] mb-2">Couldn&apos;t verify ticket access</h2>
+                <h2 className="text-xl font-black text-charcoal mb-2">Couldn&apos;t verify ticket access</h2>
                 <p className="text-slate-500 mb-4">
                   Something went wrong while checking your pass eligibility. Please try again or contact support.
                 </p>
@@ -160,7 +160,7 @@ export default function MemberTicketsPage() {
             ) : isPaid && !canAccessPasses ? (
               <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-8 text-center">
                 <span className="material-symbols-outlined text-4xl text-amber-500 mb-4">lock</span>
-                <h2 className="text-xl font-black text-[#181112] mb-2">Tickets not available</h2>
+                <h2 className="text-xl font-black text-charcoal mb-2">Tickets not available</h2>
                 <p className="text-slate-600 mb-4 mx-auto">
                   Your account isn&apos;t eligible for conference passes right now. If you believe this is a mistake, please contact support.
                 </p>
@@ -180,7 +180,7 @@ export default function MemberTicketsPage() {
                   </div>
                 </div>
 
-                <h2 className="text-2xl font-black text-center text-[#181112] mb-2">
+                <h2 className="text-2xl font-black text-center text-charcoal mb-2">
                   ANPMP Lagos Conference 2026
                 </h2>
                 <p className="text-center text-slate-500 mb-6">Official Conference Ticket</p>
@@ -189,11 +189,11 @@ export default function MemberTicketsPage() {
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Attendee</p>
-                      <p className="mt-1 text-lg font-bold text-[#181112]">{profile?.fullName}</p>
+                      <p className="mt-1 text-lg font-bold text-charcoal">{profile?.fullName}</p>
                     </div>
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Registration Type</p>
-                      <p className="mt-1 text-lg font-bold text-[#181112]">
+                      <p className="mt-1 text-lg font-bold text-charcoal">
                         {isMember ? "ANPMP Member" : "Non-Member"}
                       </p>
                     </div>
@@ -232,7 +232,7 @@ export default function MemberTicketsPage() {
 
                 <div className="space-y-6">
                   <div className="border-t border-slate-200 pt-6">
-                    <h3 className="text-lg font-black text-[#181112] mb-4 flex items-center gap-2">
+                    <h3 className="text-lg font-black text-charcoal mb-4 flex items-center gap-2">
                       <span className="material-symbols-outlined text-fresh-green">qr_code_2</span>
                       Download Your Tickets
                     </h3>
@@ -293,7 +293,7 @@ export default function MemberTicketsPage() {
                   </div>
                 </div>
 
-                <h2 className="text-2xl font-black text-center text-[#181112] mb-2">
+                <h2 className="text-2xl font-black text-center text-charcoal mb-2">
                   Payment Pending
                 </h2>
                 <p className="text-center text-slate-500 mb-6">
@@ -306,7 +306,7 @@ export default function MemberTicketsPage() {
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Attendee</p>
-                      <p className="mt-1 text-lg font-bold text-[#181112]">{profile?.fullName}</p>
+                      <p className="mt-1 text-lg font-bold text-charcoal">{profile?.fullName}</p>
                     </div>
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Amount Due</p>
@@ -349,7 +349,7 @@ export default function MemberTicketsPage() {
             ) : (
               <div className="rounded-xl border border-slate-200 bg-white p-8 text-center">
                 <span className="material-symbols-outlined text-4xl text-slate-300 mb-4">help</span>
-                <h2 className="text-xl font-black text-[#181112] mb-2">Registration Status Unknown</h2>
+                <h2 className="text-xl font-black text-charcoal mb-2">Registration Status Unknown</h2>
                 <p className="text-slate-500 mb-4">
                   We couldn&apos;t determine your registration status. Please contact support for assistance.
                 </p>

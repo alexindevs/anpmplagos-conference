@@ -101,7 +101,7 @@ export function BrandingTab() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="flex items-center gap-2 text-xl font-black text-[#181112]">
+        <h2 className="flex items-center gap-2 text-xl font-black text-charcoal">
           <span className="material-symbols-outlined text-secondary">palette</span>
           Branding slots
         </h2>

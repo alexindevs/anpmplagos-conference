@@ -76,7 +76,7 @@ export default function MemberElectionsPage() {
         <div className="w-full space-y-8">
           {/* Header */}
           <div>
-            <h1 className="text-2xl font-bold text-[#181112] dark:text-white">
+            <h1 className="text-2xl font-bold text-charcoal dark:text-white">
               Elections
             </h1>
             <p className="mt-1 text-sm text-slate-500 dark:text-white/50">
@@ -141,7 +141,7 @@ export default function MemberElectionsPage() {
                         {/* Position header */}
                         <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                           <div>
-                            <h2 className="text-lg font-bold text-[#181112] dark:text-white">
+                            <h2 className="text-lg font-bold text-charcoal dark:text-white">
                               {pos.title}
                             </h2>
                             {pos.description && (
@@ -204,7 +204,7 @@ export default function MemberElectionsPage() {
                                   </div>
 
                                   <div className="min-w-0 flex-1">
-                                    <p className="font-bold text-[#181112] dark:text-white">
+                                    <p className="font-bold text-charcoal dark:text-white">
                                       {c.name}
                                     </p>
                                     {c.bio && (
@@ -262,11 +262,11 @@ export default function MemberElectionsPage() {
               {positions && positions.length > 0 && myVotes !== undefined && (
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
                   <p className="text-sm font-semibold text-slate-600 dark:text-white/60">
-                    <span className="font-bold text-[#181112] dark:text-white">
+                    <span className="font-bold text-charcoal dark:text-white">
                       {votedMap.size}
                     </span>{" "}
                     of{" "}
-                    <span className="font-bold text-[#181112] dark:text-white">
+                    <span className="font-bold text-charcoal dark:text-white">
                       {positions.length}
                     </span>{" "}
                     position{positions.length !== 1 ? "s" : ""} voted

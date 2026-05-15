@@ -47,7 +47,7 @@ function CompanySessionsPaymentCallbackContent() {
       <main className="flex flex-1 justify-center items-center py-16 px-4">
         <div className=" w-full max-w-[80%] md:max-w-[50%] text-center">
           <span className="material-symbols-outlined text-6xl text-red-600 mb-4">error</span>
-          <h1 className="text-3xl font-black text-[#181112] mb-4">Invalid payment link</h1>
+          <h1 className="text-3xl font-black text-charcoal mb-4">Invalid payment link</h1>
           <p className="text-gray-600 mb-6">This link is missing payment details.</p>
           <Link
             href="/company/dashboard"
@@ -67,7 +67,7 @@ function CompanySessionsPaymentCallbackContent() {
           <div className="mb-6 flex justify-center">
             <div className="size-16 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
           </div>
-          <h1 className="text-3xl font-black text-[#181112] mb-4">Confirming payment</h1>
+          <h1 className="text-3xl font-black text-charcoal mb-4">Confirming payment</h1>
           <p className="text-gray-600">Please wait while we confirm your booking…</p>
         </div>
       </main>
@@ -79,7 +79,7 @@ function CompanySessionsPaymentCallbackContent() {
       <main className="flex flex-1 justify-center items-center py-16 px-4">
         <div className=" w-full max-w-[80%] md:max-w-[50%] text-center">
           <span className="material-symbols-outlined text-6xl text-red-600 mb-4">error</span>
-          <h1 className="text-3xl font-black text-[#181112] mb-4">Could not confirm payment</h1>
+          <h1 className="text-3xl font-black text-charcoal mb-4">Could not confirm payment</h1>
           <p className="text-gray-600 mb-6">
             {error instanceof Error ? error.message : "Something went wrong. You can return to your portal and try again."}
           </p>
@@ -126,7 +126,7 @@ function CompanySessionsPaymentCallbackContent() {
             )}
           </div>
 
-          <h1 className="text-3xl font-black text-center text-[#181112] mb-3">
+          <h1 className="text-3xl font-black text-center text-charcoal mb-3">
             {isSuccess && "Payment successful"}
             {isFailed && "Payment failed"}
             {isRefunded && "Payment refunded"}
@@ -165,13 +165,13 @@ function CompanySessionsPaymentCallbackContent() {
                 </Link>
                 <Link
                   href="/company/sponsorship-plans?tab=presentations"
-                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-6 py-3 text-[#181112] font-bold hover:bg-slate-50 transition-colors"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-6 py-3 text-charcoal font-bold hover:bg-slate-50 transition-colors"
                 >
                   Presentations
                 </Link>
                 <Link
                   href="/company/sponsorship-plans?tab=bundles"
-                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-6 py-3 text-[#181112] font-bold hover:bg-slate-50 transition-colors"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-6 py-3 text-charcoal font-bold hover:bg-slate-50 transition-colors"
                 >
                   Sponsorship &amp; catalog
                 </Link>
@@ -208,7 +208,7 @@ function Fallback() {
         <div className="mb-6 flex justify-center">
           <div className="size-16 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
         </div>
-        <h1 className="text-3xl font-black text-[#181112] mb-4">Loading</h1>
+        <h1 className="text-3xl font-black text-charcoal mb-4">Loading</h1>
         <p className="text-gray-600">Preparing confirmation…</p>
       </div>
     </main>

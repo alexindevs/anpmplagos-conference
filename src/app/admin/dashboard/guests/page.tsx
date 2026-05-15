@@ -248,7 +248,7 @@ export default function AdminGuestsPage() {
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-background-light/95 px-4 py-5 backdrop-blur dark:border-border-dark dark:bg-background-dark/95 sm:px-6 sm:py-6 lg:px-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-black tracking-tight text-[#181112] dark:text-white">Guests</h2>
+            <h2 className="text-2xl font-black tracking-tight text-charcoal dark:text-white">Guests</h2>
             <p className="text-sm text-slate-500 dark:text-white/50">
               Manage conference speakers and special guests. No self-registration — profiles are
               curated here.
@@ -278,7 +278,7 @@ export default function AdminGuestsPage() {
             className={`border-b-2 px-4 py-3 text-sm font-bold transition-colors ${
               tab === "speakers"
                 ? "border-primary text-primary"
-                : "border-transparent text-slate-500 hover:text-[#181112] dark:text-white/50 dark:hover:text-white"
+                : "border-transparent text-slate-500 hover:text-charcoal dark:text-white/50 dark:hover:text-white"
             }`}
           >
             Speakers ({speakers.length})
@@ -294,7 +294,7 @@ export default function AdminGuestsPage() {
             className={`border-b-2 px-4 py-3 text-sm font-bold transition-colors ${
               tab === "guests"
                 ? "border-primary text-primary"
-                : "border-transparent text-slate-500 hover:text-[#181112] dark:text-white/50 dark:hover:text-white"
+                : "border-transparent text-slate-500 hover:text-charcoal dark:text-white/50 dark:hover:text-white"
             }`}
           >
             Special guests ({guests.length})
@@ -312,7 +312,7 @@ export default function AdminGuestsPage() {
             onSubmit={submitCreate}
             className="mb-10 rounded-xl border border-primary/5 bg-white p-6 shadow-sm dark:border-border-dark dark:bg-background-dark-soft"
           >
-            <h3 className="mb-4 text-lg font-bold text-[#181112] dark:text-white">
+            <h3 className="mb-4 text-lg font-bold text-charcoal dark:text-white">
               New {tab === "speakers" ? "speaker" : "special guest"}
             </h3>
             <ProfileFormFields
@@ -353,7 +353,7 @@ export default function AdminGuestsPage() {
             onSubmit={submitPatch}
             className="mb-10 rounded-xl border border-primary/5 bg-white p-6 shadow-sm dark:border-border-dark dark:bg-background-dark-soft"
           >
-            <h3 className="mb-4 text-lg font-bold text-[#181112] dark:text-white">Edit {editing.name}</h3>
+            <h3 className="mb-4 text-lg font-bold text-charcoal dark:text-white">Edit {editing.name}</h3>
             <ProfileFormFields
               form={form}
               setForm={setForm}
@@ -395,7 +395,7 @@ export default function AdminGuestsPage() {
 
         <div className="rounded-xl border border-primary/5 bg-white shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
           <div className="border-b border-slate-100 px-4 py-3 dark:border-border-dark sm:px-6">
-            <h3 className="text-sm font-bold text-[#181112] dark:text-white">
+            <h3 className="text-sm font-bold text-charcoal dark:text-white">
               {tab === "speakers" ? "Speakers" : "Special guests"}
             </h3>
           </div>
@@ -418,7 +418,7 @@ export default function AdminGuestsPage() {
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-bold text-[#181112] dark:text-white">{p.name}</p>
+                      <p className="font-bold text-charcoal dark:text-white">{p.name}</p>
                       <p className="text-sm text-slate-600 dark:text-white/60">{p.role}</p>
                       <p className="text-xs text-slate-500 dark:text-white/50">
                         {p.highlightType} · slug: {p.slug}
@@ -499,7 +499,7 @@ function ProfileFormFields({
   existingImageUrl: string | null;
 }) {
   const field =
-    "w-full rounded-lg border border-slate-200 bg-background-light px-3 py-2 text-sm text-[#181112] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white";
+    "w-full rounded-lg border border-slate-200 bg-background-light px-3 py-2 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white";
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

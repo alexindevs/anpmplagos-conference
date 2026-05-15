@@ -113,7 +113,7 @@ export function AdminPortalShell({ children }: { children: React.ReactNode }) {
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background-light dark:bg-background-dark">
-        <p className="text-[#181112]/60 dark:text-white/60">Loading...</p>
+        <p className="text-charcoal/60 dark:text-white/60">Loading...</p>
       </div>
     );
   }
@@ -121,7 +121,7 @@ export function AdminPortalShell({ children }: { children: React.ReactNode }) {
   if (!authorized) {
     return (
       <div className="flex h-screen items-center justify-center bg-background-light dark:bg-background-dark">
-        <p className="text-[#181112]/60 dark:text-white/60">Redirecting…</p>
+        <p className="text-charcoal/60 dark:text-white/60">Redirecting…</p>
       </div>
     );
   }
@@ -138,14 +138,14 @@ export function AdminPortalShell({ children }: { children: React.ReactNode }) {
         <button
           type="button"
           onClick={() => setNavOpen((o) => !o)}
-          className="flex size-10 shrink-0 items-center justify-center rounded-lg text-[#181112] transition-colors hover:bg-slate-100 dark:text-white dark:hover:bg-white/10"
+          className="flex size-10 shrink-0 items-center justify-center rounded-lg text-charcoal transition-colors hover:bg-slate-100 dark:text-white dark:hover:bg-white/10"
           aria-expanded={navOpen}
           aria-controls={sidebarId}
           aria-label={navOpen ? "Close menu" : "Open menu"}
         >
           <span className="material-symbols-outlined text-[28px]">{navOpen ? "close" : "menu"}</span>
         </button>
-        <span className="min-w-0 truncate text-sm font-bold text-[#181112] dark:text-white">Admin</span>
+        <span className="min-w-0 truncate text-sm font-bold text-charcoal dark:text-white">Admin</span>
       </div>
 
       {navOpen && !mdUp ? (

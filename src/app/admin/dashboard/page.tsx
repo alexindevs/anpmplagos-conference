@@ -128,7 +128,7 @@ function StatCard({
         {sub && <span className="text-sm font-medium text-slate-400 dark:text-white/40">{sub}</span>}
       </div>
       <p className="text-sm font-medium text-slate-500 dark:text-white/50">{label}</p>
-      <h3 className="text-2xl font-bold text-[#181112] dark:text-white">{value}</h3>
+      <h3 className="text-2xl font-bold text-charcoal dark:text-white">{value}</h3>
     </div>
   );
 }
@@ -192,7 +192,7 @@ export default function AdminDashboardPage() {
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-background-light/95 px-4 py-5 backdrop-blur dark:border-border-dark dark:bg-background-dark/95 sm:px-6 sm:py-6 lg:px-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-2xl font-black tracking-tight text-[#181112] dark:text-white sm:text-3xl">
+            <h2 className="text-2xl font-black tracking-tight text-charcoal dark:text-white sm:text-3xl">
               Conference Overview
             </h2>
             <p className="text-slate-500 dark:text-white/50">Overview of the exhibition floor and recent registrations.</p>
@@ -231,7 +231,7 @@ export default function AdminDashboardPage() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
             <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-              <h3 className="text-lg font-bold text-[#181112] dark:text-white">Booth floor plan</h3>
+              <h3 className="text-lg font-bold text-charcoal dark:text-white">Booth floor plan</h3>
               <div className="flex flex-wrap gap-4 text-xs font-semibold">
                 <div className="flex items-center gap-2">
                   <span className="size-3 rounded-sm bg-secondary" />
@@ -302,7 +302,7 @@ export default function AdminDashboardPage() {
                               : "add_circle"}
                         </span>
                         {state === "occupied" && hover ? (
-                          <div className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 hidden w-max max-w-[min(220px,calc(100vw-2rem))] -translate-x-1/2 rounded-lg bg-[#181112] px-2.5 py-1.5 text-center text-[10px] font-medium leading-snug text-white shadow-lg group-hover:block dark:bg-white dark:text-[#181112]">
+                          <div className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 hidden w-max max-w-[min(220px,calc(100vw-2rem))] -translate-x-1/2 rounded-lg bg-[#181112] px-2.5 py-1.5 text-center text-[10px] font-medium leading-snug text-white shadow-lg group-hover:block dark:bg-white dark:text-charcoal">
                             {hover}
                           </div>
                         ) : null}
@@ -315,7 +315,7 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="flex flex-col rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
-            <h3 className="mb-6 text-lg font-bold text-[#181112] dark:text-white">Recent Registrations</h3>
+            <h3 className="mb-6 text-lg font-bold text-charcoal dark:text-white">Recent Registrations</h3>
             <div className="flex-1 space-y-6">
               {isPending ? (
                 <p className="text-sm text-slate-500 dark:text-white/50">Loading…</p>
@@ -344,7 +344,7 @@ export default function AdminDashboardPage() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold text-[#181112] dark:text-white">{r.name}</p>
+                      <p className="text-sm font-bold text-charcoal dark:text-white">{r.name}</p>
                       <p className="text-xs text-slate-500 dark:text-white/50">
                         {r.regTypeLabel} • {formatRelativeTime(r.createdAt)}
                       </p>

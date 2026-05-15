@@ -60,7 +60,7 @@ export function AddRoomSlotsModal({ open, onClose, isSubmitting, onSubmit }: Add
         className=" w-full max-w-[80%] md:max-w-[50%] rounded-xl border border-slate-200 bg-white shadow-xl dark:border-border-dark dark:bg-background-dark-soft"
       >
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-border-dark">
-          <h3 id="add-room-slots-title" className="text-lg font-bold text-[#181112] dark:text-white">
+          <h3 id="add-room-slots-title" className="text-lg font-bold text-charcoal dark:text-white">
             Add hotel room slots
           </h3>
           <button
@@ -88,7 +88,7 @@ export function AddRoomSlotsModal({ open, onClose, isSubmitting, onSubmit }: Add
               type="text"
               required
               defaultValue="Welcome Hotel"
-              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-[#181112] outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-charcoal outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
             />
           </div>
           <div>
@@ -104,7 +104,7 @@ export function AddRoomSlotsModal({ open, onClose, isSubmitting, onSubmit }: Add
               type="text"
               required
               placeholder="e.g. Standard Double, Deluxe Suite"
-              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-[#181112] outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-charcoal outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
             />
           </div>
           <div>
@@ -121,7 +121,7 @@ export function AddRoomSlotsModal({ open, onClose, isSubmitting, onSubmit }: Add
               min={1}
               required
               defaultValue={1}
-              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-[#181112] outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-charcoal outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
             />
           </div>
           <div>
@@ -137,7 +137,7 @@ export function AddRoomSlotsModal({ open, onClose, isSubmitting, onSubmit }: Add
               type="text"
               required
               placeholder="e.g. 120000"
-              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-[#181112] outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-charcoal outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
             />
           </div>
           <div>
@@ -152,7 +152,7 @@ export function AddRoomSlotsModal({ open, onClose, isSubmitting, onSubmit }: Add
               name="notes"
               rows={2}
               placeholder="e.g. Partner hotel – Lagos Grande"
-              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-[#181112] outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-charcoal outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
             />
           </div>
           <div className="flex gap-3 pt-2">

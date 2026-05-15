@@ -101,7 +101,7 @@ export function AdvertsTab() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-xl font-black text-[#181112] flex items-center gap-2">
+        <h2 className="text-xl font-black text-charcoal flex items-center gap-2">
           <span className="material-symbols-outlined text-secondary">ads_click</span>
           Advert slots
         </h2>

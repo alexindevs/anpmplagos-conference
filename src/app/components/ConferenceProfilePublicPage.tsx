@@ -67,10 +67,10 @@ export default function ConferenceProfilePublicPage({
               </div>
               <div className="min-w-0 flex-1 text-center md:text-left">
                 <p className="text-sm font-medium uppercase tracking-wide text-primary">{roleLabel}</p>
-                <h1 className="mt-1 text-3xl font-black tracking-tight text-[#181112] md:text-4xl">
+                <h1 className="mt-1 text-3xl font-black tracking-tight text-charcoal md:text-4xl">
                   {profile.name}
                 </h1>
-                <p className="mt-2 text-lg font-medium text-[#181112]">{profile.role}</p>
+                <p className="mt-2 text-lg font-medium text-charcoal">{profile.role}</p>
                 {profile.qualifications?.trim() ? (
                   <p className="mt-1 text-sm text-[#896165]">{profile.qualifications}</p>
                 ) : null}
@@ -96,7 +96,7 @@ export default function ConferenceProfilePublicPage({
                         href={s.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 rounded-lg border border-[#e6dbdc] bg-white px-4 py-2 text-sm font-semibold text-[#181112] shadow-sm transition-colors hover:bg-gray-50"
+                        className="inline-flex items-center gap-2 rounded-lg border border-[#e6dbdc] bg-white px-4 py-2 text-sm font-semibold text-charcoal shadow-sm transition-colors hover:bg-gray-50"
                       >
                         <span className="material-symbols-outlined text-[20px]">{s.icon}</span>
                         {s.label}
@@ -113,7 +113,7 @@ export default function ConferenceProfilePublicPage({
       {paragraphs.length > 0 ? (
         <section className="flex flex-1 justify-center bg-white px-4 py-12 md:px-40">
           <div className="w-full max-w-[720px]">
-            <h2 className="mb-6 text-xl font-bold text-[#181112]">About</h2>
+            <h2 className="mb-6 text-xl font-bold text-charcoal">About</h2>
             <div className="space-y-4 text-base leading-relaxed text-[#5c4a4c]">
               {paragraphs.map((p, i) => (
                 <p key={i}>{p}</p>

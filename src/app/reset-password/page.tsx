@@ -212,7 +212,7 @@ function ResetPasswordContent() {
                     minLength={8}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-[#181112] placeholder:text-slate-400 outline-none transition-colors focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                    className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-charcoal placeholder:text-slate-400 outline-none transition-colors focus:border-secondary focus:ring-2 focus:ring-secondary/20"
                     placeholder="At least 8 characters"
                   />
                 </div>
@@ -231,7 +231,7 @@ function ResetPasswordContent() {
                     required
                     value={confirm}
                     onChange={(e) => setConfirm(e.target.value)}
-                    className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-[#181112] placeholder:text-slate-400 outline-none transition-colors focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                    className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-charcoal placeholder:text-slate-400 outline-none transition-colors focus:border-secondary focus:ring-2 focus:ring-secondary/20"
                     placeholder="••••••••"
                   />
                 </div>

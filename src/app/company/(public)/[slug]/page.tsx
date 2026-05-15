@@ -110,7 +110,7 @@ export default async function PublicCompanyProfilePage({
         <div className="flex flex-col items-start gap-6 px-6 pb-6 pt-6 sm:flex-row sm:items-start sm:px-10">
           <div className="mb-2 flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <h1 className="text-2xl font-bold tracking-tight text-[#181112] sm:text-3xl">
+              <h1 className="text-2xl font-bold tracking-tight text-charcoal sm:text-3xl">
                 {exhibitor.companyName}
               </h1>
               <span className="inline-flex w-fit items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
@@ -136,11 +136,11 @@ export default async function PublicCompanyProfilePage({
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="flex flex-col gap-10 lg:col-span-2">
           <section className="rounded-xl border border-[#e6e0e0] bg-white p-6 shadow-sm sm:p-8">
-            <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-[#181112]">
+            <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-charcoal">
               <span className="material-symbols-outlined text-primary">info</span>
               About us
             </h2>
-            <div className="max-w-none leading-relaxed text-[#181112]">
+            <div className="max-w-none leading-relaxed text-charcoal">
               {paragraphs.map((p, i) => (
                 <p key={i} className="mb-4 last:mb-0">
                   {p}
@@ -151,7 +151,7 @@ export default async function PublicCompanyProfilePage({
 
           <section>
             <div className="mb-6">
-              <h2 className="flex items-center gap-2 text-xl font-bold text-[#181112]">
+              <h2 className="flex items-center gap-2 text-xl font-bold text-charcoal">
                 <span className="material-symbols-outlined text-primary">grid_view</span>
                 Products &amp; services
               </h2>
@@ -177,7 +177,7 @@ export default async function PublicCompanyProfilePage({
                       </div>
                     )}
                     <div className="flex flex-1 flex-col p-5">
-                      <h3 className="mb-2 text-lg font-bold text-[#181112]">{product.name}</h3>
+                      <h3 className="mb-2 text-lg font-bold text-charcoal">{product.name}</h3>
                       {product.description?.trim() ? (
                         <p className="mb-4 flex-1 text-sm text-[#896165]">{product.description}</p>
                       ) : (
@@ -207,7 +207,7 @@ export default async function PublicCompanyProfilePage({
 
         <aside className="flex flex-col gap-6">
           <div className="rounded-xl border border-[#e6e0e0] bg-white p-6 shadow-sm lg:sticky lg:top-24">
-            <h3 className="mb-4 text-lg font-bold text-[#181112]">Contact information</h3>
+            <h3 className="mb-4 text-lg font-bold text-charcoal">Contact information</h3>
             <div className="mb-6 space-y-4">
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 rounded-md bg-[#f4f0f0] p-1.5 text-[#896165]">
@@ -215,7 +215,7 @@ export default async function PublicCompanyProfilePage({
                 </div>
                 <div>
                   <p className="text-xs font-semibold uppercase text-[#896165]">Booth</p>
-                  <p className="text-sm font-medium text-[#181112]">{boothLocationLine(exhibitor)}</p>
+                  <p className="text-sm font-medium text-charcoal">{boothLocationLine(exhibitor)}</p>
                   {exhibitor.booth?.description?.trim() ? (
                     <p className="mt-1 text-xs text-[#896165]">{exhibitor.booth.description}</p>
                   ) : null}
@@ -247,7 +247,7 @@ export default async function PublicCompanyProfilePage({
                   <p className="text-xs font-semibold uppercase text-[#896165]">Email</p>
                   <a
                     href={`mailto:${exhibitor.contactEmail}`}
-                    className="text-sm font-medium text-[#181112] hover:text-primary break-all"
+                    className="text-sm font-medium text-charcoal hover:text-primary break-all"
                   >
                     {exhibitor.contactEmail}
                   </a>
@@ -259,7 +259,7 @@ export default async function PublicCompanyProfilePage({
                 </div>
                 <div>
                   <p className="text-xs font-semibold uppercase text-[#896165]">Primary contact</p>
-                  <p className="text-sm font-medium text-[#181112]">{exhibitor.primaryContactName}</p>
+                  <p className="text-sm font-medium text-charcoal">{exhibitor.primaryContactName}</p>
                   {exhibitor.primaryContactPhone?.trim() ? (
                     <a
                       href={`tel:${exhibitor.primaryContactPhone.replace(/\s/g, "")}`}
@@ -273,7 +273,7 @@ export default async function PublicCompanyProfilePage({
             </div>
             <Link
               href="/sponsors"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#e6e0e0] py-2.5 text-sm font-semibold text-[#181112] transition-colors hover:border-primary hover:text-primary"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#e6e0e0] py-2.5 text-sm font-semibold text-charcoal transition-colors hover:border-primary hover:text-primary"
             >
               <span className="material-symbols-outlined text-[18px]">arrow_back</span>
               Back to sponsors
@@ -281,7 +281,7 @@ export default async function PublicCompanyProfilePage({
           </div>
 
           <div className="rounded-xl border border-[#e6e0e0] bg-white p-6 shadow-sm">
-            <h3 className="mb-4 text-lg font-bold text-[#181112]">Booth representatives</h3>
+            <h3 className="mb-4 text-lg font-bold text-charcoal">Booth representatives</h3>
             {(exhibitor.boothReps?.length ?? 0) === 0 ? (
               <p className="text-sm text-[#896165]">No representatives listed.</p>
             ) : (
@@ -292,13 +292,13 @@ export default async function PublicCompanyProfilePage({
                       {repInitials(rep.name)}
                     </div>
                     <div className="min-w-0 flex-1 truncate">
-                      <p className="truncate text-sm font-bold text-[#181112]">{rep.name}</p>
+                      <p className="truncate text-sm font-bold text-charcoal">{rep.name}</p>
                       <p className="truncate text-xs text-[#896165]">{rep.title}</p>
                     </div>
                     {rep.phone?.trim() ? (
                       <a
                         href={`tel:${rep.phone.replace(/\s/g, "")}`}
-                        className="shrink-0 rounded-lg border border-[#e6e0e0] px-3 py-1.5 text-xs font-medium text-[#181112] transition-colors hover:border-primary hover:text-primary"
+                        className="shrink-0 rounded-lg border border-[#e6e0e0] px-3 py-1.5 text-xs font-medium text-charcoal transition-colors hover:border-primary hover:text-primary"
                       >
                         Call
                       </a>

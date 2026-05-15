@@ -47,7 +47,7 @@ export default function MemberDashboardPage() {
     <MemberPortalShell userId={userId} fullName={fullName}>
       <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <div className="mb-6 border-l-4 border-primary pl-4">
-          <h1 className="text-2xl font-black text-[#181112]">Welcome, {fullName}</h1>
+          <h1 className="text-2xl font-black text-charcoal">Welcome, {fullName}</h1>
           <p className="text-sm text-slate-500 mt-1">
             {isMember ? "ANPMP Member" : "Conference Attendee"} · {registration?.user?.email}
           </p>
@@ -63,7 +63,7 @@ export default function MemberDashboardPage() {
             {/* Registration Status */}
             <div className="lg:col-span-2 space-y-6">
               <section className="rounded-xl border border-primary/20 bg-white p-6 shadow-sm">
-                <h2 className="text-lg font-black text-[#181112] mb-4 flex items-center gap-2">
+                <h2 className="text-lg font-black text-charcoal mb-4 flex items-center gap-2">
                   <span className="material-symbols-outlined text-primary">badge</span>
                   Registration Status
                 </h2>
@@ -75,7 +75,7 @@ export default function MemberDashboardPage() {
                     </span>
                   </div>
                   <div>
-                    <p className="font-bold text-[#181112]">
+                    <p className="font-bold text-charcoal">
                       {isPaid ? "Registration Complete" : isPending ? "Payment Pending" : "Processing"}
                     </p>
                     <p className="text-sm text-slate-500">
@@ -101,7 +101,7 @@ export default function MemberDashboardPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                     <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Registration Type</p>
-                    <p className="mt-1 text-lg font-black text-[#181112]">{isMember ? "Member" : "Non-Member"}</p>
+                    <p className="mt-1 text-lg font-black text-charcoal">{isMember ? "Member" : "Non-Member"}</p>
                   </div>
                   <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
                     <p className="text-xs font-bold uppercase tracking-wider text-primary">Ticket Price</p>
@@ -119,7 +119,7 @@ export default function MemberDashboardPage() {
 
               {/* Profile Information */}
               <section className="rounded-xl border border-primary/20 bg-white p-6 shadow-sm">
-                <h2 className="text-lg font-black text-[#181112] mb-4 flex items-center gap-2">
+                <h2 className="text-lg font-black text-charcoal mb-4 flex items-center gap-2">
                   <span className="material-symbols-outlined text-primary">person</span>
                   Profile Information
                 </h2>
@@ -128,44 +128,44 @@ export default function MemberDashboardPage() {
                   {isMember && memberProfile?.title?.trim() ? (
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Title</p>
-                      <p className="mt-1 text-sm font-semibold text-[#181112]">{memberProfile.title.trim()}</p>
+                      <p className="mt-1 text-sm font-semibold text-charcoal">{memberProfile.title.trim()}</p>
                     </div>
                   ) : null}
                   <div>
                     <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Full Name</p>
-                    <p className="mt-1 text-sm font-semibold text-[#181112]">{profile?.fullName || "—"}</p>
+                    <p className="mt-1 text-sm font-semibold text-charcoal">{profile?.fullName || "—"}</p>
                   </div>
                   <div>
                     <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Phone</p>
-                    <p className="mt-1 text-sm font-semibold text-[#181112]">{profile?.phone || "—"}</p>
+                    <p className="mt-1 text-sm font-semibold text-charcoal">{profile?.phone || "—"}</p>
                   </div>
                   <div>
                     <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Email</p>
-                    <p className="mt-1 text-sm font-semibold text-[#181112]">{registration?.user?.email || "—"}</p>
+                    <p className="mt-1 text-sm font-semibold text-charcoal">{registration?.user?.email || "—"}</p>
                   </div>
                   {isMember && memberProfile && (
                     <>
                       <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-slate-500">ANPMP ID</p>
-                        <p className="mt-1 text-sm font-semibold text-[#181112]">{memberProfile.anpmpId || "—"}</p>
+                        <p className="mt-1 text-sm font-semibold text-charcoal">{memberProfile.anpmpId || "—"}</p>
                       </div>
                       <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Specialty</p>
-                        <p className="mt-1 text-sm font-semibold text-[#181112]">{memberProfile.primarySpecialty ? memberProfile.primarySpecialty.charAt(0).toUpperCase() + memberProfile.primarySpecialty.slice(1) : "—"}</p>
+                        <p className="mt-1 text-sm font-semibold text-charcoal">{memberProfile.primarySpecialty ? memberProfile.primarySpecialty.charAt(0).toUpperCase() + memberProfile.primarySpecialty.slice(1) : "—"}</p>
                       </div>
                       <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Organization</p>
-                        <p className="mt-1 text-sm font-semibold text-[#181112]">{memberProfile.hospitalOrg || "—"}</p>
+                        <p className="mt-1 text-sm font-semibold text-charcoal">{memberProfile.hospitalOrg || "—"}</p>
                       </div>
                       <div className="md:col-span-2">
                         <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Organization address</p>
-                        <p className="mt-1 text-sm font-semibold text-[#181112] whitespace-pre-wrap">
+                        <p className="mt-1 text-sm font-semibold text-charcoal whitespace-pre-wrap">
                           {memberProfile.organizationAddress?.trim() || "—"}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Zone</p>
-                        <p className="mt-1 text-sm font-semibold text-[#181112]">{memberProfile.zone?.trim() || "—"}</p>
+                        <p className="mt-1 text-sm font-semibold text-charcoal">{memberProfile.zone?.trim() || "—"}</p>
                       </div>
                     </>
                   )}
@@ -173,7 +173,7 @@ export default function MemberDashboardPage() {
                     <>
                       <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Medical Field</p>
-                        <p className="mt-1 text-sm font-semibold text-[#181112]">
+                        <p className="mt-1 text-sm font-semibold text-charcoal">
                           {attendeeProfile.inMedicalField ? "Yes" : "No"}
                         </p>
                       </div>
@@ -181,18 +181,18 @@ export default function MemberDashboardPage() {
                         <>
                           <div>
                             <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Primary Specialty</p>
-                            <p className="mt-1 text-sm font-semibold text-[#181112]">{attendeeProfile.primarySpecialty || "—"}</p>
+                            <p className="mt-1 text-sm font-semibold text-charcoal">{attendeeProfile.primarySpecialty || "—"}</p>
                           </div>
                           <div>
                             <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Hospital/Organization</p>
-                            <p className="mt-1 text-sm font-semibold text-[#181112]">{attendeeProfile.hospitalOrg || "—"}</p>
+                            <p className="mt-1 text-sm font-semibold text-charcoal">{attendeeProfile.hospitalOrg || "—"}</p>
                           </div>
                         </>
                       )}
                       {!attendeeProfile.inMedicalField && (
                         <div>
                           <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Occupation</p>
-                          <p className="mt-1 text-sm font-semibold text-[#181112]">{attendeeProfile.occupation || "—"}</p>
+                          <p className="mt-1 text-sm font-semibold text-charcoal">{attendeeProfile.occupation || "—"}</p>
                         </div>
                       )}
                     </>
@@ -210,22 +210,22 @@ export default function MemberDashboardPage() {
               {/* Spouse Information (Members only) */}
               {isMember && memberProfile?.hasSpouse && (
                 <section className="rounded-xl border border-primary/20 bg-white p-6 shadow-sm">
-                  <h2 className="text-lg font-black text-[#181112] mb-4 flex items-center gap-2">
+                  <h2 className="text-lg font-black text-charcoal mb-4 flex items-center gap-2">
                     <span className="material-symbols-outlined text-primary">group</span>
                     Spouse Information
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Name</p>
-                      <p className="mt-1 text-sm font-semibold text-[#181112]">{memberProfile.spouseName || "—"}</p>
+                      <p className="mt-1 text-sm font-semibold text-charcoal">{memberProfile.spouseName || "—"}</p>
                     </div>
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Email</p>
-                      <p className="mt-1 text-sm font-semibold text-[#181112]">{memberProfile.spouseEmail || "—"}</p>
+                      <p className="mt-1 text-sm font-semibold text-charcoal">{memberProfile.spouseEmail || "—"}</p>
                     </div>
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Phone</p>
-                      <p className="mt-1 text-sm font-semibold text-[#181112]">{memberProfile.spousePhone || "—"}</p>
+                      <p className="mt-1 text-sm font-semibold text-charcoal">{memberProfile.spousePhone || "—"}</p>
                     </div>
                   </div>
                 </section>
@@ -236,7 +236,7 @@ export default function MemberDashboardPage() {
             <aside className="space-y-6">
               {/* Profile Photo */}
               <section className="rounded-xl border border-primary/20 bg-white p-6 shadow-sm">
-                <h2 className="text-sm font-black text-[#181112] mb-4">Profile Photo</h2>
+                <h2 className="text-sm font-black text-charcoal mb-4">Profile Photo</h2>
                 {avatarUrl ? (
                   <div className="flex justify-center">
                     <Image
@@ -258,7 +258,7 @@ export default function MemberDashboardPage() {
 
               {/* Quick Actions */}
               <section className="rounded-xl border border-primary/20 bg-white p-6 shadow-sm">
-                <h2 className="text-sm font-black text-[#181112] mb-4">Quick Actions</h2>
+                <h2 className="text-sm font-black text-charcoal mb-4">Quick Actions</h2>
                 <div className="space-y-3">
                   <a
                     href="/member/tickets"

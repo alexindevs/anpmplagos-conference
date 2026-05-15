@@ -106,7 +106,7 @@ function PlanCard({
       <div className="p-5 flex flex-col flex-1">
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="min-w-0">
-            <h3 className="font-black text-[#181112] text-lg">{plan.name}</h3>
+            <h3 className="font-black text-charcoal text-lg">{plan.name}</h3>
             <span
               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold mt-2 ${tierStyle.bg} ${tierStyle.color}`}
             >
@@ -332,7 +332,7 @@ export function BundlesTab() {
           </div>
           <div className="text-left sm:text-right">
             <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Company</p>
-            <p className="text-sm font-bold text-[#181112] mt-1">{companyName || "Your company"}</p>
+            <p className="text-sm font-bold text-charcoal mt-1">{companyName || "Your company"}</p>
           </div>
         </div>
       </div>
@@ -382,7 +382,7 @@ export function BundlesTab() {
       {!plansQuery.isLoading && (plansQuery.data?.length ?? 0) === 0 && (
         <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-10 text-center">
           <span className="material-symbols-outlined text-4xl text-slate-300">campaign</span>
-          <p className="text-sm font-bold text-[#181112] mt-3">No sponsorship plans available</p>
+          <p className="text-sm font-bold text-charcoal mt-3">No sponsorship plans available</p>
           <p className="text-xs text-slate-500 mt-1">Check back later for new sponsorship opportunities.</p>
         </div>
       )}
