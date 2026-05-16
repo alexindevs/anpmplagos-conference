@@ -395,7 +395,6 @@ function PlanModal({
             <p className="mt-1 text-xs text-slate-500 dark:text-white/50">
               Bundles may only include a <span className="font-semibold">Headliner</span>,{" "}
               <span className="font-semibold">Platinum</span>, or <span className="font-semibold">Gold</span> booth.
-              Silver and bronze plans use display tier only—no booth tier in the bundle.
             </p>
           </div>
 
