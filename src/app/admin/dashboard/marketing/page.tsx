@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -263,7 +263,7 @@ function EditTotalSlotsModal({
   const [value, setValue] = useState("");
   const [err, setErr] = useState<string | null>(null);
 
-  useMemo(() => {
+  useEffect(() => {
     if (open && row) {
       setValue(String(row.totalSlots));
       setErr(null);
@@ -276,7 +276,7 @@ function EditTotalSlotsModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" role="dialog" aria-modal="true">
-      <div className="w-full max-w-md rounded-xl border border-primary/10 bg-white shadow-xl dark:border-border-dark dark:bg-background-dark-soft">
+      <div className="w-full rounded-xl border border-primary/10 bg-white shadow-xl dark:border-border-dark dark:bg-background-dark-soft">
         <div className="border-b border-primary/10 px-6 py-4 dark:border-border-dark">
           <h3 className="text-lg font-black text-charcoal dark:text-white">Edit total slots</h3>
           <p className="text-xs text-slate-500 dark:text-white/50 mt-1">{row.title}</p>

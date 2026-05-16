@@ -153,9 +153,6 @@ export function CreateMarketingSlotModal({ open, kind, isSubmitting, onClose, on
               onChange={(e) => setTotalSlots(e.target.value)}
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
             />
-            <p className="mt-1 text-xs text-slate-500 dark:text-white/50">
-              Number of identical copies for sale. Multiple companies can buy this slot until {`availableSlots`} reaches zero.
-            </p>
           </div>
           <div>
             <label className="block text-xs font-bold uppercase text-slate-500 dark:text-white/50 mb-1">
