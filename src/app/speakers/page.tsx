@@ -109,7 +109,7 @@ export default async function SpeakersPage() {
         <>
           
           {keynotes.length > 0 ? (
-            <section className="bg-medical-green py-24 px-4">
+            <section className="bg-mint-whisper py-24 px-4">
               <div className="w-full max-w-6xl mx-auto">
                 <header className="mb-16">
                   <div className="mb-6 flex items-center gap-4">
@@ -120,7 +120,7 @@ export default async function SpeakersPage() {
                       Keynote &amp; Plenary Speakers
                     </h2>
                   </div>
-                  <p className="text-base leading-relaxed text-warm-gray max-w-3xl">
+                  <p className="text-base leading-relaxed text-warm-gray">
                     Opening addresses, plenary talks, and flagship presentations setting the direction for the conference. Big-picture perspectives on healthcare delivery, policy, and the future of private practice.
                   </p>
                 </header>
@@ -161,7 +161,7 @@ export default async function SpeakersPage() {
           {guests.length > 0 ? (
             <section
               id="special-guests"
-              className="scroll-mt-24 bg-white px-24 py-12"
+              className="scroll-mt-24 bg-mint-whisper px-24 py-12"
             >
               <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-16">
@@ -203,7 +203,7 @@ export default async function SpeakersPage() {
             </p>
           </div>
           <Link
-            href="/#register"
+            href="/register"
             className="flex h-14 min-w-[200px] cursor-pointer items-center justify-center bg-white px-10 text-base font-bold text-primary shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
           >
             <span className="truncate">Register Now</span>

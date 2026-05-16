@@ -604,6 +604,7 @@ function ProfileFormFields({
         <input
           className={field}
           type="url"
+          placeholder="https://www.example.com"
           value={form.websiteLink}
           onChange={(e) => setForm((f) => ({ ...f, websiteLink: e.target.value }))}
         />
@@ -615,6 +616,7 @@ function ProfileFormFields({
         <input
           className={field}
           type="url"
+          placeholder="https://facebook.com/username"
           value={form.facebookLink}
           onChange={(e) => setForm((f) => ({ ...f, facebookLink: e.target.value }))}
         />
@@ -626,6 +628,7 @@ function ProfileFormFields({
         <input
           className={field}
           type="url"
+          placeholder="https://x.com/username"
           value={form.xLink}
           onChange={(e) => setForm((f) => ({ ...f, xLink: e.target.value }))}
         />
@@ -637,6 +640,7 @@ function ProfileFormFields({
         <input
           className={field}
           type="url"
+          placeholder="https://instagram.com/username"
           value={form.instagramLink}
           onChange={(e) => setForm((f) => ({ ...f, instagramLink: e.target.value }))}
         />
