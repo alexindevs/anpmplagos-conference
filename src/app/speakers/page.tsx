@@ -134,7 +134,7 @@ export default async function SpeakersPage() {
           ) : null}
 
           {featured.length > 0 ? (
-            <section className="bg-mint-whisper px-24 py-12">
+            <section className="bg-mint-whisper px-4 lg:px-24 py-12">
               <div className="w-full max-w-6xl mx-auto">
                 <header className="mb-16">
                   <div className="mb-6 flex items-center gap-4">
@@ -161,7 +161,7 @@ export default async function SpeakersPage() {
           {guests.length > 0 ? (
             <section
               id="special-guests"
-              className="scroll-mt-24 bg-mint-whisper px-24 py-12"
+              className="scroll-mt-24 bg-mint-whisper px-4 lg:px-24 py-12"
             >
               <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-16">
