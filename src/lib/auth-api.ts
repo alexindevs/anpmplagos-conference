@@ -1,4 +1,8 @@
+import { useAuthStore } from "@/stores/auth-store";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+
+let refreshPromise: Promise<void> | null = null;
 
 export interface AuthAdmin {
   name: string;
@@ -84,9 +88,9 @@ export class AuthApiError extends Error {
 
 async function authFetch<T>(
   path: string,
-  options?: RequestInit & { skipContentType?: boolean }
+  options?: RequestInit & { skipContentType?: boolean; _isRetry?: boolean }
 ): Promise<T> {
-  const { skipContentType, ...init } = options ?? {};
+  const { skipContentType, _isRetry, ...init } = options ?? {};
   const url = new URL(path.startsWith("/") ? path : `/${path}`, API_BASE);
   const headers = new Headers(init.headers);
   if (!skipContentType && !headers.has("Content-Type")) {
@@ -97,11 +101,30 @@ async function authFetch<T>(
     credentials: "include",
     headers,
   });
+
+  if (res.status === 401 && !_isRetry) {
+    try {
+      refreshPromise ??= rawRefresh().then(() => { refreshPromise = null; }).catch((e) => { refreshPromise = null; throw e; });
+      await refreshPromise;
+      return authFetch<T>(path, { ...options, _isRetry: true });
+    } catch {
+      useAuthStore.getState().clearUser();
+      if (typeof window !== "undefined") window.location.replace("/login");
+      throw new AuthApiError(401, "Session expired");
+    }
+  }
+
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new AuthApiError(res.status, (body?.message as string) ?? res.statusText, body);
   }
   return res.json() as Promise<T>;
+}
+
+async function rawRefresh(): Promise<void> {
+  const url = new URL("/api/auth/refresh", API_BASE);
+  const res = await fetch(url.toString(), { method: "POST", credentials: "include" });
+  if (!res.ok) throw new Error("refresh failed");
 }
 
 export async function login(email: string, password: string): Promise<LoginResponse> {
