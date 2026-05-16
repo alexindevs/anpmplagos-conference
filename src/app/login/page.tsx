@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { login, AuthApiError, isModeratorUser, type AuthUser } from "@/lib/auth-api";
 import { authSessionQueryKey } from "@/hooks/use-auth-session";
@@ -21,7 +20,6 @@ function redirectAfterLogin(u: AuthUser): string {
 
 export default function LoginPage() {
   const queryClient = useQueryClient();
-  const searchParams = useSearchParams();
   const setUser = useAuthStore((s) => s.setUser);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,8 +34,7 @@ export default function LoginPage() {
       const res = await login(email, password);
       setUser(res.user);
       await queryClient.invalidateQueries({ queryKey: authSessionQueryKey });
-      const next = searchParams.get("next");
-      window.location.href = next ?? redirectAfterLogin(res.user);
+      window.location.href = redirectAfterLogin(res.user);
     } catch (err) {
       if (err instanceof AuthApiError) {
         setError(err.status === 401 ? "Invalid email or password." : err.message || "Login failed.");
