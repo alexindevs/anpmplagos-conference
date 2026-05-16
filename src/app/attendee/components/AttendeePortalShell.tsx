@@ -2,13 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { PortalSidebarHeaderLogo } from "@/app/components/PortalSidebarHeaderLogo";
 import { ResponsivePortalShell } from "@/app/components/ResponsivePortalShell";
 import { authSessionQueryKey } from "@/hooks/use-auth-session";
-import { logout } from "@/lib/auth-api";
+import { logout, getMe, refresh, isAdminUser, isModeratorUser, isCompanyRegType, type AuthUser } from "@/lib/auth-api";
 import { useAuthStore } from "@/stores/auth-store";
+
+function redirectForWrongRole(u: AuthUser): string {
+  if (isAdminUser(u)) return "/admin/dashboard";
+  if (isModeratorUser(u)) return "/moderator/dashboard";
+  if (isCompanyRegType(u)) return "/company/dashboard";
+  if (u.regType === "member") return "/member/dashboard";
+  return "/";
+}
 
 function navActive(pathname: string, href: string): boolean {
   if (href === "/attendee/support") return pathname === "/attendee/support" || pathname.startsWith("/attendee/support/");
@@ -26,8 +34,38 @@ export function AttendeePortalShell({
 }) {
   const pathname = usePathname();
   const queryClient = useQueryClient();
-  const clearUser = useAuthStore((s) => s.clearUser);
+  const { setUser, clearUser } = useAuthStore();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [authorized, setAuthorized] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function run() {
+      let u: AuthUser;
+      try {
+        u = await getMe();
+      } catch {
+        try {
+          const { user: refreshed } = await refresh();
+          u = refreshed;
+        } catch {
+          if (!cancelled) { clearUser(); window.location.replace("/login"); }
+          return;
+        }
+      }
+      if (cancelled) return;
+      setUser(u);
+      if (u.regType !== "attendee") {
+        window.location.replace(redirectForWrongRole(u));
+        return;
+      }
+      setLoading(false);
+      setAuthorized(true);
+    }
+    void run();
+    return () => { cancelled = true; };
+  }, [setUser, clearUser]);
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -46,6 +84,13 @@ export function AttendeePortalShell({
     navActive(pathname, href)
       ? "w-full flex items-center gap-3 rounded-lg bg-primary px-3 py-2 text-white font-bold"
       : "w-full flex items-center gap-3 rounded-lg hover:bg-primary/5 px-3 py-2 text-slate-700 font-semibold";
+
+  if (loading) {
+    return <div className="flex h-screen items-center justify-center"><p className="text-charcoal/60">Loading...</p></div>;
+  }
+  if (!authorized) {
+    return <div className="flex h-screen items-center justify-center"><p className="text-charcoal/60">Redirecting…</p></div>;
+  }
 
   return (
     <ResponsivePortalShell
