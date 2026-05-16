@@ -260,7 +260,7 @@ export default function RegisterPage() {
 
         {/* Hero */}
         <div className="flex flex-wrap justify-between gap-3 p-4 border-l-4 border-primary bg-white shadow-sm rounded-r-lg mb-8">
-          <div className="flex min-w-72 flex-col gap-2">
+          <div className="flex min-w-0 sm:min-w-72 flex-col gap-2">
             <h1 className="text-charcoal text-4xl font-black leading-tight tracking-tight">
               Conference Registration
             </h1>

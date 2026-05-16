@@ -202,19 +202,19 @@ export default function AboutPage() {
             </div>
             <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-8">
               <div className="flex flex-col items-center text-center p-6 bg-white border-l-4 border-fresh-green">
-                <span className="text-5xl font-mono font-bold text-charcoal mb-2">1978</span>
+                <span className="text-3xl sm:text-5xl font-mono font-bold text-charcoal mb-2">1978</span>
                 <span className="text-sm font-bold text-warm-gray uppercase tracking-wider">Founded</span>
               </div>
               <div className="flex flex-col items-center text-center p-6 bg-white border-l-4 border-medical-green">
-                <span className="text-5xl font-mono font-bold text-charcoal mb-2">2000+</span>
+                <span className="text-3xl sm:text-5xl font-mono font-bold text-charcoal mb-2">2000+</span>
                 <span className="text-sm font-bold text-warm-gray uppercase tracking-wider">Members</span>
               </div>
               <div className="flex flex-col items-center text-center p-6 bg-white border-l-4 border-fresh-green">
-                <span className="text-5xl font-mono font-bold text-charcoal mb-2">30+</span>
+                <span className="text-3xl sm:text-5xl font-mono font-bold text-charcoal mb-2">30+</span>
                 <span className="text-sm font-bold text-warm-gray uppercase tracking-wider">States</span>
               </div>
               <div className="flex flex-col items-center text-center p-6 bg-white border-l-4 border-medical-green">
-                <span className="text-5xl font-mono font-bold text-charcoal mb-2">45+</span>
+                <span className="text-3xl sm:text-5xl font-mono font-bold text-charcoal mb-2">45+</span>
                 <span className="text-sm font-bold text-warm-gray uppercase tracking-wider">Conferences</span>
               </div>
             </div>
@@ -280,7 +280,7 @@ export default function AboutPage() {
             </p>
           </div>
           <Link
-            href="/#register"
+            href="/register"
             className="flex h-14 min-w-[200px] cursor-pointer items-center justify-center bg-white px-10 text-base font-bold text-primary shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
           >
             <span className="truncate">Register Now</span>

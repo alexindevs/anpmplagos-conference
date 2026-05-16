@@ -116,10 +116,10 @@ export default function Header() {
             ANPMP Lagos
           </h2>
         </Link>
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden lg:flex items-center gap-8">
           {navLinks}
         </nav>
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-3">
           {user?.regType === "admin" ? (
             <Link
               href="/admin/dashboard"
@@ -180,7 +180,7 @@ export default function Header() {
         <button
           type="button"
           onClick={() => setMenuOpen((o) => !o)}
-          className="md:hidden flex size-10 items-center justify-center rounded text-charcoal hover:bg-mint-whisper transition-colors"
+          className="lg:hidden flex size-10 items-center justify-center rounded text-charcoal hover:bg-mint-whisper transition-colors"
           aria-label={menuOpen ? "Close menu" : "Open menu"}
         >
           <span className="material-symbols-outlined text-[28px]">
@@ -191,7 +191,7 @@ export default function Header() {
 
       {/* Mobile menu */}
       <div
-        className={`md:hidden fixed inset-0 top-[65px] z-40 bg-background-light transition-opacity duration-200 ${
+        className={`lg:hidden fixed inset-0 top-[65px] z-40 bg-background-light transition-opacity duration-200 ${
           menuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
         aria-hidden={!menuOpen}
