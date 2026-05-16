@@ -166,7 +166,7 @@ export default async function SpeakersPage() {
               <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-16">
                   <div className="mb-6 flex justify-center">
-                    <div className="bg-primary/10 p-3 text-primary">
+                    <div className="bg-fresh-green/10 p-3 text-fresh-green">
                       <span className="material-symbols-outlined text-[32px]">star</span>
                     </div>
                   </div>

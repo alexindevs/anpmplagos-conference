@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  adminPatchBooth,
+  adminReserveBooth,
+  adminUnreserveBooth,
   ApiError,
   formatKoboToNaira,
   getAdminBooths,
@@ -101,7 +102,14 @@ export default function BoothManagementPage() {
   };
 
   const reserveMutation = useMutation({
-    mutationFn: (id: string) => adminPatchBooth(id, { isReserved: true }),
+    mutationFn: (id: string) => adminReserveBooth(id),
+    onMutate: (id) => setReservingId(id),
+    onSettled: () => setReservingId(null),
+    onSuccess: invalidateBoothData,
+  });
+
+  const unreserveMutation = useMutation({
+    mutationFn: (id: string) => adminUnreserveBooth(id),
     onMutate: (id) => setReservingId(id),
     onSettled: () => setReservingId(null),
     onSuccess: invalidateBoothData,
@@ -307,9 +315,10 @@ export default function BoothManagementPage() {
                     const occupantCompanyId = boothOccupantCompanyId(row);
                     const status = boothStatus(row);
                     const canReserve = !row.isTaken && !row.isReserved;
+                    const canUnreserve = !row.isTaken && row.isReserved;
                     const canAssignCompany = !row.isTaken;
                     const canUnassign = row.isTaken && occupantCompanyId;
-                    const busyReserve = reservingId === row.id && reserveMutation.isPending;
+                    const busyReserve = reservingId === row.id && (reserveMutation.isPending || unreserveMutation.isPending);
                     const busyUnassign = Boolean(
                       occupantCompanyId &&
                         unassignMutation.isPending &&
@@ -349,6 +358,16 @@ export default function BoothManagementPage() {
                                 className="rounded-lg bg-secondary px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-secondary/90 disabled:opacity-60"
                               >
                                 {busyReserve ? "Reserving…" : "Reserve"}
+                              </button>
+                            )}
+                            {canUnreserve && (
+                              <button
+                                type="button"
+                                disabled={busyReserve}
+                                onClick={() => unreserveMutation.mutate(row.id)}
+                                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition-all hover:border-primary/30 hover:text-primary disabled:opacity-60"
+                              >
+                                {busyReserve ? "Unreserving…" : "Unreserve"}
                               </button>
                             )}
                             {canAssignCompany && (

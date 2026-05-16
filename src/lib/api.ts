@@ -361,16 +361,12 @@ export async function getAdminBooths(): Promise<Booth[]> {
   return apiFetch<Booth[]>("/api/admin/booths");
 }
 
-export type AdminPatchBoothInput = {
-  isReserved?: boolean;
-};
+export async function adminReserveBooth(id: string): Promise<Booth> {
+  return apiFetch<Booth>(`/api/admin/booths/${id}/reserve`, { method: "PATCH" });
+}
 
-/** PATCH /api/admin/booths/:id — update booth (e.g. reserve). */
-export async function adminPatchBooth(id: string, input: AdminPatchBoothInput): Promise<Booth> {
-  return apiFetch<Booth>(`/api/admin/booths/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify(input),
-  });
+export async function adminUnreserveBooth(id: string): Promise<Booth> {
+  return apiFetch<Booth>(`/api/admin/booths/${id}/unreserve`, { method: "PATCH" });
 }
 
 /**
