@@ -300,7 +300,7 @@ function PlanModal({
 
   const slotSelectable = (slot: AdminAdvertSlot | AdminBrandingSlot, selectedIds: string[]) => {
     if (selectedIds.includes(slot.id)) return true;
-    return !slot.isTaken && !slot.isReserved;
+    return slot.availableSlots === slot.totalSlots && !slot.isReserved;
   };
 
   return (

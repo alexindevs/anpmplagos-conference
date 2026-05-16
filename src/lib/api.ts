@@ -1756,22 +1756,16 @@ export async function deleteAdminHotelRoom(id: string): Promise<void> {
 
 // —— Marketing: advert & branding slots — see FRONTEND-ADVERT-BRANDING-SLOTS.md
 
-export interface MarketingSlotTakenBy {
-  id: string;
-  name: string;
-  slug: string | null;
-}
-
-/** Admin list: includes `takenBy` summary when occupied. */
+/** Admin list: includes slot counters. */
 export interface AdminAdvertSlot {
   id: string;
   title: string;
   image: string | null;
   price: number;
   description: string | null;
-  isTaken: boolean;
+  totalSlots: number;
+  availableSlots: number;
   isReserved: boolean;
-  takenBy?: MarketingSlotTakenBy | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -1782,9 +1776,9 @@ export interface AdminBrandingSlot {
   image: string | null;
   price: number;
   description: string | null;
-  isTaken: boolean;
+  totalSlots: number;
+  availableSlots: number;
   isReserved: boolean;
-  takenBy?: MarketingSlotTakenBy | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -1792,7 +1786,16 @@ export interface AdminBrandingSlot {
 /** Public catalog + `/me` sanitized shape. */
 export type CompanyMarketingSlot = Pick<
   AdminAdvertSlot,
-  "id" | "title" | "image" | "price" | "description" | "isReserved" | "isTaken" | "createdAt" | "updatedAt"
+  | "id"
+  | "title"
+  | "image"
+  | "price"
+  | "description"
+  | "isReserved"
+  | "totalSlots"
+  | "availableSlots"
+  | "createdAt"
+  | "updatedAt"
 >;
 
 function normalizeList<T>(res: T[] | { items?: T[] }): T[] {
@@ -1838,6 +1841,8 @@ export interface CreateAdminAdvertSlotInput {
   price: number;
   description?: string | null;
   isReserved?: boolean;
+  /** Number of identical copies for sale. Defaults to 1. */
+  totalSlots?: number;
   advertSlotImage: File;
 }
 
@@ -1847,6 +1852,7 @@ export async function postAdminAdvertSlot(input: CreateAdminAdvertSlotInput): Pr
   fd.append("price", String(Math.round(input.price)));
   fd.append("description", input.description?.trim() ?? "");
   fd.append("isReserved", input.isReserved ? "true" : "false");
+  fd.append("totalSlots", String(Math.max(1, Math.round(input.totalSlots ?? 1))));
   fd.append("advertSlotImage", input.advertSlotImage);
   return apiFetch<AdminAdvertSlot>("/api/admin/advert-slots", {
     method: "POST",
@@ -1872,6 +1878,19 @@ export async function deleteAdminAdvertSlot(id: string): Promise<void> {
   await deleteAdminSlot(`/api/admin/advert-slots/${encodeURIComponent(id)}`);
 }
 
+export async function patchAdminAdvertSlotTotalSlots(
+  id: string,
+  totalSlots: number
+): Promise<AdminAdvertSlot> {
+  return apiFetch<AdminAdvertSlot>(
+    `/api/admin/advert-slots/${encodeURIComponent(id)}/total-slots`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ totalSlots }),
+    }
+  );
+}
+
 // —— Admin branding slots
 
 export async function getAdminBrandingSlots(): Promise<AdminBrandingSlot[]> {
@@ -1886,6 +1905,8 @@ export interface CreateAdminBrandingSlotInput {
   price: number;
   description?: string | null;
   isReserved?: boolean;
+  /** Number of identical copies for sale. Defaults to 1. */
+  totalSlots?: number;
   brandingSlotImage: File;
 }
 
@@ -1895,6 +1916,7 @@ export async function postAdminBrandingSlot(input: CreateAdminBrandingSlotInput)
   fd.append("price", String(Math.round(input.price)));
   fd.append("description", input.description?.trim() ?? "");
   fd.append("isReserved", input.isReserved ? "true" : "false");
+  fd.append("totalSlots", String(Math.max(1, Math.round(input.totalSlots ?? 1))));
   fd.append("brandingSlotImage", input.brandingSlotImage);
   return apiFetch<AdminBrandingSlot>("/api/admin/branding-slots", {
     method: "POST",
@@ -1918,6 +1940,19 @@ export async function patchAdminBrandingSlotUnreserve(id: string): Promise<Admin
 
 export async function deleteAdminBrandingSlot(id: string): Promise<void> {
   await deleteAdminSlot(`/api/admin/branding-slots/${encodeURIComponent(id)}`);
+}
+
+export async function patchAdminBrandingSlotTotalSlots(
+  id: string,
+  totalSlots: number
+): Promise<AdminBrandingSlot> {
+  return apiFetch<AdminBrandingSlot>(
+    `/api/admin/branding-slots/${encodeURIComponent(id)}/total-slots`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ totalSlots }),
+    }
+  );
 }
 
 async function postJsonAllowEmpty(path: string, body: Record<string, string>): Promise<void> {

@@ -16,8 +16,10 @@ import {
   getAdminAdvertSlots,
   getAdminBrandingSlots,
   patchAdminAdvertSlotReserve,
+  patchAdminAdvertSlotTotalSlots,
   patchAdminAdvertSlotUnreserve,
   patchAdminBrandingSlotReserve,
+  patchAdminBrandingSlotTotalSlots,
   patchAdminBrandingSlotUnreserve,
   postAdminAdvertSlot,
   postAdminBrandingSlot,
@@ -29,18 +31,28 @@ import { CreateMarketingSlotModal, type MarketingSlotKind } from "./components/C
 
 const ADMIN_ADVERT_KEY = ["admin", "advert-slots"] as const;
 const ADMIN_BRANDING_KEY = ["admin", "branding-slots"] as const;
+const ADMIN_PLACEHOLDER_COMPANY_ID = "admin";
 
-function slotStatus(row: { isTaken: boolean; isReserved: boolean }): { label: string; className: string } {
-  if (row.isTaken) {
-    return {
-      label: "Taken",
-      className: "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary",
-    };
-  }
+function slotStatus(row: { availableSlots: number; totalSlots: number; isReserved: boolean }): {
+  label: string;
+  className: string;
+} {
   if (row.isReserved) {
     return {
       label: "Reserved",
       className: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200",
+    };
+  }
+  if (row.availableSlots <= 0) {
+    return {
+      label: "Sold out",
+      className: "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary",
+    };
+  }
+  if (row.availableSlots < row.totalSlots) {
+    return {
+      label: "Partially sold",
+      className: "bg-secondary/10 text-secondary dark:bg-secondary/20 dark:text-secondary",
     };
   }
   return {
@@ -61,6 +73,7 @@ function SlotsTable({
   deleteMutation,
   onAssignClick,
   unassignMutation,
+  onEditTotalClick,
 }: {
   kind: MarketingSlotKind;
   rows: SlotRow[];
@@ -71,6 +84,7 @@ function SlotsTable({
   deleteMutation: { isPending: boolean; mutate: (id: string) => void };
   onAssignClick: (row: SlotRow) => void;
   unassignMutation: { isPending: boolean; mutate: (payload: { companyId: string; slotId: string }) => void };
+  onEditTotalClick: (row: SlotRow) => void;
 }) {
   return (
     <div className="overflow-hidden rounded-xl border border-primary/5 bg-white shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
@@ -81,7 +95,7 @@ function SlotsTable({
               <th className="px-4 py-3 text-xs font-bold uppercase text-slate-500 dark:text-white/50">Image</th>
               <th className="px-4 py-3 text-xs font-bold uppercase text-slate-500 dark:text-white/50">Title</th>
               <th className="px-4 py-3 text-xs font-bold uppercase text-slate-500 dark:text-white/50">Price</th>
-              <th className="px-4 py-3 text-xs font-bold uppercase text-slate-500 dark:text-white/50">Occupant</th>
+              <th className="px-4 py-3 text-xs font-bold uppercase text-slate-500 dark:text-white/50">Slots</th>
               <th className="px-4 py-3 text-xs font-bold uppercase text-slate-500 dark:text-white/50">Status</th>
               <th className="px-4 py-3 text-right text-xs font-bold uppercase text-slate-500 dark:text-white/50">
                 Actions
@@ -115,11 +129,12 @@ function SlotsTable({
               rows.map((row) => {
                 const st = slotStatus(row);
                 const img = apiAssetUrl(row.image);
-                const canDelete = !row.isTaken;
-                const canReserve = !row.isTaken && !row.isReserved;
-                const canUnreserve = row.isReserved && !row.isTaken;
-                const canAssign = !row.isTaken && !row.isReserved;
-                const takenBy = row.takenBy;
+                const sold = row.totalSlots - row.availableSlots;
+                const canDelete = sold === 0;
+                const canReserve = !row.isReserved;
+                const canUnreserve = row.isReserved;
+                const canAssign = row.availableSlots > 0 && !row.isReserved;
+                const canFree = sold > 0;
                 return (
                   <tr key={row.id} className="hover:bg-primary/5 dark:hover:bg-background-dark-softer">
                     <td className="px-4 py-3">
@@ -133,17 +148,14 @@ function SlotsTable({
                       <span className="line-clamp-2">{row.title}</span>
                     </td>
                     <td className="px-4 py-3 text-sm whitespace-nowrap">{formatKoboToNaira(row.price)}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-white/70">
-                      {takenBy ? (
-                        <span className="line-clamp-2" title={takenBy.name}>
-                          {takenBy.name}
-                          {takenBy.slug ? (
-                            <span className="block text-xs text-slate-400 font-mono">{takenBy.slug}</span>
-                          ) : null}
-                        </span>
-                      ) : (
-                        "—"
-                      )}
+                    <td className="px-4 py-3 text-sm whitespace-nowrap">
+                      <span className="font-mono font-bold text-charcoal dark:text-white">
+                        {row.availableSlots}
+                      </span>
+                      <span className="text-slate-400"> / {row.totalSlots}</span>
+                      <span className="block text-xs text-slate-500 dark:text-white/50">
+                        {sold} sold
+                      </span>
                     </td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${st.className}`}>
@@ -152,6 +164,13 @@ function SlotsTable({
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="inline-flex flex-wrap justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => onEditTotalClick(row)}
+                          className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-border-dark dark:text-white"
+                        >
+                          Edit total
+                        </button>
                         {canAssign && (
                           <button
                             type="button"
@@ -161,22 +180,25 @@ function SlotsTable({
                             Assign
                           </button>
                         )}
-                        {row.isTaken && takenBy && (
+                        {canFree && (
                           <button
                             type="button"
                             disabled={unassignMutation.isPending}
                             onClick={() => {
                               if (
                                 window.confirm(
-                                  "Remove this company from the slot? They will lose the assignment."
+                                  "Free one copy of this slot? This increments the available count by 1."
                                 )
                               ) {
-                                unassignMutation.mutate({ companyId: takenBy.id, slotId: row.id });
+                                unassignMutation.mutate({
+                                  companyId: ADMIN_PLACEHOLDER_COMPANY_ID,
+                                  slotId: row.id,
+                                });
                               }
                             }}
                             className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-border-dark dark:text-white"
                           >
-                            Unassign
+                            Free 1
                           </button>
                         )}
                         {canReserve && (
@@ -204,7 +226,7 @@ function SlotsTable({
                             type="button"
                             disabled={deleteMutation.isPending}
                             onClick={() => {
-                              if (window.confirm("Delete this slot? Only if not taken and no pending payment.")) {
+                              if (window.confirm("Delete this slot? Only if no copies have been sold and no pending payment.")) {
                                 deleteMutation.mutate(row.id);
                               }
                             }}
@@ -225,10 +247,106 @@ function SlotsTable({
   );
 }
 
+function EditTotalSlotsModal({
+  open,
+  row,
+  isSubmitting,
+  onClose,
+  onSubmit,
+}: {
+  open: boolean;
+  row: SlotRow | null;
+  isSubmitting: boolean;
+  onClose: () => void;
+  onSubmit: (newTotal: number) => void;
+}) {
+  const [value, setValue] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+
+  useMemo(() => {
+    if (open && row) {
+      setValue(String(row.totalSlots));
+      setErr(null);
+    }
+  }, [open, row]);
+
+  if (!open || !row) return null;
+
+  const sold = row.totalSlots - row.availableSlots;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" role="dialog" aria-modal="true">
+      <div className="w-full max-w-md rounded-xl border border-primary/10 bg-white shadow-xl dark:border-border-dark dark:bg-background-dark-soft">
+        <div className="border-b border-primary/10 px-6 py-4 dark:border-border-dark">
+          <h3 className="text-lg font-black text-charcoal dark:text-white">Edit total slots</h3>
+          <p className="text-xs text-slate-500 dark:text-white/50 mt-1">{row.title}</p>
+        </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const n = Math.round(Number(value));
+            if (!Number.isFinite(n) || n < 1) {
+              setErr("Total must be a positive integer.");
+              return;
+            }
+            if (n < sold) {
+              setErr(`Cannot reduce below sold count (${sold}).`);
+              return;
+            }
+            setErr(null);
+            onSubmit(n);
+          }}
+          className="px-6 py-4 space-y-4"
+        >
+          {err && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
+              {err}
+            </div>
+          )}
+          <div>
+            <label className="block text-xs font-bold uppercase text-slate-500 dark:text-white/50 mb-1">
+              Total slots
+            </label>
+            <input
+              type="number"
+              min={Math.max(1, sold)}
+              step={1}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
+            />
+            <p className="mt-1 text-xs text-slate-500 dark:text-white/50">
+              Currently {row.availableSlots} available / {row.totalSlots} total · {sold} sold.
+            </p>
+          </div>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-border-dark dark:text-white dark:hover:bg-background-dark-softer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50"
+            >
+              {isSubmitting ? "Saving…" : "Save"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminMarketingPage() {
   const queryClient = useQueryClient();
   const [createKind, setCreateKind] = useState<MarketingSlotKind | null>(null);
   const [assignTarget, setAssignTarget] = useState<{ kind: MarketingSlotKind; row: SlotRow } | null>(null);
+  const [editTotalTarget, setEditTotalTarget] = useState<{ kind: MarketingSlotKind; row: SlotRow } | null>(null);
 
   const advertQuery = useQuery({
     queryKey: ADMIN_ADVERT_KEY,
@@ -321,24 +439,47 @@ export default function AdminMarketingPage() {
     onSuccess: invalidateAll,
   });
 
+  const editAdvertTotal = useMutation({
+    mutationFn: ({ id, totalSlots }: { id: string; totalSlots: number }) =>
+      patchAdminAdvertSlotTotalSlots(id, totalSlots),
+    onSuccess: () => {
+      invalidateAll();
+      setEditTotalTarget(null);
+    },
+  });
+
+  const editBrandingTotal = useMutation({
+    mutationFn: ({ id, totalSlots }: { id: string; totalSlots: number }) =>
+      patchAdminBrandingSlotTotalSlots(id, totalSlots),
+    onSuccess: () => {
+      invalidateAll();
+      setEditTotalTarget(null);
+    },
+  });
+
   const advertRows = advertQuery.data ?? [];
   const brandingRows = brandingQuery.data ?? [];
 
   const stats = useMemo(() => {
-    const aAvail = advertRows.filter((r) => !r.isTaken && !r.isReserved).length;
-    const bAvail = brandingRows.filter((r) => !r.isTaken && !r.isReserved).length;
-    const aTaken = advertRows.filter((r) => r.isTaken).length;
-    const bTaken = brandingRows.filter((r) => r.isTaken).length;
+    const aAvail = advertRows.reduce((s, r) => s + (r.isReserved ? 0 : r.availableSlots), 0);
+    const bAvail = brandingRows.reduce((s, r) => s + (r.isReserved ? 0 : r.availableSlots), 0);
+    const aTotal = advertRows.reduce((s, r) => s + r.totalSlots, 0);
+    const bTotal = brandingRows.reduce((s, r) => s + r.totalSlots, 0);
+    const aSold = aTotal - advertRows.reduce((s, r) => s + r.availableSlots, 0);
+    const bSold = bTotal - brandingRows.reduce((s, r) => s + r.availableSlots, 0);
     const revenue =
-      [...advertRows, ...brandingRows].filter((r) => r.isTaken).reduce((s, r) => s + (r.price || 0), 0);
+      advertRows.reduce((s, r) => s + (r.totalSlots - r.availableSlots) * (r.price || 0), 0) +
+      brandingRows.reduce((s, r) => s + (r.totalSlots - r.availableSlots) * (r.price || 0), 0);
     return {
-      advertTotal: advertRows.length,
-      brandingTotal: brandingRows.length,
+      advertListings: advertRows.length,
+      brandingListings: brandingRows.length,
+      advertCapacity: aTotal,
+      brandingCapacity: bTotal,
       advertAvail: aAvail,
       brandingAvail: bAvail,
-      advertTaken: aTaken,
-      brandingTaken: bTaken,
-      reserved: [...advertRows, ...brandingRows].filter((r) => r.isReserved && !r.isTaken).length,
+      advertSold: aSold,
+      brandingSold: bSold,
+      reserved: [...advertRows, ...brandingRows].filter((r) => r.isReserved).length,
       revenueKobo: revenue,
     };
   }, [advertRows, brandingRows]);
@@ -366,8 +507,7 @@ export default function AdminMarketingPage() {
           <div>
             <h2 className="text-xl font-black tracking-tight text-charcoal dark:text-slate-100 sm:text-2xl">Marketing</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              Advert slots and branding slots — inventory, holds, manual assignment, and what companies see in the
-              company portal.
+              Advert and branding slot inventory. Each listing can have multiple copies for sale — companies decrement availability as they purchase.
             </p>
           </div>
         </div>
@@ -382,27 +522,27 @@ export default function AdminMarketingPage() {
 
         <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
-            <p className="text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Advert slots</p>
-            <p className="mt-1 text-2xl font-black text-charcoal dark:text-white">{stats.advertTotal}</p>
+            <p className="text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Advert capacity</p>
+            <p className="mt-1 text-2xl font-black text-charcoal dark:text-white">{stats.advertCapacity}</p>
             <p className="text-[11px] text-slate-500 mt-1">
-              {stats.advertAvail} available · {stats.advertTaken} taken
+              {stats.advertAvail} available · {stats.advertSold} sold · {stats.advertListings} listings
             </p>
           </div>
           <div className="rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
-            <p className="text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Branding slots</p>
-            <p className="mt-1 text-2xl font-black text-charcoal dark:text-white">{stats.brandingTotal}</p>
+            <p className="text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Branding capacity</p>
+            <p className="mt-1 text-2xl font-black text-charcoal dark:text-white">{stats.brandingCapacity}</p>
             <p className="text-[11px] text-slate-500 mt-1">
-              {stats.brandingAvail} available · {stats.brandingTaken} taken
+              {stats.brandingAvail} available · {stats.brandingSold} sold · {stats.brandingListings} listings
             </p>
           </div>
           <div className="rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
-            <p className="text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Reserved (holds)</p>
+            <p className="text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Reserved listings</p>
             <p className="mt-1 text-2xl font-black text-amber-600 dark:text-amber-400">{stats.reserved}</p>
           </div>
           <div className="rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
-            <p className="text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Taken slots — listed value</p>
+            <p className="text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Sold copies — listed value</p>
             <p className="mt-1 text-2xl font-black text-primary">{formatKoboToNaira(stats.revenueKobo)}</p>
-            <p className="text-[11px] text-slate-500 mt-1">Total of list prices for slots currently marked taken.</p>
+            <p className="text-[11px] text-slate-500 mt-1">Total list price for all sold copies.</p>
           </div>
         </div>
 
@@ -431,6 +571,7 @@ export default function AdminMarketingPage() {
             deleteMutation={advertDelete}
             onAssignClick={(row) => setAssignTarget({ kind: "advert", row })}
             unassignMutation={unassignAdvert}
+            onEditTotalClick={(row) => setEditTotalTarget({ kind: "advert", row })}
           />
         </section>
 
@@ -459,6 +600,7 @@ export default function AdminMarketingPage() {
             deleteMutation={brandingDelete}
             onAssignClick={(row) => setAssignTarget({ kind: "branding", row })}
             unassignMutation={unassignBranding}
+            onEditTotalClick={(row) => setEditTotalTarget({ kind: "branding", row })}
           />
         </section>
       </div>
@@ -474,6 +616,7 @@ export default function AdminMarketingPage() {
             price: payload.priceKobo,
             description: payload.description,
             isReserved: payload.isReserved,
+            totalSlots: payload.totalSlots,
             advertSlotImage: payload.imageFile,
           })
         }
@@ -489,6 +632,7 @@ export default function AdminMarketingPage() {
             price: payload.priceKobo,
             description: payload.description,
             isReserved: payload.isReserved,
+            totalSlots: payload.totalSlots,
             brandingSlotImage: payload.imageFile,
           })
         }
@@ -516,6 +660,23 @@ export default function AdminMarketingPage() {
         onAssign={(companyId) => {
           if (!assignTarget || assignTarget.kind !== "branding") return;
           assignBranding.mutate({ companyId, slotId: assignTarget.row.id });
+        }}
+      />
+
+      <EditTotalSlotsModal
+        open={!!editTotalTarget}
+        row={editTotalTarget?.row ?? null}
+        isSubmitting={editAdvertTotal.isPending || editBrandingTotal.isPending}
+        onClose={() => {
+          if (!editAdvertTotal.isPending && !editBrandingTotal.isPending) setEditTotalTarget(null);
+        }}
+        onSubmit={(newTotal) => {
+          if (!editTotalTarget) return;
+          if (editTotalTarget.kind === "advert") {
+            editAdvertTotal.mutate({ id: editTotalTarget.row.id, totalSlots: newTotal });
+          } else {
+            editBrandingTotal.mutate({ id: editTotalTarget.row.id, totalSlots: newTotal });
+          }
         }}
       />
     </>

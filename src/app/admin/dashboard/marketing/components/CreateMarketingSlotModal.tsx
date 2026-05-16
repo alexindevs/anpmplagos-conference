@@ -15,6 +15,7 @@ type Props = {
     priceKobo: number;
     description: string | null;
     isReserved: boolean;
+    totalSlots: number;
     imageFile: File;
   }) => void;
 };
@@ -24,6 +25,7 @@ export function CreateMarketingSlotModal({ open, kind, isSubmitting, onClose, on
   const [priceNaira, setPriceNaira] = useState("");
   const [description, setDescription] = useState("");
   const [isReserved, setIsReserved] = useState(false);
+  const [totalSlots, setTotalSlots] = useState("1");
   const [file, setFile] = useState<File | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
 
@@ -32,6 +34,7 @@ export function CreateMarketingSlotModal({ open, kind, isSubmitting, onClose, on
     setPriceNaira("");
     setDescription("");
     setIsReserved(false);
+    setTotalSlots("1");
     setFile(null);
     setLocalError(null);
   };
@@ -42,6 +45,7 @@ export function CreateMarketingSlotModal({ open, kind, isSubmitting, onClose, on
     setPriceNaira("");
     setDescription("");
     setIsReserved(false);
+    setTotalSlots("1");
     setFile(null);
     setLocalError(null);
   }, [open, kind]);
@@ -75,11 +79,17 @@ export function CreateMarketingSlotModal({ open, kind, isSubmitting, onClose, on
       setLocalError("Image must be 5MB or smaller.");
       return;
     }
+    const slots = Math.round(Number(totalSlots));
+    if (!Number.isFinite(slots) || slots < 1) {
+      setLocalError("Total slots must be a positive integer.");
+      return;
+    }
     onSubmit({
       title: t,
       priceKobo: kobo,
       description: description.trim() || null,
       isReserved,
+      totalSlots: slots,
       imageFile: file,
     });
   };
@@ -130,6 +140,22 @@ export function CreateMarketingSlotModal({ open, kind, isSubmitting, onClose, on
               rows={3}
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
             />
+          </div>
+          <div>
+            <label className="block text-xs font-bold uppercase text-slate-500 dark:text-white/50 mb-1">
+              Total slots available
+            </label>
+            <input
+              type="number"
+              min={1}
+              step={1}
+              value={totalSlots}
+              onChange={(e) => setTotalSlots(e.target.value)}
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
+            />
+            <p className="mt-1 text-xs text-slate-500 dark:text-white/50">
+              Number of identical copies for sale. Multiple companies can buy this slot until {`availableSlots`} reaches zero.
+            </p>
           </div>
           <div>
             <label className="block text-xs font-bold uppercase text-slate-500 dark:text-white/50 mb-1">

@@ -15,7 +15,7 @@ export function MarketingCatalogCard({
   unavailableLabel?: string;
 }) {
   const img = apiAssetUrl(slot.image);
-  const available = !slot.isTaken && !slot.isReserved;
+  const available = slot.availableSlots > 0 && !slot.isReserved;
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-secondary/20 border-t-2 border-t-secondary/60 bg-white shadow-sm">
       <div className="aspect-16/10 bg-slate-100 relative">
@@ -33,6 +33,9 @@ export function MarketingCatalogCard({
         {slot.description?.trim() ? (
           <p className="text-xs text-slate-600 mt-2 line-clamp-3">{slot.description}</p>
         ) : null}
+        <p className="text-xs font-bold text-secondary mt-2">
+          {slot.availableSlots} of {slot.totalSlots} {slot.totalSlots === 1 ? "spot" : "spots"} available
+        </p>
         <div className="mt-auto pt-4">
           <button
             type="button"
