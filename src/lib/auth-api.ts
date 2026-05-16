@@ -2,7 +2,7 @@ import { useAuthStore } from "@/stores/auth-store";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
-let refreshPromise: Promise<void> | null = null;
+let refreshPromise: Promise<RefreshResponse> | null = null;
 
 export interface AuthAdmin {
   name: string;
@@ -105,8 +105,7 @@ async function authFetch<T>(
   const isAuthEndpoint = path.includes("/api/auth/me") || path.includes("/api/auth/refresh");
   if (res.status === 401 && !_isRetry && !isAuthEndpoint) {
     try {
-      refreshPromise ??= rawRefresh().then(() => { refreshPromise = null; }).catch((e) => { refreshPromise = null; throw e; });
-      await refreshPromise;
+      await refresh();
       return authFetch<T>(path, { ...options, _isRetry: true });
     } catch {
       useAuthStore.getState().clearUser();
@@ -120,12 +119,6 @@ async function authFetch<T>(
     throw new AuthApiError(res.status, (body?.message as string) ?? res.statusText, body);
   }
   return res.json() as Promise<T>;
-}
-
-async function rawRefresh(): Promise<void> {
-  const url = new URL("/api/auth/refresh", API_BASE);
-  const res = await fetch(url.toString(), { method: "POST", credentials: "include" });
-  if (!res.ok) throw new Error("refresh failed");
 }
 
 export async function login(email: string, password: string): Promise<LoginResponse> {
@@ -142,9 +135,9 @@ export async function logout(): Promise<{ message: string }> {
 }
 
 export async function refresh(): Promise<RefreshResponse> {
-  return authFetch<RefreshResponse>("/api/auth/refresh", {
-    method: "POST",
-  });
+  refreshPromise ??= authFetch<RefreshResponse>("/api/auth/refresh", { method: "POST" })
+    .finally(() => { refreshPromise = null; });
+  return refreshPromise;
 }
 
 export async function getMe(): Promise<AuthUser> {
