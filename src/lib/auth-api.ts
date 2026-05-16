@@ -102,7 +102,8 @@ async function authFetch<T>(
     headers,
   });
 
-  if (res.status === 401 && !_isRetry) {
+  const isAuthEndpoint = path.includes("/api/auth/me") || path.includes("/api/auth/refresh");
+  if (res.status === 401 && !_isRetry && !isAuthEndpoint) {
     try {
       refreshPromise ??= rawRefresh().then(() => { refreshPromise = null; }).catch((e) => { refreshPromise = null; throw e; });
       await refreshPromise;
