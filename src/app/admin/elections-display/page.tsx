@@ -176,7 +176,7 @@ export default function ElectionsDisplayPage() {
       {/* Slide area */}
       <main className="flex min-h-0 flex-1 items-center justify-center px-8 py-6">
         {isLoading ? (
-          <div className="h-full w-full max-w-3xl animate-pulse rounded-2xl bg-white/5" />
+          <div className="h-full w-full animate-pulse rounded-2xl bg-white/5" />
         ) : !results?.length ? (
           <div className="flex flex-col items-center justify-center">
             <span className="material-symbols-outlined text-[64px] text-white/20">
@@ -188,7 +188,7 @@ export default function ElectionsDisplayPage() {
           </div>
         ) : (
           <div
-            className={`flex h-full w-full max-w-3xl flex-col rounded-2xl border border-white/10 bg-white/5 p-8 transition-opacity duration-300 ${fading ? "opacity-0" : "opacity-100"}`}
+            className={`flex h-full w-full flex-col rounded-2xl border border-white/10 bg-white/5 p-8 transition-opacity duration-300 ${fading ? "opacity-0" : "opacity-100"}`}
           >
             {/* Position header */}
             <div className="mb-5 shrink-0">
