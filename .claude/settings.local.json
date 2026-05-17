@@ -9,7 +9,8 @@
       "Bash(git commit *)",
       "Bash(git push *)",
       "Bash(node -e \"const {register, collectDefaultMetrics} = require\\('prom-client'\\); console.log\\('ok', typeof register.metrics\\)\")",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(node -e \"const {redisInsStore} = require\\('./node_modules/cache-manager-ioredis-yet'\\); console.log\\(redisInsStore.toString\\(\\).slice\\(0, 1000\\)\\)\")"
     ]
   }
 }
