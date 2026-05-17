@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { PortalSidebarHeaderLogo } from "@/app/components/PortalSidebarHeaderLogo";
 import { ResponsivePortalShell } from "@/app/components/ResponsivePortalShell";
 import { authSessionQueryKey } from "@/hooks/use-auth-session";
 import { logout } from "@/lib/auth-api";
 import { useAuthStore } from "@/stores/auth-store";
+import { getElectionsStatus } from "@/lib/api";
 
 /** Sidebar for members / attendees booking hotel rooms (no company portal). */
 export function AttendeeHotelRoomsShell({
@@ -28,6 +29,15 @@ export function AttendeeHotelRoomsShell({
   const [loggingOut, setLoggingOut] = useState(false);
 
   const isMember = regType === "member";
+
+  const { data: electionsStatus } = useQuery({
+    queryKey: ["elections", "status"],
+    queryFn: getElectionsStatus,
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    enabled: isMember,
+  });
+  const votingActive = electionsStatus?.isActive ?? false;
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -76,10 +86,20 @@ export function AttendeeHotelRoomsShell({
                   <span className="material-symbols-outlined">confirmation_number</span>
                   My Ticket
                 </Link>
+                <Link href="/member/receipts" className={itemClass("/member/receipts")}>
+                  <span className="material-symbols-outlined">receipt_long</span>
+                  Receipts
+                </Link>
                 <Link href="/hotel-rooms" className={itemClass("/hotel-rooms")}>
                   <span className="material-symbols-outlined">bed</span>
                   Hotel rooms
                 </Link>
+                {votingActive && (
+                  <Link href="/member/elections" className={itemClass("/member/elections")}>
+                    <span className="material-symbols-outlined">how_to_vote</span>
+                    Elections
+                  </Link>
+                )}
                 <Link href="/member/support" className={itemClass("/member/support")}>
                   <span className="material-symbols-outlined">support</span>
                   Support
