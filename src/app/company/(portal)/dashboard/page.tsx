@@ -431,8 +431,8 @@ export default function ExhibitorDashboardPage() {
                 <div className="space-y-3">
                   <div>
                     <p className="text-sm font-bold text-charcoal">Pharm. Moji Aladesanmi</p>
-                    <a href="mailto:exhibition774@gmail.com" className="block text-sm text-secondary hover:underline">
-                      exhibition774@gmail.com
+                    <a href="mailto:support@anpmplagos-conference.com" className="block text-sm text-secondary hover:underline">
+                      support@anpmplagos-conference.com
                     </a>
                   </div>
                   <div>
