@@ -39,8 +39,8 @@ function ManualPaymentPendingContent() {
 
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-[80%] md:max-w-[50%] rounded-2xl border border-primary/10 bg-white shadow-lg dark:border-border-dark dark:bg-background-dark-soft">
-        <div className="border-b border-primary/10 px-8 py-6 dark:border-border-dark">
+      <div className="w-full rounded-2xl border border-primary/10 bg-white shadow-lg dark:border-border-dark dark:bg-background-dark-soft">
+        <div className="border-b border-primary/10 px-5 py-5 sm:px-8 sm:py-6 dark:border-border-dark">
           <div className="flex items-center gap-3">
             <span className="material-symbols-outlined text-3xl text-primary">account_balance</span>
             <div>
@@ -54,9 +54,9 @@ function ManualPaymentPendingContent() {
           </div>
         </div>
 
-        <div className="px-8 py-6 space-y-6">
+        <div className="px-5 py-5 sm:px-8 sm:py-6 space-y-6">
           {/* Instructions */}
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 dark:border-amber-700/30 dark:bg-amber-900/20">
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 dark:border-amber-700/30 dark:bg-amber-900/20">
             <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">
               Please transfer the exact amount to the account below, then click &ldquo;I&rsquo;ve made this payment&rdquo;.
             </p>
@@ -66,26 +66,26 @@ function ManualPaymentPendingContent() {
           <div className="rounded-xl border border-slate-200 bg-slate-50 dark:border-border-dark dark:bg-background-dark-softer overflow-hidden">
             <div className="divide-y divide-slate-200 dark:divide-border-dark">
               {BANK_NAME && (
-                <div className="flex items-center justify-between px-5 py-3">
+                <div className="flex flex-col gap-0.5 px-5 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                   <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">Bank</span>
                   <span className="font-bold text-charcoal dark:text-white">{BANK_NAME}</span>
                 </div>
               )}
               {ACCOUNT_NUMBER && (
-                <div className="flex items-center justify-between px-5 py-3">
+                <div className="flex flex-col gap-0.5 px-5 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                   <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">Account Number</span>
                   <span className="font-mono font-bold text-lg text-charcoal dark:text-white">{ACCOUNT_NUMBER}</span>
                 </div>
               )}
               {ACCOUNT_NAME && (
-                <div className="flex items-center justify-between px-5 py-3">
+                <div className="flex flex-col gap-0.5 px-5 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                   <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">Account Name</span>
                   <span className="font-bold text-charcoal dark:text-white">{ACCOUNT_NAME}</span>
                 </div>
               )}
-              <div className="flex items-center justify-between px-5 py-3">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">Reference</span>
-                <span className="font-mono text-sm font-bold text-charcoal dark:text-white">{reference}</span>
+              <div className="flex flex-col gap-0.5 px-5 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                <span className="shrink-0 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">Reference</span>
+                <span className="break-all font-mono text-sm font-bold text-charcoal dark:text-white">{reference}</span>
               </div>
             </div>
           </div>

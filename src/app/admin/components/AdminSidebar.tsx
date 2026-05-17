@@ -23,7 +23,7 @@ const NAV = [
   { href: "/admin/dashboard/presentations", label: "Presentations", icon: "co_present" },
   { href: "/admin/dashboard/support", label: "Support", icon: "support_agent" },
   { href: "/admin/dashboard/attendance", label: "Attendance", icon: "how_to_reg" },
-  { href: "/admin/dashboard/receipts", label: "Receipts", icon: "receipt_long" },
+  { href: "/admin/dashboard/receipts", label: "Payments", icon: "receipt_long" },
   { href: "/admin/dashboard/elections", label: "Elections", icon: "how_to_vote" },
   { href: "/admin/dashboard/settings", label: "Settings", icon: "settings" },
 ];

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { isCompanyRegType } from "@/lib/auth-api";
@@ -68,6 +69,7 @@ export default function HotelRoomsPage() {
       {
         onSettled: () => setAddingRoomId(null),
         onSuccess: () => {
+          toast.success("Room added to cart successfully.");
           void queryClient.invalidateQueries({ queryKey: HOTEL_ROOMS_QUERY_KEY });
           void queryClient.invalidateQueries({ queryKey: HOTEL_ROOMS_ME_QUERY_KEY });
           void queryClient.invalidateQueries({ queryKey: hotelCartQueryKey });
