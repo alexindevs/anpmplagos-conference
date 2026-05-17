@@ -60,7 +60,8 @@ export default function Header() {
     pathname.startsWith("/company/sessions/") ||
     pathname.startsWith("/company/support") ||
     pathname.startsWith("/company/sponsorship-plans") ||
-    pathname.startsWith("/company/tickets");
+    pathname.startsWith("/company/tickets") ||
+    pathname.startsWith("/company/receipts");
 
   /** Marketing header only: hide inside admin, company portal, member portal, attendee portal, moderator portal, and hotel booking (portal shell). */
   const hideMarketingHeader =
