@@ -4,7 +4,7 @@ Client project for the **ANPMP** (Association of Nigerian Private Medical Practi
 
 ## Tech
 
-- **Next.js 16** (App Router)
+- **Next.js 15** (App Router)
 - **React 19**
 - **Tailwind CSS 4**
 - **TypeScript**
