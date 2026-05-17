@@ -102,7 +102,10 @@ async function authFetch<T>(
     headers,
   });
 
-  const isAuthEndpoint = path.includes("/api/auth/me") || path.includes("/api/auth/refresh");
+  const isAuthEndpoint =
+    path.includes("/api/auth/me") ||
+    path.includes("/api/auth/refresh") ||
+    path.includes("/api/auth/login");
   if (res.status === 401 && !_isRetry && !isAuthEndpoint) {
     try {
       await refresh();
