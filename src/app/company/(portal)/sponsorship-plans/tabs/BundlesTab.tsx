@@ -98,6 +98,7 @@ function PlanCard({
   const planTierRank = TIER_RANK[plan.tier.toLowerCase()] ?? 0;
   const isUpgrade = planTierRank > currentTierRank;
   const isCurrentTier = planTierRank === currentTierRank && currentTierRank > 0;
+  const isDowngrade = currentTierRank > 0 && planTierRank < currentTierRank;
   const tierStyle =
     TIER_DISPLAY[plan.tier.toLowerCase()] ?? { label: plan.tier, color: "text-slate-600", bg: "bg-slate-100" };
 
@@ -139,6 +140,15 @@ function PlanCard({
             >
               <span className="material-symbols-outlined text-[18px]">check</span>
               Current Tier
+            </button>
+          ) : isDowngrade ? (
+            <button
+              type="button"
+              disabled
+              className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-400 cursor-not-allowed"
+            >
+              <span className="material-symbols-outlined text-[18px]">block</span>
+              Lower than current tier
             </button>
           ) : (
             <button
@@ -217,7 +227,7 @@ function TierPlanSection({
   const { page, setPage, totalPages, pageItems } = useClientPagination(tierPlans);
   return (
     <section className="space-y-4">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {pageItems.map((plan) => (
           <PlanCard
             key={plan.id}
