@@ -7,12 +7,15 @@ import {
   deleteAdminHotelRoom,
   formatKoboToNaira,
   getAdminHotelRooms,
+  getAdminHotelRoomsStats,
   patchAdminHotelRoomReserve,
   patchAdminHotelRoomUnreserve,
   postAdminHotelRoom,
   postAdminHotelRoomsBulk,
   type HotelRoom,
 } from "@/lib/api";
+
+const PAGE_SIZE = 50;
 import { AddRoomSlotsModal } from "./components/AddRoomSlotsModal";
 
 const ADMIN_HOTEL_ROOMS_KEY = ["admin", "hotel-rooms"] as const;
@@ -51,11 +54,29 @@ export default function HotelBookingsPage() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<"" | "available" | "reserved" | "booked">("");
   const [filterRoomType, setFilterRoomType] = useState("");
+  const [page, setPage] = useState(1);
 
-  const { data: rooms = [], isLoading, isError, error, refetch } = useQuery({
-    queryKey: ADMIN_HOTEL_ROOMS_KEY,
-    queryFn: getAdminHotelRooms,
+  const tableQueryKey = [...ADMIN_HOTEL_ROOMS_KEY, page, search, filterRoomType, filterStatus] as const;
+
+  const { data, isLoading, isError, error, refetch } = useQuery({
+    queryKey: tableQueryKey,
+    queryFn: () => getAdminHotelRooms({
+      page,
+      pageSize: PAGE_SIZE,
+      hotelName: search || undefined,
+      roomType: filterRoomType || undefined,
+      status: filterStatus || undefined,
+    }),
   });
+
+  const { data: stats } = useQuery({
+    queryKey: [...ADMIN_HOTEL_ROOMS_KEY, "stats"],
+    queryFn: getAdminHotelRoomsStats,
+  });
+
+  const rooms: HotelRoom[] = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const roomTypeOptions = useMemo(() => {
     const set = new Set<string>();
@@ -65,30 +86,14 @@ export default function HotelBookingsPage() {
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [rooms]);
 
-  const stats = useMemo(() => {
-    const total = rooms.length;
-    const available = rooms.filter((r) => !r.isBooked && !r.isReserved).length;
-    const reserved = rooms.filter((r) => r.isReserved && !r.isBooked).length;
-    const booked = rooms.filter((r) => r.isBooked).length;
-    return { total, available, reserved, booked };
-  }, [rooms]);
-
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return rooms.filter((r) => {
-      const status = r.isBooked ? "booked" : r.isReserved ? "reserved" : "available";
-      if (filterStatus && status !== filterStatus) return false;
-      if (filterRoomType && r.roomType !== filterRoomType) return false;
-      if (!q) return true;
-      const hay = `${r.id} ${r.hotelName} ${r.roomType} ${r.description ?? ""}`.toLowerCase();
-      return hay.includes(q);
-    });
-  }, [rooms, search, filterStatus, filterRoomType]);
+  const resetPage = () => setPage(1);
 
   const invalidateHotelQueries = () => {
     void queryClient.invalidateQueries({ queryKey: ADMIN_HOTEL_ROOMS_KEY });
     void queryClient.invalidateQueries({ queryKey: ["hotel-rooms", "available"] });
   };
+
+  const paged = rooms;
 
   const createMutation = useMutation({
     mutationFn: async (data: {
@@ -207,7 +212,7 @@ export default function HotelBookingsPage() {
             <input
               type="text"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); resetPage(); }}
               placeholder="Search by hotel or room type…"
               className="w-full rounded-lg border-none bg-background-light py-2 pl-10 pr-4 text-sm transition-all focus:ring-2 focus:ring-primary/50 dark:bg-background-dark-softer dark:text-white"
             />
@@ -215,7 +220,7 @@ export default function HotelBookingsPage() {
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
             <select
               value={filterRoomType}
-              onChange={(e) => setFilterRoomType(e.target.value)}
+              onChange={(e) => { setFilterRoomType(e.target.value); resetPage(); }}
               className="w-full min-w-0 cursor-pointer rounded-lg border-none bg-background-light px-4 py-2 text-sm focus:ring-2 focus:ring-primary/50 dark:bg-background-dark-softer dark:text-white sm:w-auto sm:min-w-[160px]"
             >
               <option value="">All room types</option>
@@ -227,7 +232,7 @@ export default function HotelBookingsPage() {
             </select>
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as typeof filterStatus)}
+              onChange={(e) => { setFilterStatus(e.target.value as typeof filterStatus); resetPage(); }}
               className="w-full min-w-0 cursor-pointer rounded-lg border-none bg-background-light px-4 py-2 text-sm focus:ring-2 focus:ring-primary/50 dark:bg-background-dark-softer dark:text-white sm:w-auto"
             >
               <option value="">All statuses</option>
@@ -250,23 +255,23 @@ export default function HotelBookingsPage() {
             <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">
               Total slots
             </p>
-            <p className="mt-1 text-2xl font-black text-charcoal dark:text-white">{stats.total}</p>
+            <p className="mt-1 text-2xl font-black text-charcoal dark:text-white">{stats?.total ?? "—"}</p>
           </div>
           <div className="rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
             <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">
               Available
             </p>
-            <p className="mt-1 text-2xl font-black text-secondary">{stats.available}</p>
+            <p className="mt-1 text-2xl font-black text-secondary">{stats?.available ?? "—"}</p>
           </div>
           <div className="rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
             <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">
               Reserved
             </p>
-            <p className="mt-1 text-2xl font-black text-amber-600 dark:text-amber-400">{stats.reserved}</p>
+            <p className="mt-1 text-2xl font-black text-amber-600 dark:text-amber-400">{stats?.reserved ?? "—"}</p>
           </div>
           <div className="rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
             <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">Booked</p>
-            <p className="mt-1 text-2xl font-black text-primary">{stats.booked}</p>
+            <p className="mt-1 text-2xl font-black text-primary">{stats?.booked ?? "—"}</p>
           </div>
         </div>
 
@@ -307,7 +312,7 @@ export default function HotelBookingsPage() {
                     </td>
                   </tr>
                 )}
-                {!isLoading && !isError && filtered.length === 0 && (
+                {!isLoading && !isError && paged.length === 0 && (
                   <tr>
                     <td className="px-6 py-8 text-sm text-slate-500 dark:text-white/50" colSpan={5}>
                       No slots match your filters.
@@ -316,7 +321,7 @@ export default function HotelBookingsPage() {
                 )}
                 {!isLoading &&
                   !isError &&
-                  filtered.map((row) => {
+                  paged.map((row) => {
                     const st = slotStatus(row);
                     const canDelete = !row.isBooked;
                     const canReserve = !row.isBooked && !row.isReserved;
@@ -383,9 +388,35 @@ export default function HotelBookingsPage() {
           </div>
           <div className="flex items-center justify-between bg-primary/5 px-6 py-4 dark:bg-background-dark-softer">
             <p className="text-sm text-slate-500 dark:text-white/50">
-              Showing <span className="font-bold text-slate-700 dark:text-white/70">{filtered.length}</span> of{" "}
-              <span className="font-bold text-slate-700 dark:text-white/70">{rooms.length}</span> slots
+              Showing{" "}
+              <span className="font-bold text-slate-700 dark:text-white/70">
+                {total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)}
+              </span>{" "}
+              of <span className="font-bold text-slate-700 dark:text-white/70">{total}</span> slots
             </p>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => p - 1)}
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-40 dark:border-border-dark dark:text-white/70 dark:hover:bg-background-dark-softer"
+                >
+                  Previous
+                </button>
+                <span className="text-xs text-slate-500 dark:text-white/50">
+                  Page {page} of {totalPages}
+                </span>
+                <button
+                  type="button"
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-40 dark:border-border-dark dark:text-white/70 dark:hover:bg-background-dark-softer"
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

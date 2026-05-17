@@ -1683,10 +1683,38 @@ export async function getMyBookedHotelRooms(): Promise<HotelRoom[]> {
 
 // —— Admin hotel inventory (JWT + admin) — see HOTEL-ROOMS.md
 
-/** Full list including booked / reserved (admin only). */
-export async function getAdminHotelRooms(): Promise<HotelRoom[]> {
-  const res = await apiFetch<HotelRoom[] | { items?: HotelRoom[] }>("/api/admin/hotel-rooms");
-  return Array.isArray(res) ? res : (res.items ?? []);
+export interface AdminHotelRoomsResponse {
+  items: HotelRoom[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface AdminHotelRoomStats {
+  total: number;
+  available: number;
+  reserved: number;
+  booked: number;
+}
+
+export async function getAdminHotelRooms(params?: {
+  page?: number;
+  pageSize?: number;
+  hotelName?: string;
+  roomType?: string;
+  status?: "available" | "reserved" | "booked" | "";
+}): Promise<AdminHotelRoomsResponse> {
+  const q = new URLSearchParams();
+  if (params?.page) q.set("page", String(params.page));
+  if (params?.pageSize) q.set("pageSize", String(params.pageSize));
+  if (params?.hotelName?.trim()) q.set("hotelName", params.hotelName.trim());
+  if (params?.roomType?.trim()) q.set("roomType", params.roomType.trim());
+  if (params?.status) q.set("status", params.status);
+  return apiFetch<AdminHotelRoomsResponse>(`/api/admin/hotel-rooms?${q}`);
+}
+
+export async function getAdminHotelRoomsStats(): Promise<AdminHotelRoomStats> {
+  return apiFetch<AdminHotelRoomStats>("/api/admin/hotel-rooms/stats");
 }
 
 export interface CreateAdminHotelRoomInput {
