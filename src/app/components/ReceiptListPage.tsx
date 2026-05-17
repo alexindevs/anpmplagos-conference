@@ -267,25 +267,27 @@ function ReceiptDetail({ receipt }: { receipt: ReceiptData }) {
           </div>
         )}
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <button
-            onClick={handlePrint}
-            disabled={printing}
-            className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-border-dark dark:bg-background-dark-soft dark:text-white dark:hover:bg-background-dark-softer sm:w-auto"
-          >
-            <span
-              className={`material-symbols-outlined text-base ${
-                printing ? "animate-spin" : ""
-              }`}
+        {receipt.status === "success" && (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <button
+              onClick={handlePrint}
+              disabled={printing}
+              className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-border-dark dark:bg-background-dark-soft dark:text-white dark:hover:bg-background-dark-softer sm:w-auto"
             >
-              {printing ? "progress_activity" : "print"}
-            </span>
-            {printing ? "Opening…" : "Print Receipt"}
-          </button>
-          {printError && (
-            <p className="text-xs text-red-700 dark:text-red-300">{printError}</p>
-          )}
-        </div>
+              <span
+                className={`material-symbols-outlined text-base ${
+                  printing ? "animate-spin" : ""
+                }`}
+              >
+                {printing ? "progress_activity" : "print"}
+              </span>
+              {printing ? "Opening…" : "Print Receipt"}
+            </button>
+            {printError && (
+              <p className="text-xs text-red-700 dark:text-red-300">{printError}</p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
