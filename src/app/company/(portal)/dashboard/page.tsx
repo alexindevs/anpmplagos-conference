@@ -18,10 +18,7 @@ import {
   getExhibitorProfile,
 } from "@/lib/api";
 import { boothPrimaryName, boothSizeTierLine } from "@/lib/booth-display";
-import {
-  exhibitorBoothDraftKey,
-  exhibitorBoothPaymentResultKey,
-} from "@/lib/company-local-storage";
+import { exhibitorBoothPaymentResultKey } from "@/lib/company-local-storage";
 import { modalsReducer, initialModalsState } from "./modals-state";
 import { EditProfileModal } from "./components/EditProfileModal";
 import { ProductModal } from "./components/ProductModal";
@@ -33,20 +30,6 @@ function productImageSrc(url: string | null | undefined): string | null {
   const base = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000").replace(/\/$/, "");
   return `${base}${url.startsWith("/") ? "" : "/"}${url}`;
 }
-
-type BoothDraft = {
-  boothId: string;
-  /** Display label from API (preferred over hall). */
-  name?: string;
-  hall?: string;
-  floorSection?: string;
-  size?: string;
-  tier?: string | null;
-  description: string | null;
-  price?: number;
-  isReserved?: boolean;
-  isTaken?: boolean;
-};
 
 type BoothPaymentResult = {
   reference: string;
@@ -71,7 +54,6 @@ export default function ExhibitorDashboardPage() {
   const queryClient = useQueryClient();
   const { data: me, isPending: meLoading } = useAuthSession();
 
-  const [boothDraft, setBoothDraft] = useState<BoothDraft | null>(null);
   const [paymentResult, setPaymentResult] = useState<BoothPaymentResult | null>(null);
   const [modals, dispatchModal] = useReducer(modalsReducer, initialModalsState);
 
@@ -80,11 +62,9 @@ export default function ExhibitorDashboardPage() {
 
   useEffect(() => {
     if (!companyId) {
-      setBoothDraft(null);
       setPaymentResult(null);
       return;
     }
-    setBoothDraft(readLocal<BoothDraft>(exhibitorBoothDraftKey(companyId)));
     setPaymentResult(readLocal<BoothPaymentResult>(exhibitorBoothPaymentResultKey(companyId)));
   }, [companyId]);
 
@@ -200,8 +180,7 @@ export default function ExhibitorDashboardPage() {
     });
   }, [products]);
 
-  // Use API booth status if available, fallback to localStorage draft
-  const displayBooth = assignedBoothFromApi || boothDraft;
+  const displayBooth = assignedBoothFromApi;
   const displayBoothMetaLine = displayBooth ? boothSizeTierLine(displayBooth) : null;
   const displayBoothStatus =
     boothStatus === "assigned"
@@ -210,7 +189,7 @@ export default function ExhibitorDashboardPage() {
         ? "PENDING"
         : isConfirmed
           ? "CONFIRMED"
-          : "PENDING";
+          : null;
 
   const stats = dashboardData?.stats ?? {
     profileViews: 0,
@@ -325,15 +304,17 @@ export default function ExhibitorDashboardPage() {
                         <p className="text-sm text-slate-600 ml-9">{displayBooth.description}</p>
                       )}
                     </div>
-                    <span
-                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${
-                        displayBoothStatus === "CONFIRMED"
-                          ? "bg-secondary/20 text-secondary"
-                          : "bg-slate-100 text-slate-600"
-                      }`}
-                    >
-                      {displayBoothStatus}
-                    </span>
+                    {displayBoothStatus && (
+                      <span
+                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${
+                          displayBoothStatus === "CONFIRMED"
+                            ? "bg-secondary/20 text-secondary"
+                            : "bg-amber-100 text-amber-700"
+                        }`}
+                      >
+                        {displayBoothStatus}
+                      </span>
+                    )}
                   </div>
                   <div className="pt-4 border-t border-secondary/20 flex items-center justify-between">
                     <div>
@@ -342,7 +323,7 @@ export default function ExhibitorDashboardPage() {
                         {displayBooth.price ? formatKoboToNaira(displayBooth.price) : "—"}
                       </p>
                     </div>
-                    {displayBoothStatus !== "CONFIRMED" && pendingPaymentFromApi && (
+                    {displayBoothStatus === "PENDING" && pendingPaymentFromApi && (
                       <p className="text-xs text-slate-500">
                         Payment pending. Reference: {pendingPaymentFromApi.reference}
                       </p>
