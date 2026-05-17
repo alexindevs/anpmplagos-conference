@@ -157,11 +157,6 @@ export default function LoginPage() {
               Register for the conference
             </Link>
           </p>
-          <p className="mt-3 text-center text-sm">
-            <Link href="/admin" className="font-medium text-slate-500 hover:text-primary">
-              Admin access →
-            </Link>
-          </p>
         </div>
       </div>
     </main>
