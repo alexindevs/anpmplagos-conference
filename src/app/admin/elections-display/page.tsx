@@ -128,14 +128,14 @@ export default function ElectionsDisplayPage() {
       {/* Header */}
       <header className="flex shrink-0 items-center justify-between border-b border-white/10 px-8 py-4">
         <div className="flex items-center gap-3">
-          <span className="material-symbols-outlined text-[32px] text-primary">
+          <span className="material-symbols-outlined text-[32px] text-green-400">
             how_to_vote
           </span>
           <div>
             <h1 className="text-xl font-black tracking-tight">
               ANPMP Lagos Conference 2026
             </h1>
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+            <p className="text-xs font-semibold uppercase tracking-widest text-green-400">
               Live Election Results
             </p>
           </div>
@@ -167,7 +167,7 @@ export default function ElectionsDisplayPage() {
       {total > 1 && (
         <div className="h-0.5 shrink-0 bg-white/10">
           <div
-            className="h-full bg-primary"
+            className="h-full bg-green-400"
             style={{ width: `${progress}%`, transition: "width 50ms linear" }}
           />
         </div>
@@ -204,7 +204,7 @@ export default function ElectionsDisplayPage() {
                   {pos!.title}
                 </h2>
                 <span
-                  className={`shrink-0 rounded-full bg-primary/20 font-bold text-primary ${sz.badge}`}
+                  className={`shrink-0 rounded-full bg-green-400/20 font-bold text-green-400 ${sz.badge}`}
                 >
                   {pos!.totalVotes} votes
                 </span>
@@ -270,9 +270,9 @@ export default function ElectionsDisplayPage() {
                       <div
                         className={`h-full rounded-full transition-all duration-700 ${
                           idx === 0
-                            ? "bg-primary"
+                            ? "bg-green-400"
                             : idx === 1
-                            ? "bg-primary/60"
+                            ? "bg-green-400/60"
                             : "bg-white/30"
                         }`}
                         style={{ width: `${c.percentage}%` }}
@@ -308,7 +308,7 @@ export default function ElectionsDisplayPage() {
                 onClick={() => goTo(i)}
                 className={`rounded-full transition-all duration-300 ${
                   i === safeIndex
-                    ? "h-2.5 w-6 bg-primary"
+                    ? "h-2.5 w-6 bg-green-400"
                     : "size-2.5 bg-white/30 hover:bg-white/50"
                 }`}
               />
