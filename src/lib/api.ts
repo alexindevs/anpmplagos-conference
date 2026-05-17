@@ -1,10 +1,13 @@
+import { refresh } from "@/lib/auth-api";
+import { useAuthStore } from "@/stores/auth-store";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 export async function apiFetch<T>(
   path: string,
-  options?: RequestInit & { params?: Record<string, string> }
+  options?: RequestInit & { params?: Record<string, string>; _isRetry?: boolean }
 ): Promise<T> {
-  const { params, ...init } = options ?? {};
+  const { params, _isRetry, ...init } = options ?? {};
   const url = new URL(path.startsWith("/") ? path : `/${path}`, API_BASE);
   if (params) {
     Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
@@ -18,6 +21,18 @@ export async function apiFetch<T>(
     credentials: "include",
     headers,
   });
+
+  if (res.status === 401 && !_isRetry) {
+    try {
+      await refresh();
+      return apiFetch<T>(path, { ...options, _isRetry: true });
+    } catch {
+      useAuthStore.getState().clearUser();
+      if (typeof window !== "undefined") window.location.replace("/login");
+      throw new ApiError(401, "Session expired");
+    }
+  }
+
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new ApiError(res.status, body?.message ?? res.statusText, body);
