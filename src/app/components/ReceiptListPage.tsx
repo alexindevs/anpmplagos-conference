@@ -7,6 +7,7 @@ import {
   getAllReceiptsAdmin,
   printReceiptById,
   adminVerifyManualPayment,
+  adminRefundPayment,
   formatKoboToNaira,
   ApiError,
   type ReceiptData,
@@ -317,6 +318,8 @@ export function ReceiptListPage({ isAdmin = false, accent = "primary", hideHeade
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [verifyingRef, setVerifyingRef] = useState<string | null>(null);
   const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [refundingRef, setRefundingRef] = useState<string | null>(null);
+  const [refundNotice, setRefundNotice] = useState<{ kind: "success" | "warning" | "error"; message: string } | null>(null);
   const PAGE_SIZE = 20;
 
   const handleVerifyPayment = async (reference: string) => {
@@ -329,6 +332,46 @@ export function ReceiptListPage({ isAdmin = false, accent = "primary", hideHeade
       setVerifyError(e instanceof ApiError ? e.message : "Failed to verify payment.");
     } finally {
       setVerifyingRef(null);
+    }
+  };
+
+  const handleRefundPayment = async (reference: string) => {
+    const ok = typeof window === "undefined"
+      ? true
+      : window.confirm(
+          `Refund payment ${reference}?\n\nThis will request a Paystack refund and reverse all inventory (booths, slots, sessions, registration, etc.) tied to this payment. This cannot be undone.`,
+        );
+    if (!ok) return;
+    setRefundingRef(reference);
+    setRefundNotice(null);
+    try {
+      const result = await adminRefundPayment(reference);
+      await queryClient.invalidateQueries({ queryKey: ["receipts"] });
+      if (!result.paystackRefunded && result.errors.length > 0) {
+        setRefundNotice({
+          kind: "error",
+          message: `Refund marked, but Paystack refund failed AND ${result.errors.length} asset(s) failed to reverse: ${result.errors.join("; ")}`,
+        });
+      } else if (!result.paystackRefunded) {
+        setRefundNotice({
+          kind: "warning",
+          message: "Inventory reversed and payment marked refunded, but Paystack refund call failed — verify the refund manually in your Paystack dashboard.",
+        });
+      } else if (result.errors.length > 0) {
+        setRefundNotice({
+          kind: "warning",
+          message: `Refund succeeded but ${result.errors.length} asset(s) failed to reverse cleanly: ${result.errors.join("; ")}`,
+        });
+      } else {
+        setRefundNotice({ kind: "success", message: "Payment refunded and all inventory reversed." });
+      }
+    } catch (e) {
+      setRefundNotice({
+        kind: "error",
+        message: e instanceof ApiError ? e.message : "Failed to refund payment.",
+      });
+    } finally {
+      setRefundingRef(null);
     }
   };
 
@@ -431,6 +474,28 @@ export function ReceiptListPage({ isAdmin = false, accent = "primary", hideHeade
         </div>
       )}
 
+      {/* Refund notice */}
+      {refundNotice && (
+        <div
+          className={`mb-4 flex items-start justify-between gap-3 rounded-lg border px-4 py-3 text-sm ${
+            refundNotice.kind === "success"
+              ? "border-green-200 bg-green-50 text-green-800 dark:border-green-900/40 dark:bg-green-950/30 dark:text-green-300"
+              : refundNotice.kind === "warning"
+                ? "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300"
+                : "border-red-200 bg-red-50 text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300"
+          }`}
+        >
+          <span>{refundNotice.message}</span>
+          <button
+            onClick={() => setRefundNotice(null)}
+            className="material-symbols-outlined text-base opacity-60 hover:opacity-100"
+            aria-label="Dismiss"
+          >
+            close
+          </button>
+        </div>
+      )}
+
       {/* Table */}
       {data && data.data.length > 0 && (
         <div className="rounded-xl border border-primary/5 bg-white shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
@@ -491,6 +556,18 @@ export function ReceiptListPage({ isAdmin = false, accent = "primary", hideHeade
                                 {verifyingRef === receipt.reference ? "progress_activity" : "check_circle"}
                               </span>
                               {verifyingRef === receipt.reference ? "Verifying…" : "Verify"}
+                            </button>
+                          )}
+                          {isAdmin && receipt.status === "success" && (
+                            <button
+                              onClick={() => handleRefundPayment(receipt.reference)}
+                              disabled={refundingRef === receipt.reference}
+                              className="flex items-center gap-1 rounded-lg border border-red-300 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-800 hover:bg-red-100 disabled:opacity-50 dark:border-red-700/40 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30"
+                            >
+                              <span className={`material-symbols-outlined text-sm ${refundingRef === receipt.reference ? "animate-spin" : ""}`}>
+                                {refundingRef === receipt.reference ? "progress_activity" : "currency_exchange"}
+                              </span>
+                              {refundingRef === receipt.reference ? "Refunding…" : "Refund"}
                             </button>
                           )}
                           <button

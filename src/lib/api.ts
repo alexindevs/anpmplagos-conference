@@ -2471,6 +2471,18 @@ export async function adminVerifyManualPayment(reference: string): Promise<void>
   });
 }
 
+export type AdminRefundResult = {
+  refunded: boolean;
+  paystackRefunded: boolean;
+  errors: string[];
+};
+
+export async function adminRefundPayment(reference: string): Promise<AdminRefundResult> {
+  return apiFetch<AdminRefundResult>(`/api/payments/admin/${encodeURIComponent(reference)}/refund`, {
+    method: "POST",
+  });
+}
+
 // ==================== Support tickets ====================
 
 export type SupportTicketCategory =
