@@ -2473,7 +2473,7 @@ export async function adminVerifyManualPayment(reference: string): Promise<void>
 
 export type AdminRefundResult = {
   refunded: boolean;
-  paystackRefunded: boolean;
+  paystackRefunded: boolean | null;
   errors: string[];
 };
 

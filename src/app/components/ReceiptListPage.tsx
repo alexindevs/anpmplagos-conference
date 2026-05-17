@@ -347,12 +347,13 @@ export function ReceiptListPage({ isAdmin = false, accent = "primary", hideHeade
     try {
       const result = await adminRefundPayment(reference);
       await queryClient.invalidateQueries({ queryKey: ["receipts"] });
-      if (!result.paystackRefunded && result.errors.length > 0) {
+      const paystackFailed = result.paystackRefunded === false;
+      if (paystackFailed && result.errors.length > 0) {
         setRefundNotice({
           kind: "error",
           message: `Refund marked, but Paystack refund failed AND ${result.errors.length} asset(s) failed to reverse: ${result.errors.join("; ")}`,
         });
-      } else if (!result.paystackRefunded) {
+      } else if (paystackFailed) {
         setRefundNotice({
           kind: "warning",
           message: "Inventory reversed and payment marked refunded, but Paystack refund call failed — verify the refund manually in your Paystack dashboard.",
