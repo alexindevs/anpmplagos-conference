@@ -146,7 +146,7 @@ export function BrandingTab() {
       </div>
 
       <div>
-        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3">Available branding slots</h3>
+        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3">Available Hall Branding Slots</h3>
         {brandAvail.isError && (
           <p className="text-sm text-red-600 mb-2">
             {brandAvail.error instanceof Error ? brandAvail.error.message : "Could not load catalog."}

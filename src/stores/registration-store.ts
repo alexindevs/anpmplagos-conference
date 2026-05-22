@@ -27,6 +27,8 @@ interface RegistrationState {
   organizationAddress: string;
   /** Member only; API `zone` (chapter / zone grouping). */
   zone: string;
+  /** Member only; state of residence or practice. */
+  state: string;
   anpmpId: string;
   inMedicalField: boolean | null;
   occupation: string;
@@ -67,6 +69,7 @@ interface RegistrationState {
   setHospitalOrg: (v: string) => void;
   setOrganizationAddress: (v: string) => void;
   setZone: (v: string) => void;
+  setState: (v: string) => void;
   setAnpmpId: (v: string) => void;
   setInMedicalField: (v: boolean | null) => void;
   setOccupation: (v: string) => void;
@@ -105,6 +108,7 @@ const initialState = {
   hospitalOrg: "",
   organizationAddress: "",
   zone: "",
+  state: "",
   anpmpId: "",
   inMedicalField: null as boolean | null,
   occupation: "",
@@ -143,6 +147,7 @@ export const useRegistrationStore = create<RegistrationState>((set) => ({
   setHospitalOrg: (hospitalOrg) => set({ hospitalOrg }),
   setOrganizationAddress: (organizationAddress) => set({ organizationAddress }),
   setZone: (zone) => set({ zone }),
+  setState: (state) => set({ state }),
   setAnpmpId: (anpmpId) => set({ anpmpId }),
   setInMedicalField: (inMedicalField) => set({ inMedicalField }),
   setOccupation: (occupation) => set({ occupation }),

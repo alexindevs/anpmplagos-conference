@@ -760,11 +760,16 @@ export interface AdminDashboardSummary {
     companyAccounts?: number;
     paidPlanRevenueKobo?: number;
     recordedSponsorshipPaidTotalKobo?: number;
-    /** @deprecated Legacy pledge metrics */
+    /** Count of distinct companies with at least one successful sponsorship plan payment */
     totalSponsors?: number;
+    /** @deprecated Legacy pledge metrics */
     activeSponsors?: number;
     totalPledged?: number;
     totalActive?: number;
+  };
+  revenue?: {
+    /** Total revenue from all successful payments (reconciled-aware), in kobo */
+    totalRevenueKobo?: number;
   };
 }
 
@@ -1102,6 +1107,19 @@ export interface AdminRegistrationRow {
   /** `pending_payment`, `registered`, `cancelled` */
   status: string;
   profileUrl: string | null;
+  memberDetails?: {
+    zone: string;
+    state: string;
+    hospitalOrg: string;
+    primarySpecialty: string;
+    organizationAddress: string;
+    phone: string;
+    anpmpId: string | null;
+    hasSpouse: boolean;
+    spouseName: string | null;
+    spouseEmail: string | null;
+    spousePhone: string | null;
+  };
 }
 
 /** `GET /api/admin/registrations` paginated response (`limit` not `pageSize`). */
@@ -1587,6 +1605,7 @@ export interface SponsorshipPlanCatalogItem {
   priceInKobo: number;
   tier: string;
   perks?: string[];
+  manualPerks?: string[];
   isActive?: boolean;
   /** Default 1 when omitted. */
   ticketAdmits?: number;
@@ -2152,6 +2171,10 @@ export interface Payment {
   brandingSlotId?: string | null;
   paidAt?: string | null;
   claimedPaidAt?: string | null;
+  reconciledAmount?: number | null;
+  reconciledPaidAt?: string | null;
+  reconciledNote?: string | null;
+  reconciledAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -2164,6 +2187,9 @@ function normalizePaymentFromWire(raw: unknown): Payment {
   const p = { ...(raw as object) } as Payment;
   p.baseAmount = parseKoboField(o.baseAmount);
   p.amount = parseKoboField(o.amount);
+  if (o.reconciledAmount != null) {
+    p.reconciledAmount = parseKoboField(o.reconciledAmount);
+  }
   return p;
 }
 
@@ -2471,6 +2497,12 @@ export async function adminVerifyManualPayment(reference: string): Promise<void>
   });
 }
 
+export async function adminFailManualPayment(reference: string): Promise<void> {
+  await apiFetch<unknown>(`/api/payments/admin/${encodeURIComponent(reference)}/fail`, {
+    method: "POST",
+  });
+}
+
 export type AdminRefundResult = {
   refunded: boolean;
   paystackRefunded: boolean | null;
@@ -2480,6 +2512,24 @@ export type AdminRefundResult = {
 export async function adminRefundPayment(reference: string): Promise<AdminRefundResult> {
   return apiFetch<AdminRefundResult>(`/api/payments/admin/${encodeURIComponent(reference)}/refund`, {
     method: "POST",
+  });
+}
+
+export interface ReconcilePaymentRequest {
+  /** Actual received amount in kobo */
+  reconciledAmountKobo: number;
+  /** ISO-8601 date string; defaults to now on the server if omitted */
+  reconciledPaidAt?: string;
+  note?: string;
+}
+
+export async function adminReconcilePayment(
+  reference: string,
+  body: ReconcilePaymentRequest,
+): Promise<void> {
+  await apiFetch<unknown>(`/api/payments/admin/${encodeURIComponent(reference)}/reconcile`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
   });
 }
 
@@ -3115,6 +3165,11 @@ export interface ReceiptData {
   provider: string;
   paidAt: string | null;
   createdAt: string;
+  /** Set when an admin has manually reconciled this payment. */
+  reconciledAmountKobo?: number | null;
+  reconciledPaidAt?: string | null;
+  reconciledNote?: string | null;
+  isReconciled?: boolean;
   user: { id: string; email: string; regType: string; name?: string };
   company?: { id: string; companyName: string };
   items: ReceiptLineItem[];

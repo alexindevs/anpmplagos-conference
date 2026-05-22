@@ -144,37 +144,35 @@ export default function AdminDashboardPage() {
   const stats = useMemo((): AdminDashboardStat[] => {
     return [
       {
-        label: "Member Tickets",
-        value: String(summary?.registrations.members ?? 0),
-        trend: undefined,
-        icon: "confirmation_number",
+        label: "Total Signups",
+        value: String((summary?.registrations.members ?? 0) + (summary?.registrations.attendees ?? 0)),
+        icon: "group",
         color: "primary",
       },
       {
-        label: "Attendee Tickets",
-        value: String(summary?.registrations.attendees ?? 0),
-        trend: undefined,
-        icon: "local_activity",
+        label: "Total Revenue",
+        value: formatKoboToNaira(summary?.revenue?.totalRevenueKobo ?? 0),
+        icon: "payments",
         color: "secondary",
       },
       {
-        label: "Company signups",
+        label: "Company Signups",
         value: String(
           summary?.registrations.companies ??
             summary?.registrations.exhibitors ??
             summary?.registrations.sponsors ??
             0
         ),
-        trend: undefined,
-        icon: "partner_exchange",
+        icon: "business",
         color: "secondary",
       },
       {
-        label: "Sponsorship Bundles",
-        value: formatKoboToNaira(
-          summary?.sponsorships.recordedSponsorshipPaidTotalKobo ?? summary?.sponsorships.totalPledged
-        ),
-        icon: "payments",
+        label: "Sponsors",
+        value: String(summary?.sponsorships.totalSponsors ?? 0),
+        sub: summary?.sponsorships.paidPlanRevenueKobo
+          ? formatKoboToNaira(summary.sponsorships.paidPlanRevenueKobo)
+          : undefined,
+        icon: "workspace_premium",
         color: "primary",
       },
     ];

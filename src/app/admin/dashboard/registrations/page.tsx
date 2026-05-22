@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { Fragment, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ApiError,
@@ -359,63 +359,109 @@ export default function RegistrationsPage() {
 }
 
 function RegistrationTableRow({ row }: { row: AdminRegistrationRow }) {
+  const [expanded, setExpanded] = useState(false);
   const status = registrationStatusDisplay(row.status);
   const registered = new Date(row.registeredAt);
   const dateStr = Number.isFinite(registered.getTime())
     ? registered.toLocaleDateString("en-NG", { dateStyle: "medium" })
     : "—";
   const avatarUrl = adminRegistrationAvatarUrl(row);
+  const hasMemberDetails = row.type === "member" && row.memberDetails != null;
 
   return (
-    <tr className="transition-colors hover:bg-primary/5 dark:hover:bg-background-dark-softer">
-      <td className="px-6 py-4">
-        <div className="flex items-start gap-3">
-          <div className="relative mt-0.5 size-10 shrink-0 overflow-hidden rounded-full bg-slate-100 dark:bg-background-dark-softer">
-            {avatarUrl ? (
-              isProbablySameOriginOrAllowedForNextImage(avatarUrl) ? (
-                <Image src={avatarUrl} alt="" fill className="object-cover" sizes="40px" unoptimized={false} />
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={avatarUrl} alt="" className="size-full object-cover" />
-              )
-            ) : (
-              <span className="flex size-full items-center justify-center text-slate-400 dark:text-white/40">
-                <span className="material-symbols-outlined text-[22px]">person</span>
+    <Fragment>
+      <tr
+        className={`transition-colors hover:bg-primary/5 dark:hover:bg-background-dark-softer ${hasMemberDetails ? "cursor-pointer" : ""}`}
+        onClick={hasMemberDetails ? () => setExpanded((v) => !v) : undefined}
+      >
+        <td className="px-6 py-4">
+          <div className="flex items-start gap-3">
+            {hasMemberDetails && (
+              <span className="material-symbols-outlined mt-3 shrink-0 text-[16px] text-slate-400 dark:text-white/30">
+                {expanded ? "expand_less" : "expand_more"}
               </span>
             )}
+            <div className="relative mt-0.5 size-10 shrink-0 overflow-hidden rounded-full bg-slate-100 dark:bg-background-dark-softer">
+              {avatarUrl ? (
+                isProbablySameOriginOrAllowedForNextImage(avatarUrl) ? (
+                  <Image src={avatarUrl} alt="" fill className="object-cover" sizes="40px" unoptimized={false} />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={avatarUrl} alt="" className="size-full object-cover" />
+                )
+              ) : (
+                <span className="flex size-full items-center justify-center text-slate-400 dark:text-white/40">
+                  <span className="material-symbols-outlined text-[22px]">person</span>
+                </span>
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="font-bold text-charcoal dark:text-white">{row.name}</p>
+              <p className="text-xs text-slate-500 dark:text-white/50">{row.email}</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="font-bold text-charcoal dark:text-white">{row.name}</p>
-            <p className="text-xs text-slate-500 dark:text-white/50">{row.email}</p>
-          </div>
-        </div>
-      </td>
-      <td className="px-6 py-4 text-sm text-charcoal dark:text-white/90">{formatRegistrationType(row.type)}</td>
-      <td className="px-6 py-4 text-sm text-slate-600 dark:text-white/70">{dateStr}</td>
-      <td className="px-6 py-4">
-        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${status.className}`}>
-          {status.label}
-        </span>
-      </td>
-      <td className="px-6 py-4 text-right">
-        {row.profileUrl ? (
-          <a
-            href={row.profileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block rounded-lg bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-200 dark:bg-background-dark-softer dark:text-white/90 dark:hover:bg-background-dark"
-          >
-            View
-          </a>
-        ) : (
-          <span
-            className="inline-block rounded-lg bg-slate-50 px-3 py-1 text-xs font-bold text-slate-400 dark:bg-background-dark-softer dark:text-white/35"
-            title="No public profile URL for this registration"
-          >
-            —
+        </td>
+        <td className="px-6 py-4 text-sm text-charcoal dark:text-white/90">{formatRegistrationType(row.type)}</td>
+        <td className="px-6 py-4 text-sm text-slate-600 dark:text-white/70">{dateStr}</td>
+        <td className="px-6 py-4">
+          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${status.className}`}>
+            {status.label}
           </span>
-        )}
-      </td>
-    </tr>
+        </td>
+        <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+          {row.profileUrl ? (
+            <a
+              href={row.profileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block rounded-lg bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-200 dark:bg-background-dark-softer dark:text-white/90 dark:hover:bg-background-dark"
+            >
+              View
+            </a>
+          ) : (
+            <span
+              className="inline-block rounded-lg bg-slate-50 px-3 py-1 text-xs font-bold text-slate-400 dark:bg-background-dark-softer dark:text-white/35"
+              title="No public profile URL for this registration"
+            >
+              —
+            </span>
+          )}
+        </td>
+      </tr>
+      {hasMemberDetails && expanded && row.memberDetails && (
+        <tr className="bg-primary/3 dark:bg-background-dark-softer/60">
+          <td colSpan={5} className="px-6 py-4">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-3 lg:grid-cols-4">
+              <MemberDetailCell label="Phone" value={row.memberDetails.phone} />
+              <MemberDetailCell label="Hospital / Org" value={row.memberDetails.hospitalOrg} />
+              <MemberDetailCell label="Specialty" value={row.memberDetails.primarySpecialty} />
+              <MemberDetailCell label="Org Address" value={row.memberDetails.organizationAddress} />
+              <MemberDetailCell label="Zone" value={row.memberDetails.zone || "—"} />
+              <MemberDetailCell label="State" value={row.memberDetails.state || "—"} />
+              <MemberDetailCell label="ANPMP ID" value={row.memberDetails.anpmpId || "—"} />
+              <MemberDetailCell
+                label="Spouse"
+                value={
+                  row.memberDetails.hasSpouse
+                    ? [row.memberDetails.spouseName, row.memberDetails.spouseEmail, row.memberDetails.spousePhone]
+                        .filter(Boolean)
+                        .join(" · ") || "Yes"
+                    : "No"
+                }
+              />
+            </div>
+          </td>
+        </tr>
+      )}
+    </Fragment>
+  );
+}
+
+function MemberDetailCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs font-medium uppercase tracking-wider text-slate-400 dark:text-white/35">{label}</p>
+      <p className="mt-0.5 text-sm text-charcoal dark:text-white/80">{value || "—"}</p>
+    </div>
   );
 }

@@ -80,6 +80,7 @@ export default function RegisterPage() {
     hospitalOrg,
     organizationAddress,
     zone,
+    state,
     anpmpId,
     inMedicalField,
     occupation,
@@ -110,6 +111,7 @@ export default function RegisterPage() {
     setHospitalOrg,
     setOrganizationAddress,
     setZone,
+    setState,
     setAnpmpId,
     setInMedicalField,
     setOccupation,
@@ -161,6 +163,7 @@ export default function RegisterPage() {
         hospitalOrg,
         organizationAddress,
         zone,
+        state,
         anpmpId,
         inMedicalField,
         occupation,
@@ -545,14 +548,23 @@ export default function RegisterPage() {
                         />
                       </div>
                       <div className="flex flex-col gap-2">
-                        <label className="text-sm font-medium text-gray-700">Zone (required)</label>
+                        <label className="text-sm font-medium text-gray-700">Zone <span className="text-gray-400 font-normal">(optional)</span></label>
                         <input
                           className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
                           placeholder="Your ANPMP zone or chapter"
                           type="text"
                           value={zone}
                           onChange={(e) => setZone(e.target.value)}
-                          required
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-medium text-gray-700">State <span className="text-gray-400 font-normal">(optional)</span></label>
+                        <input
+                          className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
+                          placeholder="State of residence or practice"
+                          type="text"
+                          value={state}
+                          onChange={(e) => setState(e.target.value)}
                         />
                       </div>
                       <div className="flex flex-col gap-2">
@@ -781,10 +793,6 @@ export default function RegisterPage() {
                       toast.error("Please enter your organization address.");
                       return;
                     }
-                    if (!zone.trim()) {
-                      toast.error("Please enter your zone.");
-                      return;
-                    }
                   }
                   setStep(3);
                 }}
@@ -840,7 +848,8 @@ export default function RegisterPage() {
                         <p className="text-sm text-gray-600 mt-1 whitespace-pre-wrap">
                           {organizationAddress.trim() || "—"}
                         </p>
-                        <p className="text-sm text-gray-600 mt-1">Zone: {zone.trim() || "—"}</p>
+                        {zone.trim() && <p className="text-sm text-gray-600 mt-1">Zone: {zone.trim()}</p>}
+                        {state.trim() && <p className="text-sm text-gray-600 mt-1">State: {state.trim()}</p>}
                       </>
                     ) : inMedicalField === true ? (
                       <>

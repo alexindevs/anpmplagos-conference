@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getMyReceipts,
   getAllReceiptsAdmin,
   printReceiptById,
   adminVerifyManualPayment,
+  adminFailManualPayment,
   adminRefundPayment,
+  adminReconcilePayment,
   formatKoboToNaira,
   ApiError,
   type ReceiptData,
@@ -137,6 +139,33 @@ function ReceiptDetail({ receipt }: { receipt: ReceiptData }) {
               </p>
             </div>
           )}
+          {receipt.isReconciled && (
+            <div className="col-span-full sm:col-span-2">
+              <p className="text-xs font-medium uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                Reconciled
+              </p>
+              <div className="mt-1 space-y-0.5">
+                <p className="font-bold text-amber-800 dark:text-amber-300">
+                  {formatKoboToNaira(receipt.reconciledAmountKobo ?? receipt.baseAmountKobo)}
+                  {" "}
+                  <span className="text-xs font-normal text-slate-500 dark:text-white/50">
+                    (list: {formatKoboToNaira(receipt.baseAmountKobo)})
+                  </span>
+                </p>
+                {receipt.reconciledPaidAt && (
+                  <p className="text-sm text-slate-600 dark:text-white/70">
+                    Effective date:{" "}
+                    {new Date(receipt.reconciledPaidAt).toLocaleDateString("en-NG", { dateStyle: "medium" })}
+                  </p>
+                )}
+                {receipt.reconciledNote && (
+                  <p className="text-sm italic text-slate-500 dark:text-white/50">
+                    &ldquo;{receipt.reconciledNote}&rdquo;
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {receipt.items.length > 0 && (
@@ -250,15 +279,30 @@ function ReceiptDetail({ receipt }: { receipt: ReceiptData }) {
                       </td>
                     </tr>
                   )}
+                  {receipt.isReconciled && receipt.reconciledAmountKobo != null && (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className="px-4 py-2 text-right text-xs text-slate-500 dark:text-white/50"
+                      >
+                        Total Billed
+                      </td>
+                      <td className="px-4 py-2 text-right text-sm text-slate-600 dark:text-white/70">
+                        {formatKoboToNaira(receipt.totalAmountKobo)}
+                      </td>
+                    </tr>
+                  )}
                   <tr>
                     <td
                       colSpan={3}
                       className="px-4 py-2.5 text-right text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50"
                     >
-                      Total
+                      {receipt.isReconciled ? "Amount Received" : "Total"}
                     </td>
                     <td className="px-4 py-2.5 text-right text-sm font-black text-charcoal dark:text-white">
-                      {formatKoboToNaira(receipt.totalAmountKobo)}
+                      {receipt.isReconciled && receipt.reconciledAmountKobo != null
+                        ? formatKoboToNaira(receipt.reconciledAmountKobo)
+                        : formatKoboToNaira(receipt.totalAmountKobo)}
                     </td>
                   </tr>
                 </tfoot>
@@ -293,6 +337,189 @@ function ReceiptDetail({ receipt }: { receipt: ReceiptData }) {
   );
 }
 
+// ─── Reconcile Modal ─────────────────────────────────────────────────────────
+
+/** Convert kobo integer to a decimal Naira string for the input field */
+function koboToNairaString(kobo: number): string {
+  return (kobo / 100).toFixed(2);
+}
+
+/** Parse a Naira decimal string back to kobo integer, or null if invalid */
+function nairaStringToKobo(value: string): number | null {
+  const n = parseFloat(value.replace(/,/g, ""));
+  if (!isFinite(n) || n <= 0) return null;
+  return Math.round(n * 100);
+}
+
+function ReconcileModal({
+  receipt,
+  onClose,
+  onSaved,
+}: {
+  receipt: ReceiptData;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const defaultAmount = koboToNairaString(
+    receipt.reconciledAmountKobo ?? receipt.baseAmountKobo,
+  );
+  const defaultDate = (() => {
+    const d = receipt.reconciledPaidAt ?? receipt.paidAt;
+    if (!d) return new Date().toISOString().slice(0, 10);
+    return new Date(d).toISOString().slice(0, 10);
+  })();
+
+  const [amount, setAmount] = useState(defaultAmount);
+  const [date, setDate] = useState(defaultDate);
+  const [note, setNote] = useState(receipt.reconciledNote ?? "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const kobo = nairaStringToKobo(amount);
+    if (kobo === null) {
+      setError("Enter a valid amount greater than ₦0");
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      await adminReconcilePayment(receipt.reference, {
+        reconciledAmountKobo: kobo,
+        reconciledPaidAt: new Date(date).toISOString(),
+        note: note.trim() || undefined,
+      });
+      onSaved();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Failed to reconcile payment.");
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div
+      ref={backdropRef}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+      onClick={(e) => { if (e.target === backdropRef.current) onClose(); }}
+    >
+      <div className="w-full max-w-[80%] md:max-w-[50%] rounded-xl bg-white shadow-2xl dark:bg-background-dark-soft">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 dark:border-border-dark">
+          <div>
+            <h3 className="text-base font-black text-charcoal dark:text-white">Reconcile Payment</h3>
+            <p className="mt-0.5 font-mono text-xs text-slate-500 dark:text-white/50">{receipt.reference}</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:text-white/40 dark:hover:bg-background-dark-softer dark:hover:text-white"
+          >
+            <span className="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          {/* Context row */}
+          <div className="rounded-lg border border-slate-100 bg-slate-50 px-4 py-3 text-sm dark:border-border-dark dark:bg-background-dark-softer">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">List price</span>
+              <span className="font-bold text-charcoal dark:text-white">{formatKoboToNaira(receipt.baseAmountKobo)}</span>
+            </div>
+            {receipt.isReconciled && (
+              <div className="mt-1.5 flex items-center justify-between gap-2">
+                <span className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">Previously reconciled</span>
+                <span className="font-bold text-amber-700 dark:text-amber-400">
+                  {formatKoboToNaira(receipt.reconciledAmountKobo ?? receipt.baseAmountKobo)}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Amount */}
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-white/60">
+              Actual amount received (₦)
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              min="0.01"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              required
+              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+              placeholder="0.00"
+            />
+          </div>
+
+          {/* Date */}
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-white/60">
+              Effective payment date
+            </label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              required
+              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+            />
+          </div>
+
+          {/* Note */}
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-white/60">
+              Note <span className="font-normal normal-case text-slate-400">(optional)</span>
+            </label>
+            <textarea
+              rows={2}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Reason for adjustment, discount details, etc."
+              className="w-full resize-none rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+            />
+          </div>
+
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
+              {error}
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 dark:border-border-dark dark:text-white/80 dark:hover:bg-background-dark-softer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {saving ? (
+                <>
+                  <span className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  Saving…
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-[18px]">balance</span>
+                  Save reconciliation
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main list component ──────────────────────────────────────────────────────
 
 interface ReceiptListPageProps {
@@ -320,8 +547,11 @@ export function ReceiptListPage({ isAdmin = false, accent = "primary", hideHeade
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [verifyingRef, setVerifyingRef] = useState<string | null>(null);
   const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [failingRef, setFailingRef] = useState<string | null>(null);
+  const [failError, setFailError] = useState<string | null>(null);
   const [refundingRef, setRefundingRef] = useState<string | null>(null);
   const [refundNotice, setRefundNotice] = useState<{ kind: "success" | "warning" | "error"; message: string } | null>(null);
+  const [reconcileReceipt, setReconcileReceipt] = useState<ReceiptData | null>(null);
   const PAGE_SIZE = 20;
 
   const handleVerifyPayment = async (reference: string) => {
@@ -334,6 +564,20 @@ export function ReceiptListPage({ isAdmin = false, accent = "primary", hideHeade
       setVerifyError(e instanceof ApiError ? e.message : "Failed to verify payment.");
     } finally {
       setVerifyingRef(null);
+    }
+  };
+
+  const handleFailPayment = async (reference: string) => {
+    if (!window.confirm(`Mark payment ${reference} as failed?\n\nThis will release any checkout holds and cannot be undone.`)) return;
+    setFailingRef(reference);
+    setFailError(null);
+    try {
+      await adminFailManualPayment(reference);
+      await queryClient.invalidateQueries({ queryKey: ["receipts"] });
+    } catch (e) {
+      setFailError(e instanceof ApiError ? e.message : "Failed to reject payment.");
+    } finally {
+      setFailingRef(null);
     }
   };
 
@@ -477,6 +721,13 @@ export function ReceiptListPage({ isAdmin = false, accent = "primary", hideHeade
         </div>
       )}
 
+      {/* Fail error */}
+      {failError && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
+          {failError}
+        </div>
+      )}
+
       {/* Refund notice */}
       {refundNotice && (
         <div
@@ -497,6 +748,18 @@ export function ReceiptListPage({ isAdmin = false, accent = "primary", hideHeade
             close
           </button>
         </div>
+      )}
+
+      {/* Reconcile modal */}
+      {reconcileReceipt && (
+        <ReconcileModal
+          receipt={reconcileReceipt}
+          onClose={() => setReconcileReceipt(null)}
+          onSaved={async () => {
+            setReconcileReceipt(null);
+            await queryClient.invalidateQueries({ queryKey: ["receipts"] });
+          }}
+        />
       )}
 
       {/* Table */}
@@ -539,8 +802,17 @@ export function ReceiptListPage({ isAdmin = false, accent = "primary", hideHeade
                           <p className="text-xs text-slate-500 dark:text-white/50">{receipt.user.regType}</p>
                         </td>
                       )}
-                      <td className="px-6 py-4 text-right font-bold text-charcoal dark:text-white">
-                        {formatKoboToNaira(receipt.totalAmountKobo)}
+                      <td className="px-6 py-4 text-right">
+                        <p className="font-bold text-charcoal dark:text-white">
+                          {receipt.isReconciled && receipt.reconciledAmountKobo != null
+                            ? formatKoboToNaira(receipt.reconciledAmountKobo)
+                            : formatKoboToNaira(receipt.totalAmountKobo)}
+                        </p>
+                        {receipt.isReconciled && (
+                          <span className="mt-0.5 inline-block rounded-full bg-amber-100 px-1.5 py-px text-[10px] font-bold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                            reconciled
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-slate-500 dark:text-white/70">
                         {new Date(receipt.paidAt ?? receipt.createdAt).toLocaleDateString("en-NG", {
@@ -550,15 +822,36 @@ export function ReceiptListPage({ isAdmin = false, accent = "primary", hideHeade
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           {isAdmin && receipt.provider === "manual" && receipt.status === "pending" && (
+                            <>
+                              <button
+                                onClick={() => handleVerifyPayment(receipt.reference)}
+                                disabled={verifyingRef === receipt.reference || failingRef === receipt.reference}
+                                className="flex items-center gap-1 rounded-lg border border-green-300 bg-green-50 px-3 py-1.5 text-xs font-bold text-green-800 hover:bg-green-100 disabled:opacity-50 dark:border-green-700/40 dark:bg-green-900/20 dark:text-green-300 dark:hover:bg-green-900/30"
+                              >
+                                <span className={`material-symbols-outlined text-sm ${verifyingRef === receipt.reference ? "animate-spin" : ""}`}>
+                                  {verifyingRef === receipt.reference ? "progress_activity" : "check_circle"}
+                                </span>
+                                {verifyingRef === receipt.reference ? "Verifying…" : "Verify"}
+                              </button>
+                              <button
+                                onClick={() => handleFailPayment(receipt.reference)}
+                                disabled={failingRef === receipt.reference || verifyingRef === receipt.reference}
+                                className="flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100 disabled:opacity-50 dark:border-red-800/40 dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-950/30"
+                              >
+                                <span className={`material-symbols-outlined text-sm ${failingRef === receipt.reference ? "animate-spin" : ""}`}>
+                                  {failingRef === receipt.reference ? "progress_activity" : "cancel"}
+                                </span>
+                                {failingRef === receipt.reference ? "Failing…" : "Fail"}
+                              </button>
+                            </>
+                          )}
+                          {isAdmin && receipt.status === "success" && (
                             <button
-                              onClick={() => handleVerifyPayment(receipt.reference)}
-                              disabled={verifyingRef === receipt.reference}
-                              className="flex items-center gap-1 rounded-lg border border-green-300 bg-green-50 px-3 py-1.5 text-xs font-bold text-green-800 hover:bg-green-100 disabled:opacity-50 dark:border-green-700/40 dark:bg-green-900/20 dark:text-green-300 dark:hover:bg-green-900/30"
+                              onClick={() => setReconcileReceipt(receipt)}
+                              className="flex items-center gap-1 rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800 hover:bg-amber-100 dark:border-amber-700/40 dark:bg-amber-900/20 dark:text-amber-300 dark:hover:bg-amber-900/30"
                             >
-                              <span className={`material-symbols-outlined text-sm ${verifyingRef === receipt.reference ? "animate-spin" : ""}`}>
-                                {verifyingRef === receipt.reference ? "progress_activity" : "check_circle"}
-                              </span>
-                              {verifyingRef === receipt.reference ? "Verifying…" : "Verify"}
+                              <span className="material-symbols-outlined text-sm">balance</span>
+                              {receipt.isReconciled ? "Re-reconcile" : "Reconcile"}
                             </button>
                           )}
                           {isAdmin && receipt.status === "success" && (

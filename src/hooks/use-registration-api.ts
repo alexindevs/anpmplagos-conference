@@ -33,6 +33,7 @@ interface CreateRegistrationPayload {
   hospitalOrg: string;
   organizationAddress: string;
   zone: string;
+  state: string;
   anpmpId: string;
   inMedicalField: boolean | null;
   occupation: string;
@@ -75,7 +76,8 @@ function buildRegistrationBody(payload: CreateRegistrationPayload): Record<strin
       primarySpecialty: payload.primarySpecialty,
       hospitalOrg: payload.hospitalOrg,
       organizationAddress: payload.organizationAddress.trim(),
-      zone: payload.zone.trim(),
+      ...(payload.zone.trim() ? { zone: payload.zone.trim() } : {}),
+      ...(payload.state.trim() ? { state: payload.state.trim() } : {}),
     };
   }
 
@@ -123,9 +125,6 @@ export function useCreateRegistration() {
       if (payload.regType === "member") {
         if (!(payload.organizationAddress ?? "").trim()) {
           throw new Error("Organization address is required.");
-        }
-        if (!(payload.zone ?? "").trim()) {
-          throw new Error("Zone is required.");
         }
       }
       const body = buildRegistrationBody(payload);

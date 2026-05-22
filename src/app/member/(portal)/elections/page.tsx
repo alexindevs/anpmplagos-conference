@@ -167,7 +167,10 @@ export default function MemberElectionsPage() {
                           </p>
                         ) : (
                           <div className="grid gap-3 sm:grid-cols-2">
-                            {pos.candidates.map((c) => {
+                            {[...pos.candidates].sort((a, b) => {
+                              const surname = (n: string) => n.trim().split(/\s+/).pop()?.toLowerCase() ?? "";
+                              return surname(a.name).localeCompare(surname(b.name));
+                            }).map((c) => {
                               const isMyChoice =
                                 myVoteCandidateId === c.id;
                               const isVoting =

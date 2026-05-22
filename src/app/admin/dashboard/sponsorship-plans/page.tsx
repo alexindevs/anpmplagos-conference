@@ -64,12 +64,16 @@ function getTierStyle(tier: string) {
 
 function advertIdsFromPlan(plan: SponsorshipPlanCatalogItem | null | undefined): string[] {
   if (!plan?.advertSlots?.length) return [];
-  return plan.advertSlots.map((row) => row.advertSlot?.id).filter((id): id is string => Boolean(id));
+  return plan.advertSlots
+    .map((row) => row.advertSlot?.id ?? (row as unknown as { advertSlotId?: string }).advertSlotId)
+    .filter((id): id is string => Boolean(id));
 }
 
 function brandingIdsFromPlan(plan: SponsorshipPlanCatalogItem | null | undefined): string[] {
   if (!plan?.brandingSlots?.length) return [];
-  return plan.brandingSlots.map((row) => row.brandingSlot?.id).filter((id): id is string => Boolean(id));
+  return plan.brandingSlots
+    .map((row) => row.brandingSlot?.id ?? (row as unknown as { brandingSlotId?: string }).brandingSlotId)
+    .filter((id): id is string => Boolean(id));
 }
 
 /** Pre-fill price field from stored kobo (whole naira as string). */
@@ -94,6 +98,7 @@ interface PlanFormData {
   bundlePresentationDay: "" | ConferenceDay;
   advertSlotIds: string[];
   brandingSlotIds: string[];
+  manualPerks: string[];
 }
 
 function durationLabel(v: SessionSlotDuration | "" | undefined): string {
@@ -151,6 +156,10 @@ function deriveBundlePerksFromForm(
     lines.push(`Branding placement: ${title}`);
   }
 
+  for (const perk of form.manualPerks) {
+    if (perk.trim()) lines.push(perk.trim());
+  }
+
   return lines;
 }
 
@@ -174,6 +183,7 @@ function planFormDefaults(
     bundlePresentationDay: (plan?.bundlePresentationDay as ConferenceDay) ?? "",
     advertSlotIds: advertIdsFromPlan(plan),
     brandingSlotIds: brandingIdsFromPlan(plan),
+    manualPerks: plan?.manualPerks ?? [],
   };
 }
 
@@ -205,6 +215,7 @@ function buildSponsorshipPlanPayload(
     priceInKobo: priceKobo,
     tier: data.tier,
     perks,
+    manualPerks: data.manualPerks,
     isActive: data.isActive,
     ticketAdmits: Math.max(1, Number(data.ticketAdmits) || 1),
     advertSlotIds: data.advertSlotIds,
@@ -245,6 +256,137 @@ function bundleSummaryLine(plan: SponsorshipPlanCatalogItem): string {
 
 type PlanSaveContext = { adverts: AdminAdvertSlot[]; branding: AdminBrandingSlot[] };
 
+function DirtyDot({ show }: { show: boolean }) {
+  if (!show) return null;
+  return (
+    <span
+      className="inline-block size-1.5 rounded-full bg-amber-400 ml-1.5 align-middle shrink-0"
+      title="Changed"
+    />
+  );
+}
+
+function SlotSection({
+  label,
+  selectedIds,
+  snapshotIds,
+  allSlots,
+  loading,
+  isEditing,
+  pickerOpen,
+  onToggle,
+  onTogglePicker,
+}: {
+  label: string;
+  selectedIds: string[];
+  snapshotIds: string[];
+  allSlots: (AdminAdvertSlot | AdminBrandingSlot)[];
+  loading: boolean;
+  isEditing: boolean;
+  pickerOpen: boolean;
+  onToggle: (id: string) => void;
+  onTogglePicker: () => void;
+}) {
+  const selectedSlots = selectedIds.map((id) => ({
+    id,
+    slot: allSlots.find((s) => s.id === id),
+  }));
+  const availableToAdd = allSlots.filter(
+    (s) => !selectedIds.includes(s.id) && s.availableSlots === s.totalSlots && !s.isReserved,
+  );
+  const slotsDirty =
+    isEditing &&
+    JSON.stringify([...selectedIds].sort()) !== JSON.stringify([...snapshotIds].sort());
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-1">
+          <p className="text-sm font-medium text-slate-700 dark:text-white/70">{label}</p>
+          <DirtyDot show={slotsDirty} />
+        </div>
+        {selectedIds.length > 0 && (
+          <span className="text-xs text-slate-400 dark:text-white/40">{selectedIds.length} linked</span>
+        )}
+      </div>
+
+      {/* Chips */}
+      <div className="flex flex-wrap gap-1.5 min-h-[28px]">
+        {loading ? (
+          <span className="text-xs text-slate-400 py-1">Loading…</span>
+        ) : selectedSlots.length === 0 ? (
+          <span className="text-xs text-slate-400 dark:text-white/40 py-1">None linked</span>
+        ) : (
+          selectedSlots.map(({ id, slot }) => {
+            const isOrphaned = !slot;
+            const isNew = isEditing && !snapshotIds.includes(id);
+            return (
+              <span
+                key={id}
+                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
+                  isOrphaned
+                    ? "bg-red-50 text-red-500 dark:bg-red-900/30 dark:text-red-400"
+                    : isNew
+                      ? "border border-dashed border-secondary text-secondary"
+                      : "bg-secondary/10 text-secondary"
+                }`}
+              >
+                {slot?.title ?? "Removed slot"}
+                <button
+                  type="button"
+                  onClick={() => onToggle(id)}
+                  className="hover:text-red-500 transition-colors ml-0.5"
+                  aria-label={`Remove ${slot?.title ?? "slot"}`}
+                >
+                  <span className="material-symbols-outlined text-[13px]">close</span>
+                </button>
+              </span>
+            );
+          })
+        )}
+      </div>
+
+      {/* Picker trigger + dropdown */}
+      <div className="mt-2">
+        <button
+          type="button"
+          onClick={onTogglePicker}
+          className="inline-flex items-center gap-1 text-xs font-medium text-secondary hover:opacity-70 transition-opacity"
+        >
+          <span className="material-symbols-outlined text-[15px]">
+            {pickerOpen ? "expand_less" : "add"}
+          </span>
+          {pickerOpen ? "Close" : "Add slot"}
+        </button>
+
+        {pickerOpen && (
+          <div className="mt-1.5 rounded-lg border border-slate-200 dark:border-border-dark overflow-hidden">
+            {availableToAdd.length === 0 ? (
+              <p className="px-3 py-2.5 text-xs text-slate-400 dark:text-white/40">
+                No slots available to add.
+              </p>
+            ) : (
+              <div className="max-h-36 overflow-y-auto divide-y divide-slate-100 dark:divide-border-dark">
+                {availableToAdd.map((slot) => (
+                  <button
+                    key={slot.id}
+                    type="button"
+                    onClick={() => onToggle(slot.id)}
+                    className="w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-secondary/5 dark:hover:bg-secondary/10 transition-colors"
+                  >
+                    <span className="truncate text-charcoal dark:text-white">{slot.title}</span>
+                    <span className="shrink-0 text-xs font-semibold text-secondary ml-2">+ Add</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function PlanModal({
   isOpen,
   onClose,
@@ -257,13 +399,19 @@ function PlanModal({
   isOpen: boolean;
   onClose: () => void;
   plan?: SponsorshipPlanCatalogItem | null;
-  /** When creating, pre-select display tier (e.g. from an empty tier row). */
   defaultTier?: string;
   onSave: (data: PlanFormData, ctx: PlanSaveContext) => void;
   isSaving: boolean;
   saveError: Error | null;
 }) {
+  const isEditing = !!plan;
   const [form, setForm] = useState<PlanFormData>(() => planFormDefaults(plan, { defaultTier }));
+  const [snapshot] = useState<PlanFormData>(() => planFormDefaults(plan, { defaultTier }));
+  const [manualPerkInput, setManualPerkInput] = useState("");
+  const [newPerkSet, setNewPerkSet] = useState<Set<string>>(new Set());
+  const [previewOpen, setPreviewOpen] = useState(true);
+  const [advertPickerOpen, setAdvertPickerOpen] = useState(false);
+  const [brandingPickerOpen, setBrandingPickerOpen] = useState(false);
 
   const advertsQuery = useQuery({
     queryKey: ["admin", "advert-slots", "plan-modal"],
@@ -286,7 +434,6 @@ function PlanModal({
     brandingQuery.data ?? [],
     plan ?? null,
   );
-
   const validationMsg = formValidationMessage(form);
   const canSave = !validationMsg && form.name.trim();
 
@@ -298,272 +445,343 @@ function PlanModal({
     });
   };
 
-  const slotSelectable = (slot: AdminAdvertSlot | AdminBrandingSlot, selectedIds: string[]) => {
-    if (selectedIds.includes(slot.id)) return true;
-    return slot.availableSlots === slot.totalSlots && !slot.isReserved;
+  const addManualPerk = () => {
+    const trimmed = manualPerkInput.trim();
+    if (!trimmed) return;
+    setForm((f) => ({ ...f, manualPerks: [...f.manualPerks, trimmed] }));
+    setNewPerkSet((s) => new Set([...s, trimmed]));
+    setManualPerkInput("");
   };
+
+  const removeManualPerk = (idx: number) => {
+    const perk = form.manualPerks[idx];
+    setForm((f) => ({ ...f, manualPerks: f.manualPerks.filter((_, j) => j !== idx) }));
+    setNewPerkSet((s) => { const next = new Set(s); next.delete(perk); return next; });
+  };
+
+  const fieldDirty = (field: keyof PlanFormData): boolean => {
+    if (!isEditing) return false;
+    return JSON.stringify(form[field]) !== JSON.stringify(snapshot[field]);
+  };
+
+  const tierInfo = getTierStyle(form.tier);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 overflow-y-auto">
       <div className="my-8 w-full max-w-[90%] md:max-w-[50%] rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-border-dark dark:bg-background-dark-soft">
-        <h2 className="text-xl font-black text-charcoal dark:text-white mb-4">
-          {plan ? "Edit sponsorship plan" : "Create sponsorship plan"}
-        </h2>
 
-        <div className="space-y-5 max-h-[70vh] overflow-y-auto pr-1">
+        {/* ── Header ── */}
+        <div className="flex items-start justify-between gap-3 mb-5">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-white/70 mb-1">Plan name</label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-white"
-              placeholder="e.g. Gold Bundle"
-            />
+            <h2 className="text-xl font-black text-charcoal dark:text-white">
+              {isEditing ? "Edit plan" : "New sponsorship plan"}
+            </h2>
+            {isEditing && (
+              <p className="text-xs text-slate-400 dark:text-white/30 mt-0.5">
+                Changes are not saved until you click Save.
+              </p>
+            )}
           </div>
+          <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${tierInfo.color}`}>
+            {tierInfo.label}
+          </span>
+        </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
-                Display tier
-              </label>
-              <select
-                value={form.tier}
-                onChange={(e) => setForm((f) => ({ ...f, tier: e.target.value }))}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-white"
-              >
-                {TIER_OPTIONS.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
+        <div className="space-y-0 max-h-[70vh] overflow-y-auto pr-1">
+
+          {/* ── Snapshot banner (edit only) ── */}
+          {isEditing && plan && (
+            <div className="mb-5 rounded-lg border border-slate-200 bg-slate-50 dark:border-border-dark dark:bg-background-dark px-3 py-2.5">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30 mb-1.5">
+                Currently saved
+              </p>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-white/50">
+                <span className="font-semibold text-charcoal dark:text-white">{plan.name}</span>
+                <span>·</span>
+                <span>{formatKoboToNaira(plan.priceInKobo)}</span>
+                {plan.bundleBoothTier && (
+                  <><span>·</span><span>{plan.bundleBoothTier.charAt(0).toUpperCase() + plan.bundleBoothTier.slice(1)} booth</span></>
+                )}
+                {(plan.ticketAdmits ?? 1) > 1 && (
+                  <><span>·</span><span>{plan.ticketAdmits} admits</span></>
+                )}
+                {(plan.advertSlots?.length ?? 0) > 0 && (
+                  <><span>·</span><span>{plan.advertSlots!.length} advert {plan.advertSlots!.length === 1 ? "slot" : "slots"}</span></>
+                )}
+                {(plan.brandingSlots?.length ?? 0) > 0 && (
+                  <><span>·</span><span>{plan.brandingSlots!.length} branding {plan.brandingSlots!.length === 1 ? "slot" : "slots"}</span></>
+                )}
+                {(plan.manualPerks?.length ?? 0) > 0 && (
+                  <><span>·</span><span>{plan.manualPerks!.length} extra {plan.manualPerks!.length === 1 ? "perk" : "perks"}</span></>
+                )}
+                {plan.isActive === false && (
+                  <><span>·</span><span className="italic">Inactive</span></>
+                )}
+              </div>
             </div>
+          )}
+
+          {/* ── Plan basics ── */}
+          <div className="space-y-4 pb-5">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">Plan basics</p>
+
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
-                Price (₦ naira)
+              <label className="flex items-center gap-1 text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
+                Plan name <DirtyDot show={fieldDirty("name")} />
               </label>
               <input
                 type="text"
-                inputMode="decimal"
-                autoComplete="off"
-                value={form.priceNaira}
-                onChange={(e) => setForm((f) => ({ ...f, priceNaira: e.target.value }))}
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-white"
-                placeholder="e.g. 50000 or 50,000"
+                placeholder="e.g. Gold Bundle"
               />
-          
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="flex items-center gap-1 text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
+                  Display tier <DirtyDot show={fieldDirty("tier")} />
+                </label>
+                <select
+                  value={form.tier}
+                  onChange={(e) => setForm((f) => ({ ...f, tier: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-white"
+                >
+                  {TIER_OPTIONS.map((t) => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="flex items-center gap-1 text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
+                  Price (₦ naira) <DirtyDot show={fieldDirty("priceNaira")} />
+                </label>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  value={form.priceNaira}
+                  onChange={(e) => setForm((f) => ({ ...f, priceNaira: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-white"
+                  placeholder="e.g. 50000"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 items-start">
+              <div>
+                <label className="flex items-center gap-1 text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
+                  Delegate admissions <DirtyDot show={fieldDirty("ticketAdmits")} />
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  value={form.ticketAdmits}
+                  onChange={(e) => setForm((f) => ({ ...f, ticketAdmits: Math.max(1, parseInt(e.target.value, 10) || 1) }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
+                />
+              </div>
+              <div className="pt-7">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={form.isActive}
+                    onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
+                    className="size-4 rounded border-slate-300 text-primary focus:ring-primary/30"
+                  />
+                  <span className="flex items-center gap-1 text-sm font-medium text-slate-700 dark:text-white/70">
+                    Active (visible to sponsors)
+                    <DirtyDot show={fieldDirty("isActive")} />
+                  </span>
+                </label>
+              </div>
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
-              Delegate admissions included
-            </label>
-            <input
-              type="number"
-              min={1}
-              value={form.ticketAdmits}
-              onChange={(e) => setForm((f) => ({ ...f, ticketAdmits: Math.max(1, parseInt(e.target.value, 10) || 1) }))}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
-            />
-            <p className="mt-1 text-xs text-slate-500 dark:text-white/50">
-              How many conference delegates this plan covers when purchased (minimum 1).
-            </p>
+          {/* ── Bundle contents ── */}
+          <div className="space-y-4 py-5 border-t border-slate-100 dark:border-border-dark">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">Bundle contents</p>
+
+            <div>
+              <label className="flex items-center gap-1 text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
+                Booth <DirtyDot show={fieldDirty("bundleBoothTier")} />
+              </label>
+              <select
+                value={form.bundleBoothTier}
+                onChange={(e) => setForm((f) => ({ ...f, bundleBoothTier: e.target.value as PlanFormData["bundleBoothTier"] }))}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
+              >
+                {BUNDLE_BOOTH_OPTIONS.map((o) => (
+                  <option key={o.value || "none"} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-slate-500 dark:text-white/40">
+                Headliner, Platinum, or Gold only. Assigned at checkout.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-lg border border-slate-100 bg-slate-50/80 p-3 dark:border-border-dark dark:bg-background-dark">
+                <p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-white/40 mb-2">
+                  Masterclass slot
+                  <DirtyDot show={fieldDirty("bundleMasterclassDuration") || fieldDirty("bundleMasterclassDay")} />
+                </p>
+                <div className="space-y-2">
+                  <select
+                    value={form.bundleMasterclassDuration}
+                    onChange={(e) => setForm((f) => ({ ...f, bundleMasterclassDuration: e.target.value as PlanFormData["bundleMasterclassDuration"] }))}
+                    className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs dark:border-border-dark dark:bg-background-dark dark:text-white"
+                  >
+                    <option value="">Duration…</option>
+                    {DURATION_OPTIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+                  </select>
+                  <select
+                    value={form.bundleMasterclassDay}
+                    onChange={(e) => setForm((f) => ({ ...f, bundleMasterclassDay: e.target.value as PlanFormData["bundleMasterclassDay"] }))}
+                    className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs dark:border-border-dark dark:bg-background-dark dark:text-white"
+                  >
+                    <option value="">Day…</option>
+                    {DAY_OPTIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-slate-100 bg-slate-50/80 p-3 dark:border-border-dark dark:bg-background-dark">
+                <p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-white/40 mb-2">
+                  Presentation slot
+                  <DirtyDot show={fieldDirty("bundlePresentationDuration") || fieldDirty("bundlePresentationDay")} />
+                </p>
+                <div className="space-y-2">
+                  <select
+                    value={form.bundlePresentationDuration}
+                    onChange={(e) => setForm((f) => ({ ...f, bundlePresentationDuration: e.target.value as PlanFormData["bundlePresentationDuration"] }))}
+                    className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs dark:border-border-dark dark:bg-background-dark dark:text-white"
+                  >
+                    <option value="">Duration…</option>
+                    {DURATION_OPTIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+                  </select>
+                  <select
+                    value={form.bundlePresentationDay}
+                    onChange={(e) => setForm((f) => ({ ...f, bundlePresentationDay: e.target.value as PlanFormData["bundlePresentationDay"] }))}
+                    className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs dark:border-border-dark dark:bg-background-dark dark:text-white"
+                  >
+                    <option value="">Day…</option>
+                    {DAY_OPTIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
-              Bundle booth (checkout assignment)
-            </label>
-            <select
-              value={form.bundleBoothTier}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  bundleBoothTier: e.target.value as PlanFormData["bundleBoothTier"],
-                }))
-              }
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
+          {/* ── Marketing slots ── */}
+          <div className="space-y-4 py-5 border-t border-slate-100 dark:border-border-dark">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">Marketing slots</p>
+
+            <SlotSection
+              label="Advert slots"
+              selectedIds={form.advertSlotIds}
+              snapshotIds={snapshot.advertSlotIds}
+              allSlots={advertsQuery.data ?? []}
+              loading={advertsQuery.isLoading}
+              isEditing={isEditing}
+              pickerOpen={advertPickerOpen}
+              onToggle={(id) => toggleId("advertSlotIds", id)}
+              onTogglePicker={() => setAdvertPickerOpen((v) => !v)}
+            />
+
+            <SlotSection
+              label="Branding slots"
+              selectedIds={form.brandingSlotIds}
+              snapshotIds={snapshot.brandingSlotIds}
+              allSlots={brandingQuery.data ?? []}
+              loading={brandingQuery.isLoading}
+              isEditing={isEditing}
+              pickerOpen={brandingPickerOpen}
+              onToggle={(id) => toggleId("brandingSlotIds", id)}
+              onTogglePicker={() => setBrandingPickerOpen((v) => !v)}
+            />
+          </div>
+
+          {/* ── Other perks ── */}
+          <div className="space-y-3 py-5 border-t border-slate-100 dark:border-border-dark">
+            <p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">
+              Other perks
+              <DirtyDot show={fieldDirty("manualPerks")} />
+            </p>
+
+            {form.manualPerks.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {form.manualPerks.map((perk, i) => {
+                  const isNew = isEditing && newPerkSet.has(perk);
+                  return (
+                    <span
+                      key={i}
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
+                        isNew
+                          ? "border border-dashed border-secondary/70 text-secondary"
+                          : "bg-slate-100 text-slate-700 dark:bg-background-dark dark:text-white/70"
+                      }`}
+                    >
+                      {perk}
+                      <button
+                        type="button"
+                        onClick={() => removeManualPerk(i)}
+                        className="hover:text-red-500 transition-colors ml-0.5"
+                        aria-label="Remove perk"
+                      >
+                        <span className="material-symbols-outlined text-[13px]">close</span>
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={manualPerkInput}
+                onChange={(e) => setManualPerkInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addManualPerk(); } }}
+                placeholder="e.g. Logo on event website"
+                className="flex-1 bg-transparent border-0 border-b-2 border-secondary px-1 py-1.5 text-sm text-charcoal dark:text-white placeholder:text-slate-400 focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={addManualPerk}
+                className="rounded-lg bg-secondary/10 px-3 py-1.5 text-xs font-bold text-secondary hover:bg-secondary/20 transition-colors"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+
+          {/* ── What companies will see ── */}
+          <div className="border-t border-slate-100 dark:border-border-dark pt-5 pb-1">
+            <button
+              type="button"
+              onClick={() => setPreviewOpen((v) => !v)}
+              className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/40 hover:bg-slate-50 dark:hover:bg-background-dark transition-colors"
             >
-              {BUNDLE_BOOTH_OPTIONS.map((o) => (
-                <option key={o.value || "none"} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-slate-500 dark:text-white/50">
-              Bundles may only include a <span className="font-semibold">Headliner</span>,{" "}
-              <span className="font-semibold">Platinum</span>, or <span className="font-semibold">Gold</span> booth.
-            </p>
-          </div>
+              <span>What companies will see</span>
+              <span className="material-symbols-outlined text-[18px]">
+                {previewOpen ? "expand_less" : "expand_more"}
+              </span>
+            </button>
 
-          <div className="rounded-lg border border-slate-100 bg-slate-50/80 p-3 dark:border-border-dark dark:bg-background-dark">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Bundle masterclass slot</p>
-            <div className="grid grid-cols-2 gap-2">
-              <select
-                value={form.bundleMasterclassDuration}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    bundleMasterclassDuration: e.target.value as PlanFormData["bundleMasterclassDuration"],
-                  }))
-                }
-                className="rounded-lg border border-slate-200 px-2 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
-              >
-                <option value="">Duration…</option>
-                {DURATION_OPTIONS.map((d) => (
-                  <option key={d.value} value={d.value}>
-                    {d.label}
-                  </option>
+            {previewOpen && (
+              <ul className="mt-3 space-y-1.5 px-1">
+                {derivedPerks.map((line, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-charcoal dark:text-white/90">
+                    <span className="material-symbols-outlined text-secondary text-[16px] shrink-0 mt-0.5">check_circle</span>
+                    <span>{line}</span>
+                  </li>
                 ))}
-              </select>
-              <select
-                value={form.bundleMasterclassDay}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, bundleMasterclassDay: e.target.value as PlanFormData["bundleMasterclassDay"] }))
-                }
-                className="rounded-lg border border-slate-200 px-2 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
-              >
-                <option value="">Day…</option>
-                {DAY_OPTIONS.map((d) => (
-                  <option key={d.value} value={d.value}>
-                    {d.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+              </ul>
+            )}
           </div>
 
-          <div className="rounded-lg border border-slate-100 bg-slate-50/80 p-3 dark:border-border-dark dark:bg-background-dark">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Bundle presentation slot</p>
-            <div className="grid grid-cols-2 gap-2">
-              <select
-                value={form.bundlePresentationDuration}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    bundlePresentationDuration: e.target.value as PlanFormData["bundlePresentationDuration"],
-                  }))
-                }
-                className="rounded-lg border border-slate-200 px-2 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
-              >
-                <option value="">Duration…</option>
-                {DURATION_OPTIONS.map((d) => (
-                  <option key={d.value} value={d.value}>
-                    {d.label}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={form.bundlePresentationDay}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    bundlePresentationDay: e.target.value as PlanFormData["bundlePresentationDay"],
-                  }))
-                }
-                className="rounded-lg border border-slate-200 px-2 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
-              >
-                <option value="">Day…</option>
-                {DAY_OPTIONS.map((d) => (
-                  <option key={d.value} value={d.value}>
-                    {d.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              id="plan-is-active"
-              type="checkbox"
-              checked={form.isActive}
-              onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
-              className="size-4 rounded border-slate-300 text-primary focus:ring-primary/30"
-            />
-            <label htmlFor="plan-is-active" className="text-sm font-medium text-slate-700 dark:text-white/70">
-              Plan is active (visible for purchase)
-            </label>
-          </div>
-
-          <div>
-            <p className="text-sm font-medium text-slate-700 dark:text-white/70 mb-2">Advert slots (optional)</p>
-            <p className="text-xs text-slate-500 mb-2">Only available slots can be added. Saving updates this plan&apos;s advert and branding selections.</p>
-            <div className="max-h-36 overflow-y-auto rounded-lg border border-slate-200 divide-y dark:border-border-dark">
-              {advertsQuery.isLoading ? (
-                <p className="p-3 text-xs text-slate-500">Loading…</p>
-              ) : (
-                (advertsQuery.data ?? []).map((slot) => {
-                  const sel = form.advertSlotIds.includes(slot.id);
-                  const ok = slotSelectable(slot, form.advertSlotIds);
-                  return (
-                    <label
-                      key={slot.id}
-                      className={`flex items-center gap-2 px-3 py-2 text-sm ${ok || sel ? "cursor-pointer" : "opacity-50 cursor-not-allowed"}`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={sel}
-                        disabled={!ok && !sel}
-                        onChange={() => {
-                          if (sel) toggleId("advertSlotIds", slot.id);
-                          else if (ok) toggleId("advertSlotIds", slot.id);
-                        }}
-                      />
-                      <span className="truncate">{slot.title}</span>
-                    </label>
-                  );
-                })
-              )}
-            </div>
-          </div>
-
-          <div>
-            <p className="text-sm font-medium text-slate-700 dark:text-white/70 mb-2">Branding slots (optional)</p>
-            <div className="max-h-36 overflow-y-auto rounded-lg border border-slate-200 divide-y dark:border-border-dark">
-              {brandingQuery.isLoading ? (
-                <p className="p-3 text-xs text-slate-500">Loading…</p>
-              ) : (
-                (brandingQuery.data ?? []).map((slot) => {
-                  const sel = form.brandingSlotIds.includes(slot.id);
-                  const ok = slotSelectable(slot, form.brandingSlotIds);
-                  return (
-                    <label
-                      key={slot.id}
-                      className={`flex items-center gap-2 px-3 py-2 text-sm ${ok || sel ? "cursor-pointer" : "opacity-50 cursor-not-allowed"}`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={sel}
-                        disabled={!ok && !sel}
-                        onChange={() => {
-                          if (sel) toggleId("brandingSlotIds", slot.id);
-                          else if (ok) toggleId("brandingSlotIds", slot.id);
-                        }}
-                      />
-                      <span className="truncate">{slot.title}</span>
-                    </label>
-                  );
-                })
-              )}
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-secondary/20 bg-secondary/5 p-4 dark:border-secondary/30 dark:bg-secondary/10">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-white/60 mb-2">
-              Plan perks (saved with this bundle)
-            </p>
-            <p className="text-xs text-slate-500 dark:text-white/50 mb-3">
-              Included automatically based on the selected booth, sessions, and marketing slots.
-            </p>
-            <ul className="list-inside list-disc space-y-1.5 text-sm text-charcoal dark:text-white/90">
-              {derivedPerks.map((line, i) => (
-                <li key={i}>{line}</li>
-              ))}
-            </ul>
-          </div>
         </div>
 
         {validationMsg && (
@@ -573,7 +791,7 @@ function PlanModal({
           <p className="mt-3 text-sm text-red-800 bg-red-50 rounded-lg px-3 py-2">{saveError.message}</p>
         )}
 
-        <div className="mt-6 flex items-center justify-end gap-3">
+        <div className="mt-5 flex items-center justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
@@ -583,16 +801,11 @@ function PlanModal({
           </button>
           <button
             type="button"
-            onClick={() =>
-              onSave(form, {
-                adverts: advertsQuery.data ?? [],
-                branding: brandingQuery.data ?? [],
-              })
-            }
+            onClick={() => onSave(form, { adverts: advertsQuery.data ?? [], branding: brandingQuery.data ?? [] })}
             disabled={isSaving || !canSave}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {isSaving ? "Saving…" : plan ? "Save" : "Create"}
+            {isSaving ? "Saving…" : isEditing ? "Save changes" : "Create plan"}
           </button>
         </div>
       </div>

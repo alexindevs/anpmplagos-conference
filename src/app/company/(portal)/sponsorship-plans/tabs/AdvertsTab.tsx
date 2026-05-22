@@ -146,7 +146,7 @@ export function AdvertsTab() {
       </div>
 
       <div>
-        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3">Available advert slots</h3>
+        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3">Available Brochure Advert Slots</h3>
         {advertAvail.isError && (
           <p className="text-sm text-red-600 mb-2">
             {advertAvail.error instanceof Error ? advertAvail.error.message : "Could not load catalog."}
