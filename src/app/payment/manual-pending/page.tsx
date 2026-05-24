@@ -100,7 +100,7 @@ function ManualPaymentPendingContent() {
               <span className="material-symbols-outlined mb-2 block text-3xl text-green-600 dark:text-green-400">check_circle</span>
               <p className="font-bold text-green-800 dark:text-green-200">Payment confirmed!</p>
               <p className="mt-1 text-sm text-green-700 dark:text-green-300">
-                An admin will verify your transfer and activate your registration shortly.
+                An admin will verify your transfer and process your payment shortly.
               </p>
             </div>
           ) : (

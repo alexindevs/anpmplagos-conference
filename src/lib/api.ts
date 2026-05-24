@@ -2715,6 +2715,7 @@ export interface MemberProfile {
   hospitalOrg: string;
   organizationAddress?: string | null;
   zone?: string | null;
+  state?: string | null;
   avatar?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -2815,6 +2816,42 @@ export async function getMyRegistration(): Promise<{
   };
 }> {
   return apiFetch("/api/registrations/me");
+}
+
+export interface UpdateMemberProfileInput {
+  fullName?: string;
+  phone?: string;
+  title?: string;
+  bio?: string;
+  primarySpecialty?: string;
+  hospitalOrg?: string;
+  organizationAddress?: string;
+  zone?: string;
+  state?: string;
+  hasSpouse?: boolean;
+  spouseName?: string;
+  spouseEmail?: string;
+  spousePhone?: string;
+  avatar?: File | null;
+}
+
+export async function updateMemberProfile(input: UpdateMemberProfileInput): Promise<MemberProfile> {
+  const fd = new FormData();
+  if (input.fullName !== undefined) fd.append("fullName", input.fullName);
+  if (input.phone !== undefined) fd.append("phone", input.phone);
+  if (input.title !== undefined) fd.append("title", input.title);
+  if (input.bio !== undefined) fd.append("bio", input.bio);
+  if (input.primarySpecialty !== undefined) fd.append("primarySpecialty", input.primarySpecialty);
+  if (input.hospitalOrg !== undefined) fd.append("hospitalOrg", input.hospitalOrg);
+  if (input.organizationAddress !== undefined) fd.append("organizationAddress", input.organizationAddress);
+  if (input.zone !== undefined) fd.append("zone", input.zone);
+  if (input.state !== undefined) fd.append("state", input.state);
+  if (input.hasSpouse !== undefined) fd.append("hasSpouse", String(input.hasSpouse));
+  if (input.spouseName !== undefined) fd.append("spouseName", input.spouseName);
+  if (input.spouseEmail !== undefined) fd.append("spouseEmail", input.spouseEmail);
+  if (input.spousePhone !== undefined) fd.append("spousePhone", input.spousePhone);
+  if (input.avatar) fd.append("avatar", input.avatar);
+  return apiFetch<MemberProfile>("/api/registrations/me", { method: "PATCH", body: fd });
 }
 
 export async function verifyRegistrationPayment(reference: string): Promise<{

@@ -119,10 +119,19 @@ export default function MemberDashboardPage() {
 
               {/* Profile Information */}
               <section className="rounded-xl border border-primary/20 bg-white p-6 shadow-sm">
-                <h2 className="text-lg font-black text-charcoal mb-4 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary">person</span>
-                  Profile Information
-                </h2>
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-lg font-black text-charcoal flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary">person</span>
+                    Profile Information
+                  </h2>
+                  <a
+                    href="/member/profile/edit"
+                    className="flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-bold text-primary transition-colors hover:bg-primary/10"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">edit</span>
+                    Edit
+                  </a>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {isMember && memberProfile?.title?.trim() ? (
@@ -166,6 +175,10 @@ export default function MemberDashboardPage() {
                       <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Zone</p>
                         <p className="mt-1 text-sm font-semibold text-charcoal">{memberProfile.zone?.trim() || "—"}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">State</p>
+                        <p className="mt-1 text-sm font-semibold text-charcoal">{memberProfile.state?.trim() || "—"}</p>
                       </div>
                     </>
                   )}
