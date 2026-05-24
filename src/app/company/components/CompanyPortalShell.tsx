@@ -93,7 +93,7 @@ export function CompanyPortalShell({
   const itemClass = (href: string) =>
     navActive(pathname, href)
       ? "w-full flex items-center gap-3 rounded-lg bg-primary px-3 py-2 text-white font-bold"
-      : "w-full flex items-center gap-3 rounded-lg px-3 py-2 text-slate-700 font-semibold hover:bg-secondary/10 hover:text-secondary";
+      : "w-full flex items-center gap-3 rounded-lg hover:bg-primary/5 px-3 py-2 text-slate-700 font-semibold";
 
   if (loading) {
     return <div className="flex h-screen items-center justify-center"><p className="text-charcoal/60">Loading...</p></div>;

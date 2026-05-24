@@ -558,14 +558,52 @@ export default function RegisterPage() {
                         />
                       </div>
                       <div className="flex flex-col gap-2">
-                        <label className="text-sm font-medium text-gray-700">State <span className="text-gray-400 font-normal">(optional)</span></label>
-                        <input
+                        <label className="text-sm font-medium text-gray-700">State <span className="text-red-500">*</span></label>
+                        <select
                           className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
-                          placeholder="State of residence or practice"
-                          type="text"
                           value={state}
                           onChange={(e) => setState(e.target.value)}
-                        />
+                          required
+                        >
+                          <option value="">Select your state</option>
+                          <option>Abia</option>
+                          <option>Adamawa</option>
+                          <option>Akwa Ibom</option>
+                          <option>Anambra</option>
+                          <option>Bauchi</option>
+                          <option>Bayelsa</option>
+                          <option>Benue</option>
+                          <option>Borno</option>
+                          <option>Cross River</option>
+                          <option>Delta</option>
+                          <option>Ebonyi</option>
+                          <option>Edo</option>
+                          <option>Ekiti</option>
+                          <option>Enugu</option>
+                          <option>FCT</option>
+                          <option>Gombe</option>
+                          <option>Imo</option>
+                          <option>Jigawa</option>
+                          <option>Kaduna</option>
+                          <option>Kano</option>
+                          <option>Katsina</option>
+                          <option>Kebbi</option>
+                          <option>Kogi</option>
+                          <option>Kwara</option>
+                          <option>Lagos</option>
+                          <option>Nasarawa</option>
+                          <option>Niger</option>
+                          <option>Ogun</option>
+                          <option>Ondo</option>
+                          <option>Osun</option>
+                          <option>Oyo</option>
+                          <option>Plateau</option>
+                          <option>Rivers</option>
+                          <option>Sokoto</option>
+                          <option>Taraba</option>
+                          <option>Yobe</option>
+                          <option>Zamfara</option>
+                        </select>
                       </div>
                       <div className="flex flex-col gap-2">
                         <label className="text-sm font-medium text-gray-700">ANPMP Membership ID</label>
