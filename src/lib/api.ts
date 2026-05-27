@@ -174,7 +174,6 @@ export interface UpdateExhibitorProfileInput {
   primaryContactName?: string;
   primaryContactPhone?: string;
   whatsappNumber?: string;
-  hotelBookingUrl?: string;
   logo?: File | null;
   headerImage?: File | null;
 }
@@ -231,7 +230,7 @@ export async function getExhibitorProfile(): Promise<ExhibitorProfile> {
 /** PATCH /api/companies/me - update profile */
 export async function updateExhibitorProfile(input: UpdateExhibitorProfileInput): Promise<ExhibitorProfile> {
   const fd = new FormData();
-  const textFields = ["companyName","tagline","description","boothPreference","website","contactEmail","primaryContactName","primaryContactPhone","whatsappNumber","hotelBookingUrl"] as const;
+  const textFields = ["companyName","tagline","description","boothPreference","website","contactEmail","primaryContactName","primaryContactPhone","whatsappNumber"] as const;
   for (const k of textFields) {
     if (input[k] !== undefined) fd.append(k, input[k] as string);
   }

@@ -40,7 +40,6 @@ export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
         primaryContactName: profile.primaryContactName || "",
         primaryContactPhone: profile.primaryContactPhone || "",
         whatsappNumber: (profile as { whatsappNumber?: string }).whatsappNumber || "",
-        hotelBookingUrl: profile.hotelBookingUrl || "",
       });
       setLogoFile(null);
       setLogoPreview(null);
@@ -271,18 +270,6 @@ export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
                 <p className="text-xs text-slate-500 mt-1">Used for WhatsApp product lead redirects. Falls back to Primary Contact Phone if not set.</p>
               </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-sm font-bold text-slate-700 mb-1">Hotel Booking URL</label>
-                <input
-                  type="url"
-                  name="hotelBookingUrl"
-                  value={formData.hotelBookingUrl || ""}
-                  onChange={handleChange}
-                  placeholder="https://..."
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-secondary focus:ring-1 focus:ring-secondary outline-none"
-                />
-                <p className="text-xs text-slate-500 mt-1">Optional link for staff to book conference hotels. It appears as a button on your dashboard.</p>
-              </div>
             </div>
 
             {mutation.isError && (
