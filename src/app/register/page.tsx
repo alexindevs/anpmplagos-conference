@@ -144,8 +144,9 @@ function RegisterPageContent() {
     const plan = searchParams.get("plan");
     if (plan === "member" || plan === "non-member" || plan === "company") {
       setRegType(plan);
+      setStep(2);
     }
-  }, [searchParams, setRegType]);
+  }, [searchParams, setRegType, setStep]);
 
   const createMutation = useCreateRegistration();
   const isSubmitting = createMutation.isPending;
