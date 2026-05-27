@@ -167,9 +167,18 @@ function RegisterPageContent() {
     try {
       const result = await lookupMdcnMember(anpmpId.trim());
       if (result.name) setFullName(result.name);
-      if (result.hospitalName) setHospitalOrg(result.hospitalName);
+      if (result.hospitalName) {
+        const commaIdx = result.hospitalName.indexOf(",");
+        if (commaIdx !== -1) {
+          setHospitalOrg(result.hospitalName.slice(0, commaIdx).trim());
+          setOrganizationAddress(result.hospitalName.slice(commaIdx + 1).trim());
+        } else {
+          setHospitalOrg(result.hospitalName.trim());
+        }
+      }
       if (result.zone) setZone(result.zone);
       if (result.telephone) setPhone(result.telephone);
+      setState("Lagos");
       setMdcnLookupState("found");
     } catch (err: unknown) {
       setMdcnLookupState(err instanceof ApiError && err.status === 404 ? "not_found" : "error");
@@ -180,6 +189,10 @@ function RegisterPageContent() {
     const passwordError = getRegistrationPasswordError(password);
     if (passwordError) {
       toast.error(passwordError);
+      return;
+    }
+    if (regType === "member" && !anpmpId.trim()) {
+      toast.error("MDCN Registration Number is required.");
       return;
     }
     if (regType === "member" && state === "Lagos" && !zone.trim()) {
