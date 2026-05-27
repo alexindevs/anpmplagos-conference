@@ -302,7 +302,7 @@ export default function Home() {
               </li>
             </ul>
             <Link
-              href="/register"
+              href="/register?plan=member"
               className="block w-full py-3 bg-fresh-green text-white font-bold hover:bg-medical-green hover:shadow-lg transition-all text-center hover:-translate-y-0.5"
             >
               Register Now
@@ -337,7 +337,7 @@ export default function Home() {
               </li>
             </ul>
             <Link
-              href="/register"
+              href="/register?plan=non-member"
               className="block w-full py-3 bg-medical-green text-white font-bold hover:bg-deep-forest hover:shadow-lg transition-all text-center hover:-translate-y-0.5"
             >
               Register Now
@@ -377,7 +377,7 @@ export default function Home() {
               </li>
             </ul>
             <Link
-              href="/register"
+              href="/register?plan=company"
               className="block w-full py-3 bg-primary text-white font-bold hover:bg-red-700 hover:shadow-lg transition-all text-center hover:-translate-y-0.5"
             >
               Register as Sponsor

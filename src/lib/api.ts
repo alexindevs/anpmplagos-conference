@@ -173,10 +173,10 @@ export interface UpdateExhibitorProfileInput {
   contactEmail?: string;
   primaryContactName?: string;
   primaryContactPhone?: string;
+  whatsappNumber?: string;
   hotelBookingUrl?: string;
-  headerImage?: string;
-  /** Company logo URL (JSON PATCH). Do not send `profileImage` for companies. */
-  logo?: string;
+  logo?: File | null;
+  headerImage?: File | null;
 }
 
 /** Create representative */
@@ -230,10 +230,14 @@ export async function getExhibitorProfile(): Promise<ExhibitorProfile> {
 
 /** PATCH /api/companies/me - update profile */
 export async function updateExhibitorProfile(input: UpdateExhibitorProfileInput): Promise<ExhibitorProfile> {
-  return apiFetch<ExhibitorProfile>("/api/companies/me", {
-    method: "PATCH",
-    body: JSON.stringify(input),
-  });
+  const fd = new FormData();
+  const textFields = ["companyName","tagline","description","boothPreference","website","contactEmail","primaryContactName","primaryContactPhone","whatsappNumber","hotelBookingUrl"] as const;
+  for (const k of textFields) {
+    if (input[k] !== undefined) fd.append(k, input[k] as string);
+  }
+  if (input.logo instanceof File) fd.append("logo", input.logo);
+  if (input.headerImage instanceof File) fd.append("headerImage", input.headerImage);
+  return apiFetch<ExhibitorProfile>("/api/companies/me", { method: "PATCH", body: fd });
 }
 
 /** GET /api/companies/me/booth - booth status */
@@ -2703,6 +2707,8 @@ export interface MemberProfile {
   id: string;
   userId: string;
   fullName: string;
+  firstName?: string | null;
+  lastName?: string | null;
   phone: string;
   title?: string | null;
   anpmpId: string;
@@ -2725,6 +2731,8 @@ export interface AttendeeProfile {
   id: string;
   userId: string;
   fullName: string;
+  firstName?: string | null;
+  lastName?: string | null;
   phone: string;
   bio?: string | null;
   inMedicalField: boolean;
@@ -2819,6 +2827,8 @@ export async function getMyRegistration(): Promise<{
 }
 
 export interface UpdateMemberProfileInput {
+  firstName?: string;
+  lastName?: string;
   fullName?: string;
   phone?: string;
   title?: string;
@@ -2837,6 +2847,8 @@ export interface UpdateMemberProfileInput {
 
 export async function updateMemberProfile(input: UpdateMemberProfileInput): Promise<MemberProfile> {
   const fd = new FormData();
+  if (input.firstName !== undefined) fd.append("firstName", input.firstName);
+  if (input.lastName !== undefined) fd.append("lastName", input.lastName);
   if (input.fullName !== undefined) fd.append("fullName", input.fullName);
   if (input.phone !== undefined) fd.append("phone", input.phone);
   if (input.title !== undefined) fd.append("title", input.title);

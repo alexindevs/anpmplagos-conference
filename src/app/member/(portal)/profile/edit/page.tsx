@@ -49,7 +49,8 @@ export default function MemberEditProfilePage() {
 
   // Form state — initialised once the profile loads
   const [form, setForm] = useState({
-    fullName: "",
+    firstName: "",
+    lastName: "",
     phone: "",
     title: "",
     bio: "",
@@ -72,8 +73,18 @@ export default function MemberEditProfilePage() {
 
   useEffect(() => {
     if (profile && !seeded) {
+      const existingFirst = profile.firstName?.trim() ?? "";
+      const existingLast = profile.lastName?.trim() ?? "";
+      let firstName = existingFirst;
+      let lastName = existingLast;
+      if (!firstName && !lastName && profile.fullName) {
+        const parts = profile.fullName.trim().split(/\s+/);
+        firstName = parts[0] ?? "";
+        lastName = parts.slice(1).join(" ") ?? "";
+      }
       setForm({
-        fullName: profile.fullName ?? "",
+        firstName,
+        lastName,
         phone: profile.phone ?? "",
         title: profile.title ?? "",
         bio: profile.bio ?? "",
@@ -101,6 +112,8 @@ export default function MemberEditProfilePage() {
     mutationFn: () =>
       updateMemberProfile({
         ...form,
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
         state: form.state || undefined,
         avatar: avatarFile ?? undefined,
       }),
@@ -122,7 +135,8 @@ export default function MemberEditProfilePage() {
 
   function validate(): boolean {
     const errs: Record<string, string> = {};
-    if (!form.fullName.trim()) errs.fullName = "Full name is required.";
+    if (!form.firstName.trim()) errs.firstName = "First name is required.";
+    if (!form.lastName.trim()) errs.lastName = "Last name is required.";
     if (!form.phone.trim()) errs.phone = "Phone number is required.";
     if (!form.primarySpecialty) errs.primarySpecialty = "Please select a specialty.";
     if (!form.hospitalOrg.trim()) errs.hospitalOrg = "Hospital / organization is required.";
@@ -213,16 +227,30 @@ export default function MemberEditProfilePage() {
                   </div>
                   <div>
                     <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
-                      Full Name <span className="text-red-500">*</span>
+                      First Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
-                      value={form.fullName}
-                      onChange={(e) => set("fullName", e.target.value)}
-                      className={fieldClass(errors.fullName)}
+                      value={form.firstName}
+                      onChange={(e) => set("firstName", e.target.value)}
+                      className={fieldClass(errors.firstName)}
                     />
-                    {errors.fullName && (
-                      <p className="mt-1 text-xs text-red-500">{errors.fullName}</p>
+                    {errors.firstName && (
+                      <p className="mt-1 text-xs text-red-500">{errors.firstName}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
+                      Last Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={form.lastName}
+                      onChange={(e) => set("lastName", e.target.value)}
+                      className={fieldClass(errors.lastName)}
+                    />
+                    {errors.lastName && (
+                      <p className="mt-1 text-xs text-red-500">{errors.lastName}</p>
                     )}
                   </div>
                   <div>

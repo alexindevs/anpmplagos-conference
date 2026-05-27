@@ -121,14 +121,22 @@ export default function CompanyTicketsPage() {
           <span className="material-symbols-outlined text-4xl text-amber-500 mb-4">lock</span>
           <h2 className="text-xl font-black text-charcoal mb-2">Tickets not available</h2>
           <p className="text-slate-600 mb-4 mx-auto w-full sm:w-4/5">
-            Your account isn&apos;t eligible for conference passes right now. Please purchase an item from the Sponsorship Plans page and try again.
+            Conference tickets are only available to companies that have purchased a booth or a sponsorship plan. Please complete one of those purchases and try again.
           </p>
-          <Link
-            href="/company/sponsorship-plans"
-            className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 font-bold text-white hover:bg-red-700 transition-colors"
-          >
-            View Sponsorship Plans
-          </Link>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link
+              href="/company/sponsorship-plans"
+              className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 font-bold text-white hover:bg-red-700 transition-colors"
+            >
+              View Sponsorship Plans
+            </Link>
+            <Link
+              href="/company/select-booth"
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+            >
+              View Booths
+            </Link>
+          </div>
         </div>
       ) : profile ? (
         <div className="">

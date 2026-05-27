@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { getExhibitorProfile, updateExhibitorProfile, type UpdateExhibitorProfileInput } from "@/lib/api";
 
@@ -11,7 +12,15 @@ interface EditProfileModalProps {
 
 export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
   const queryClient = useQueryClient();
-  const [formData, setFormData] = useState<UpdateExhibitorProfileInput>({});
+
+  type TextFields = Omit<UpdateExhibitorProfileInput, "logo" | "headerImage">;
+  const [formData, setFormData] = useState<TextFields>({});
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [headerFile, setHeaderFile] = useState<File | null>(null);
+  const [headerPreview, setHeaderPreview] = useState<string | null>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const headerInputRef = useRef<HTMLInputElement>(null);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ["company", "profile"],
@@ -30,13 +39,22 @@ export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
         contactEmail: profile.contactEmail || "",
         primaryContactName: profile.primaryContactName || "",
         primaryContactPhone: profile.primaryContactPhone || "",
+        whatsappNumber: (profile as { whatsappNumber?: string }).whatsappNumber || "",
         hotelBookingUrl: profile.hotelBookingUrl || "",
       });
+      setLogoFile(null);
+      setLogoPreview(null);
+      setHeaderFile(null);
+      setHeaderPreview(null);
     }
   }, [profile]);
 
   const mutation = useMutation({
-    mutationFn: updateExhibitorProfile,
+    mutationFn: () => updateExhibitorProfile({
+      ...formData,
+      logo: logoFile ?? undefined,
+      headerImage: headerFile ?? undefined,
+    } as UpdateExhibitorProfileInput),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["company", "profile"] });
       queryClient.invalidateQueries({ queryKey: ["company", "dashboard"] });
@@ -51,9 +69,19 @@ export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  function handleImageChange(
+    e: React.ChangeEvent<HTMLInputElement>,
+    setFile: (f: File | null) => void,
+    setPreview: (s: string | null) => void,
+  ) {
+    const file = e.target.files?.[0] ?? null;
+    setFile(file);
+    setPreview(file ? URL.createObjectURL(file) : null);
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    mutation.mutate(formData);
+    mutation.mutate();
   };
 
   return (
@@ -75,6 +103,82 @@ export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
+
+            {/* Image uploads */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Logo */}
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Company Logo</label>
+                <div
+                  className="relative flex h-32 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 transition-colors hover:border-secondary hover:bg-secondary/5"
+                  onClick={() => logoInputRef.current?.click()}
+                >
+                  {logoPreview || profile?.logo ? (
+                    <Image
+                      src={logoPreview ?? profile!.logo!}
+                      alt="Logo preview"
+                      fill
+                      className="rounded-lg object-contain p-2"
+                    />
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-3xl text-slate-400">add_photo_alternate</span>
+                      <p className="mt-1 text-xs text-slate-500">Click to upload logo</p>
+                    </>
+                  )}
+                  {(logoPreview || profile?.logo) && (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/40 opacity-0 transition-opacity hover:opacity-100">
+                      <span className="text-xs font-bold text-white">Change</span>
+                    </div>
+                  )}
+                </div>
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={(e) => handleImageChange(e, setLogoFile, setLogoPreview)}
+                />
+                <p className="mt-1 text-xs text-slate-400">JPEG, PNG or WebP · max 5 MB</p>
+              </div>
+
+              {/* Header image */}
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Header / Banner Image</label>
+                <div
+                  className="relative flex h-32 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 transition-colors hover:border-secondary hover:bg-secondary/5"
+                  onClick={() => headerInputRef.current?.click()}
+                >
+                  {headerPreview || profile?.headerImage ? (
+                    <Image
+                      src={headerPreview ?? profile!.headerImage!}
+                      alt="Header preview"
+                      fill
+                      className="rounded-lg object-cover"
+                    />
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-3xl text-slate-400">panorama</span>
+                      <p className="mt-1 text-xs text-slate-500">Click to upload banner</p>
+                    </>
+                  )}
+                  {(headerPreview || profile?.headerImage) && (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/40 opacity-0 transition-opacity hover:opacity-100">
+                      <span className="text-xs font-bold text-white">Change</span>
+                    </div>
+                  )}
+                </div>
+                <input
+                  ref={headerInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={(e) => handleImageChange(e, setHeaderFile, setHeaderPreview)}
+                />
+                <p className="mt-1 text-xs text-slate-400">JPEG, PNG or WebP · max 5 MB · recommended 1200×400 px</p>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
                 <label className="block text-sm font-bold text-slate-700 mb-1">Company Name</label>
@@ -152,6 +256,19 @@ export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
                   onChange={handleChange}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-secondary focus:ring-1 focus:ring-secondary outline-none"
                 />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-bold text-slate-700 mb-1">WhatsApp Number</label>
+                <input
+                  type="tel"
+                  name="whatsappNumber"
+                  value={formData.whatsappNumber || ""}
+                  onChange={handleChange}
+                  placeholder="e.g. +2348012345678"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-secondary focus:ring-1 focus:ring-secondary outline-none"
+                />
+                <p className="text-xs text-slate-500 mt-1">Used for WhatsApp product lead redirects. Falls back to Primary Contact Phone if not set.</p>
               </div>
 
               <div className="md:col-span-2">

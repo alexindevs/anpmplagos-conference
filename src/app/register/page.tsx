@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRef } from "react";
+import { useRef, useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import type { RegType } from "@/stores/registration-store";
 import { useRegistrationStore } from "@/stores/registration-store";
 import { useCreateRegistration, getSubmitErrorMessage } from "@/hooks/use-registration-api";
@@ -60,7 +61,16 @@ function getRegistrationPasswordError(password: string): string | null {
 }
 
 export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterPageContent />
+    </Suspense>
+  );
+}
+
+function RegisterPageContent() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     step,
@@ -127,6 +137,14 @@ export default function RegisterPage() {
     setSaved,
   } = useRegistrationStore();
 
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const plan = searchParams.get("plan");
+    if (plan === "member" || plan === "non-member" || plan === "company") {
+      setRegType(plan);
+    }
+  }, [searchParams, setRegType]);
+
   const createMutation = useCreateRegistration();
   const isSubmitting = createMutation.isPending;
   const submitError = createMutation.error ? getSubmitErrorMessage(createMutation.error) : null;
@@ -144,6 +162,10 @@ export default function RegisterPage() {
     const passwordError = getRegistrationPasswordError(password);
     if (passwordError) {
       toast.error(passwordError);
+      return;
+    }
+    if (regType === "member" && state === "Lagos" && !zone.trim()) {
+      toast.error("Zone is required for Lagos members.");
       return;
     }
     createMutation.mutate(
@@ -355,19 +377,32 @@ export default function RegisterPage() {
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-gray-700">Password</label>
-                  <input
-                    className={`rounded-lg border bg-white px-3 py-2 focus:ring-primary focus:border-primary ${
-                      password.length > 0 && !isPasswordValid
-                        ? "border-red-400"
-                        : "border-gray-300"
-                    }`}
-                    placeholder="•••••••••"
-                    type="password"
-                    autoComplete="new-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    aria-invalid={password.length > 0 && !isPasswordValid}
-                  />
+                  <div className="relative">
+                    <input
+                      className={`w-full rounded-lg border bg-white px-3 py-2 pr-10 focus:ring-primary focus:border-primary ${
+                        password.length > 0 && !isPasswordValid
+                          ? "border-red-400"
+                          : "border-gray-300"
+                      }`}
+                      placeholder="•••••••••"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="new-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      aria-invalid={password.length > 0 && !isPasswordValid}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600"
+                      tabIndex={-1}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      <span className="material-symbols-outlined text-[20px]">
+                        {showPassword ? "visibility_off" : "visibility"}
+                      </span>
+                    </button>
+                  </div>
                   {shouldShowPasswordChecklist && (
                     <ul className="text-xs text-gray-500 space-y-1 list-none p-0 m-0">
                       {[
@@ -548,14 +583,25 @@ export default function RegisterPage() {
                         />
                       </div>
                       <div className="flex flex-col gap-2">
-                        <label className="text-sm font-medium text-gray-700">Zone <span className="text-gray-400 font-normal">(optional)</span></label>
+                        <label className="text-sm font-medium text-gray-700">
+                          Zone{" "}
+                          {state === "Lagos" ? (
+                            <span className="text-red-500">*</span>
+                          ) : (
+                            <span className="text-gray-400 font-normal">(optional)</span>
+                          )}
+                        </label>
                         <input
                           className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
                           placeholder="Your ANPMP zone or chapter"
                           type="text"
                           value={zone}
                           onChange={(e) => setZone(e.target.value)}
+                          required={state === "Lagos"}
                         />
+                        {state === "Lagos" && (
+                          <p className="text-xs text-gray-500">Zone is required for Lagos members</p>
+                        )}
                       </div>
                       <div className="flex flex-col gap-2">
                         <label className="text-sm font-medium text-gray-700">State <span className="text-red-500">*</span></label>
