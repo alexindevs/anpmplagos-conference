@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import type { RegType } from "@/stores/registration-store";
 import { useRegistrationStore } from "@/stores/registration-store";
 import { useCreateRegistration, getSubmitErrorMessage } from "@/hooks/use-registration-api";
+import { lookupMdcnMember, ApiError } from "@/lib/api";
 import { toast } from "sonner";
 
 const PLANS: { id: RegType; name: string; price: string; description: string; icon: string; benefits: string[] }[] = [
@@ -71,6 +72,7 @@ export default function RegisterPage() {
 function RegisterPageContent() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [mdcnLookupState, setMdcnLookupState] = useState<"idle" | "loading" | "found" | "not_found" | "error">("idle");
 
   const {
     step,
@@ -157,6 +159,21 @@ function RegisterPageContent() {
   const isPasswordValid =
     passwordOkLength && passwordOkLower && passwordOkUpper && passwordOkDigit && passwordOkSpecial;
   const shouldShowPasswordChecklist = password.length > 0 && !isPasswordValid;
+
+  const handleMdcnFetch = async () => {
+    if (!anpmpId.trim()) return;
+    setMdcnLookupState("loading");
+    try {
+      const result = await lookupMdcnMember(anpmpId.trim());
+      if (result.name) setFullName(result.name);
+      if (result.hospitalName) setHospitalOrg(result.hospitalName);
+      if (result.zone) setZone(result.zone);
+      if (result.telephone) setPhone(result.telephone);
+      setMdcnLookupState("found");
+    } catch (err: unknown) {
+      setMdcnLookupState(err instanceof ApiError && err.status === 404 ? "not_found" : "error");
+    }
+  };
 
   const handleSave = () => {
     const passwordError = getRegistrationPasswordError(password);
@@ -438,6 +455,46 @@ function RegisterPageContent() {
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {regType === "member" && (
+                      <div className="flex flex-col gap-2 md:col-span-2">
+                        <label className="text-sm font-medium text-gray-700">MDCN Registration Number</label>
+                        <div className="flex gap-2">
+                          <input
+                            className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
+                            placeholder="e.g. 123456 or 123,456"
+                            type="text"
+                            value={anpmpId}
+                            onChange={(e) => { setAnpmpId(e.target.value); setMdcnLookupState("idle"); }}
+                          />
+                          <button
+                            type="button"
+                            onClick={handleMdcnFetch}
+                            disabled={!anpmpId.trim() || mdcnLookupState === "loading"}
+                            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:brightness-110 disabled:opacity-50 transition-all"
+                          >
+                            {mdcnLookupState === "loading" ? "Fetching..." : "Fetch Details"}
+                          </button>
+                        </div>
+                        {mdcnLookupState === "found" && (
+                          <p className="text-xs text-green-600 flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                            Details fetched — review and edit the fields below if needed.
+                          </p>
+                        )}
+                        {mdcnLookupState === "not_found" && (
+                          <p className="text-xs text-red-500 flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[14px]">error</span>
+                            MDCN number not found. Please check and try again, or fill in your details manually.
+                          </p>
+                        )}
+                        {mdcnLookupState === "error" && (
+                          <p className="text-xs text-red-500 flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[14px]">error</span>
+                            Lookup failed. Please fill in your details manually.
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    {regType === "member" && (
                       <div className="flex flex-col gap-2">
                         <label className="text-sm font-medium text-gray-700">Title (optional)</label>
                         <input
@@ -650,17 +707,6 @@ function RegisterPageContent() {
                           <option>Yobe</option>
                           <option>Zamfara</option>
                         </select>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <label className="text-sm font-medium text-gray-700">ANPMP Membership ID</label>
-                        <input
-                          className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
-                          placeholder="ID-123456"
-                          type="text"
-                          value={anpmpId}
-                          onChange={(e) => setAnpmpId(e.target.value)}
-                        />
-                        <p className="text-xs text-gray-500">Your ANPMP membership ID (e.g., ID-123456)</p>
                       </div>
                     </div>
                   </section>

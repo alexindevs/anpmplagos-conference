@@ -454,6 +454,20 @@ export interface RegistrationResponse {
   message: string;
 }
 
+export interface MdcnLookupResult {
+  name: string;
+  hospitalName: string;
+  zone: string;
+  telephone: string;
+  email: string;
+}
+
+export async function lookupMdcnMember(mdcnNo: string): Promise<MdcnLookupResult> {
+  return apiFetch<MdcnLookupResult>('/api/registrations/lookup-member', {
+    params: { mdcnNo },
+  });
+}
+
 export type SponsorStatus = "pending_pledge" | "pending_payment" | "active" | "cancelled";
 export type SponsorTier = "headliner" | "platinum" | "gold" | "silver" | "custom";
 export type SessionStatus = "draft" | "published" | "cancelled";
