@@ -397,7 +397,7 @@ function RegisterPageContent() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-gray-700">Email Address</label>
+                  <label className="text-sm font-medium text-gray-700">Email Address <span className="text-red-500">*</span></label>
                   <input
                     className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
                     placeholder="you@example.com"
@@ -407,7 +407,7 @@ function RegisterPageContent() {
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-gray-700">Password</label>
+                  <label className="text-sm font-medium text-gray-700">Password <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <input
                       className={`w-full rounded-lg border bg-white px-3 py-2 pr-10 focus:ring-primary focus:border-primary ${
@@ -470,7 +470,7 @@ function RegisterPageContent() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {regType === "member" && (
                       <div className="flex flex-col gap-2 md:col-span-2">
-                        <label className="text-sm font-medium text-gray-700">MDCN Registration Number</label>
+                        <label className="text-sm font-medium text-gray-700">MDCN Registration Number <span className="text-red-500">*</span></label>
                         <div className="flex gap-2">
                           <input
                             className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
@@ -523,7 +523,7 @@ function RegisterPageContent() {
                       </div>
                     )}
                     <div className="flex flex-col gap-2">
-                      <label className="text-sm font-medium text-gray-700">Full Name</label>
+                      <label className="text-sm font-medium text-gray-700">Full Name <span className="text-red-500">*</span></label>
                       <input
                         className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
                         placeholder={regType === "member" ? "John Doe" : "Dr. John Doe"}
@@ -533,7 +533,7 @@ function RegisterPageContent() {
                       />
                     </div>
                     <div className="flex flex-col gap-2">
-                      <label className="text-sm font-medium text-gray-700">Phone Number</label>
+                      <label className="text-sm font-medium text-gray-700">Phone Number <span className="text-red-500">*</span></label>
                       <input
                         className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
                         placeholder="+234 000 000 0000"
@@ -616,7 +616,7 @@ function RegisterPageContent() {
                     </h2>
                     <div className="grid grid-cols-1 gap-6">
                       <div className="flex flex-col gap-2">
-                        <label className="text-sm font-medium text-gray-700">Organization</label>
+                        <label className="text-sm font-medium text-gray-700">Organization <span className="text-red-500">*</span></label>
                         <input
                           className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
                           placeholder="Hospital or organization name"
@@ -627,7 +627,7 @@ function RegisterPageContent() {
                         />
                       </div>
                       <div className="flex flex-col gap-2">
-                        <label className="text-sm font-medium text-gray-700">Specialty</label>
+                        <label className="text-sm font-medium text-gray-700">Specialty <span className="text-red-500">*</span></label>
                         <select
                           className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
                           value={primarySpecialty}
@@ -643,7 +643,7 @@ function RegisterPageContent() {
                         </select>
                       </div>
                       <div className="flex flex-col gap-2">
-                        <label className="text-sm font-medium text-gray-700">Organization address (required)</label>
+                        <label className="text-sm font-medium text-gray-700">Organization address <span className="text-red-500">*</span></label>
                         <textarea
                           className="rounded-lg border border-gray-300 bg-white px-3 py-2 min-h-[88px] focus:ring-primary focus:border-primary"
                           placeholder="Street address and location of your organization"
@@ -812,7 +812,7 @@ function RegisterPageContent() {
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="flex flex-col gap-2 md:col-span-2">
-                      <label className="text-sm font-medium text-gray-700">Company/Organization Name</label>
+                      <label className="text-sm font-medium text-gray-700">Company/Organization Name <span className="text-red-500">*</span></label>
                       <input
                         className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
                         placeholder="MediCorp Solutions"
@@ -832,7 +832,7 @@ function RegisterPageContent() {
                       />
                     </div>
                     <div className="flex flex-col gap-2 md:col-span-2">
-                      <label className="text-sm font-medium text-gray-700">Company description (required)</label>
+                      <label className="text-sm font-medium text-gray-700">Company description <span className="text-red-500">*</span></label>
                       <textarea
                         className="rounded-lg border border-gray-300 bg-white px-3 py-2 min-h-[100px] focus:ring-primary focus:border-primary"
                         placeholder="Briefly describe your organization, products, or services for the conference directory."
@@ -855,7 +855,7 @@ function RegisterPageContent() {
                       />
                     </div>
                     <div className="flex flex-col gap-2">
-                      <label className="text-sm font-medium text-gray-700">Contact Email</label>
+                      <label className="text-sm font-medium text-gray-700">Contact Email <span className="text-red-500">*</span></label>
                       <input
                         className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
                         placeholder="contact@company.com"
@@ -865,7 +865,7 @@ function RegisterPageContent() {
                       />
                     </div>
                     <div className="flex flex-col gap-2">
-                      <label className="text-sm font-medium text-gray-700">Primary Contact Name</label>
+                      <label className="text-sm font-medium text-gray-700">Primary Contact Name <span className="text-red-500">*</span></label>
                       <input
                         className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
                         placeholder="Full Name"
@@ -875,7 +875,7 @@ function RegisterPageContent() {
                       />
                     </div>
                     <div className="flex flex-col gap-2">
-                      <label className="text-sm font-medium text-gray-700">Primary Contact Phone</label>
+                      <label className="text-sm font-medium text-gray-700">Primary Contact Phone <span className="text-red-500">*</span></label>
                       <input
                         className="rounded-lg border border-gray-300 bg-white px-3 py-2 focus:ring-primary focus:border-primary"
                         placeholder="+234..."
