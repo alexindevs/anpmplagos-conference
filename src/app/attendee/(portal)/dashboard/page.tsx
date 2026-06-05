@@ -2,14 +2,10 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useAuthSession } from "@/hooks/use-auth-session";
-import { AutomaticCheckoutDiscountNote } from "@/app/components/AutomaticCheckoutDiscountNote";
-import { applyAutomaticDiscountKobo, getAutomaticCheckoutDiscountPercent } from "@/lib/automatic-checkout-discount";
-import { getMyRegistration, formatKoboToNaira, type AttendeeProfile } from "@/lib/api";
+import { getMyRegistration, formatKoboToNaira, getConferenceRegistrationPricing, type AttendeeProfile } from "@/lib/api";
 import { AttendeePortalShell } from "../../components/AttendeePortalShell";
 import Image from "next/image";
 import Link from "next/link";
-
-const PRICE_NON_MEMBER = 5500000; // 55,000 NGN in kobo
 
 export default function AttendeeDashboardPage() {
   const { data: user } = useAuthSession();
@@ -18,6 +14,12 @@ export default function AttendeeDashboardPage() {
     queryKey: ["attendee", "registration"],
     queryFn: getMyRegistration,
     enabled: !!user,
+  });
+
+  const { data: pricing } = useQuery({
+    queryKey: ["conference-registration-pricing"],
+    queryFn: getConferenceRegistrationPricing,
+    staleTime: 5 * 60 * 1000,
   });
 
   const profile = registration?.attendee;
@@ -29,8 +31,7 @@ export default function AttendeeDashboardPage() {
   const isPaid = registration?.payment?.status === "success";
   const isPending = registration?.user?.registrationStatus === "pending_payment";
 
-  const regDiscountPct = getAutomaticCheckoutDiscountPercent();
-  const registrationDueKobo = applyAutomaticDiscountKobo(PRICE_NON_MEMBER, regDiscountPct);
+  const registrationDueKobo = pricing?.nonMemberPriceKobo;
 
   const avatarUrl = profile?.avatar
     ? profile.avatar.startsWith("http")
@@ -73,16 +74,11 @@ export default function AttendeeDashboardPage() {
                     {isPaid
                       ? "Your conference registration is confirmed and paid."
                       : isPending
-                        ? `Complete your payment of ${formatKoboToNaira(registrationDueKobo)} to confirm registration.`
+                        ? `Complete your payment of ${registrationDueKobo != null ? formatKoboToNaira(registrationDueKobo) : "—"} to confirm registration.`
                         : "Please complete your registration process."}
                   </p>
                 </div>
               </div>
-              {isPending && regDiscountPct > 0 ? (
-                <div className="mt-4">
-                  <AutomaticCheckoutDiscountNote />
-                </div>
-              ) : null}
             </div>
 
             {/* Profile Information */}

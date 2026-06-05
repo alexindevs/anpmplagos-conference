@@ -2,14 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useAuthSession } from "@/hooks/use-auth-session";
-import { AutomaticCheckoutDiscountNote } from "@/app/components/AutomaticCheckoutDiscountNote";
-import { applyAutomaticDiscountKobo, getAutomaticCheckoutDiscountPercent } from "@/lib/automatic-checkout-discount";
-import { getMyRegistration, formatKoboToNaira, type MemberProfile, type AttendeeProfile } from "@/lib/api";
+import { getMyRegistration, formatKoboToNaira, getConferenceRegistrationPricing, type MemberProfile, type AttendeeProfile } from "@/lib/api";
 import { MemberPortalShell } from "../../components/MemberPortalShell";
 import Image from "next/image";
-
-const PRICE_MEMBER = 4000000; // 40,000 NGN in kobo
-const PRICE_NON_MEMBER = 5500000; // 55,000 NGN in kobo
 
 export default function MemberDashboardPage() {
   const { data: user } = useAuthSession();
@@ -18,6 +13,12 @@ export default function MemberDashboardPage() {
     queryKey: ["member", "registration"],
     queryFn: getMyRegistration,
     enabled: !!user,
+  });
+
+  const { data: pricing } = useQuery({
+    queryKey: ["conference-registration-pricing"],
+    queryFn: getConferenceRegistrationPricing,
+    staleTime: 5 * 60 * 1000,
   });
 
   const profile = registration?.member || registration?.attendee;
@@ -31,9 +32,8 @@ export default function MemberDashboardPage() {
   const fullName = `${memberTitle}${displayFullName}`.trim() || displayFullName;
   const userId = user?.id || "";
 
-  const ticketPrice = isMember ? PRICE_MEMBER : PRICE_NON_MEMBER;
-  const regDiscountPct = getAutomaticCheckoutDiscountPercent();
-  const registrationDueKobo = applyAutomaticDiscountKobo(ticketPrice, regDiscountPct);
+  const ticketPrice = isMember ? pricing?.memberPriceKobo : pricing?.nonMemberPriceKobo;
+  const registrationDueKobo = ticketPrice;
   const isPaid = registration?.payment?.status === "success";
   const isPending = registration?.user?.registrationStatus === "pending_payment";
 
@@ -96,8 +96,6 @@ export default function MemberDashboardPage() {
                   </div>
                 )}
 
-                {isPending && regDiscountPct > 0 ? <AutomaticCheckoutDiscountNote className="mb-4" /> : null}
-
                 <div className="grid grid-cols-2 gap-4">
                   <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                     <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Registration Type</p>
@@ -105,14 +103,7 @@ export default function MemberDashboardPage() {
                   </div>
                   <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
                     <p className="text-xs font-bold uppercase tracking-wider text-primary">Ticket Price</p>
-                    {isPending && regDiscountPct > 0 ? (
-                      <div className="mt-1">
-                        <p className="text-sm text-slate-500 line-through tabular-nums">{formatKoboToNaira(ticketPrice)}</p>
-                        <p className="text-lg font-black text-primary tabular-nums">{formatKoboToNaira(registrationDueKobo)}</p>
-                      </div>
-                    ) : (
-                      <p className="mt-1 text-lg font-black text-primary tabular-nums">{formatKoboToNaira(ticketPrice)}</p>
-                    )}
+                    <p className="mt-1 text-lg font-black text-primary tabular-nums">{ticketPrice != null ? formatKoboToNaira(ticketPrice) : "—"}</p>
                   </div>
                 </div>
               </section>

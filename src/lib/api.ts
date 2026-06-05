@@ -2839,6 +2839,15 @@ export async function getMyRegistration(): Promise<{
   return apiFetch("/api/registrations/me");
 }
 
+export interface ConferenceRegistrationPricing {
+  memberPriceKobo: number;
+  nonMemberPriceKobo: number;
+}
+
+export async function getConferenceRegistrationPricing(): Promise<ConferenceRegistrationPricing> {
+  return apiFetch<ConferenceRegistrationPricing>("/api/registrations/pricing");
+}
+
 export interface UpdateMemberProfileInput {
   firstName?: string;
   lastName?: string;

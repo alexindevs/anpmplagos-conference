@@ -1,6 +1,6 @@
 /**
- * Calendar discount windows for conference cart (booth & sponsorship plan lines)
- * and individual registration checkout. Keep in sync with the API.
+ * Calendar discount windows for company cart (booth & sponsorship plan lines only).
+ * Keep in sync with the API.
  */
 export function getAutomaticCheckoutDiscountPercent(now = new Date()): 0 | 5 | 10 {
   const y = now.getFullYear();

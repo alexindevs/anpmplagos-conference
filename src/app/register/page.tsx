@@ -7,14 +7,14 @@ import { useSearchParams } from "next/navigation";
 import type { RegType } from "@/stores/registration-store";
 import { useRegistrationStore } from "@/stores/registration-store";
 import { useCreateRegistration, getSubmitErrorMessage } from "@/hooks/use-registration-api";
-import { lookupMdcnMember, ApiError } from "@/lib/api";
+import { lookupMdcnMember, ApiError, formatKoboToNaira, getConferenceRegistrationPricing } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-const PLANS: { id: RegType; name: string; price: string; description: string; icon: string; benefits: string[] }[] = [
+const PLANS: { id: RegType; name: string; description: string; icon: string; benefits: string[] }[] = [
   {
     id: "member",
     name: "Member",
-    price: "₦40,000",
     description: "Active ANPMP Lagos Members",
     icon: "medical_services",
     benefits: ["Full access to all days", "AGM Voting Rights", "Social Night Entry"],
@@ -22,7 +22,6 @@ const PLANS: { id: RegType; name: string; price: string; description: string; ic
   {
     id: "non-member",
     name: "Non-Member",
-    price: "₦55,000",
     description: "Other Medical Practitioners",
     icon: "person",
     benefits: ["Full access to all days", "Conference materials", "Social Night Entry"],
@@ -30,7 +29,6 @@ const PLANS: { id: RegType; name: string; price: string; description: string; ic
   {
     id: "company",
     name: "Sponsor",
-    price: "Plans from portal",
     description: "Organizations and companies (booths, sponsorship plans, masterclasses, panel sessions and more)",
     icon: "business",
     benefits: [
@@ -73,6 +71,12 @@ function RegisterPageContent() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [mdcnLookupState, setMdcnLookupState] = useState<"idle" | "loading" | "found" | "not_found" | "error">("idle");
+
+  const { data: pricing } = useQuery({
+    queryKey: ["conference-registration-pricing"],
+    queryFn: getConferenceRegistrationPricing,
+    staleTime: 5 * 60 * 1000,
+  });
 
   const {
     step,
@@ -357,7 +361,17 @@ function RegisterPageContent() {
                     >
                       {plan.icon}
                     </span>
-                    <span className="text-secondary font-bold text-xl">{plan.price}</span>
+                    <span className="text-secondary font-bold text-xl">
+                      {plan.id === "member"
+                        ? pricing?.memberPriceKobo != null
+                          ? formatKoboToNaira(pricing.memberPriceKobo)
+                          : "..."
+                        : plan.id === "non-member"
+                          ? pricing?.nonMemberPriceKobo != null
+                            ? formatKoboToNaira(pricing.nonMemberPriceKobo)
+                            : "..."
+                          : "Plans from portal"}
+                    </span>
                   </div>
                   <h3 className="text-lg font-bold text-charcoal">{plan.name}</h3>
                   <p className="text-sm text-gray-500 mt-1">{plan.description}</p>

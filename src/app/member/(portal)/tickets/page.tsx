@@ -14,15 +14,11 @@ import {
   generateHotelPass,
   getMyBookedHotelRooms,
   getPassPurchaseEligibility,
+  getConferenceRegistrationPricing,
   ApiError,
 } from "@/lib/api";
-import { AutomaticCheckoutDiscountNote } from "@/app/components/AutomaticCheckoutDiscountNote";
-import { applyAutomaticDiscountKobo, getAutomaticCheckoutDiscountPercent } from "@/lib/automatic-checkout-discount";
 import { MemberPortalShell } from "../../components/MemberPortalShell";
 import Link from "next/link";
-
-const PRICE_MEMBER = 4000000; // 40,000 NGN in kobo
-const PRICE_NON_MEMBER = 5500000; // 55,000 NGN in kobo
 
 export default function MemberTicketsPage() {
   const router = useRouter();
@@ -36,14 +32,19 @@ export default function MemberTicketsPage() {
     enabled: !!user,
   });
 
+  const { data: pricing } = useQuery({
+    queryKey: ["conference-registration-pricing"],
+    queryFn: getConferenceRegistrationPricing,
+    staleTime: 5 * 60 * 1000,
+  });
+
   const isMember = registration?.user?.regType === "member";
   const profile = registration?.member || registration?.attendee;
   const fullName = profile?.fullName || user?.member?.fullName || user?.attendee?.fullName || "Member";
   const userId = user?.id || "";
 
-  const ticketPrice = isMember ? PRICE_MEMBER : PRICE_NON_MEMBER;
-  const regDiscountPct = getAutomaticCheckoutDiscountPercent();
-  const registrationDueKobo = applyAutomaticDiscountKobo(ticketPrice, regDiscountPct);
+  const ticketPrice = isMember ? pricing?.memberPriceKobo : pricing?.nonMemberPriceKobo;
+  const registrationDueKobo = ticketPrice;
   const isPaid = registration?.payment?.status === "success";
   const isPending = registration?.user?.registrationStatus === "pending_payment";
 
@@ -199,7 +200,7 @@ export default function MemberTicketsPage() {
                     </div>
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Ticket Price</p>
-                      <p className="mt-1 text-lg font-bold text-primary">{formatKoboToNaira(ticketPrice)}</p>
+                      <p className="mt-1 text-lg font-bold text-primary">{ticketPrice != null ? formatKoboToNaira(ticketPrice) : "—"}</p>
                     </div>
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Status</p>
@@ -300,8 +301,6 @@ export default function MemberTicketsPage() {
                   Complete your payment to confirm your registration
                 </p>
 
-                <AutomaticCheckoutDiscountNote className="mb-4" />
-
                 <div className="border-t border-b border-slate-200 py-6 my-6">
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
                     <div>
@@ -310,14 +309,7 @@ export default function MemberTicketsPage() {
                     </div>
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Amount Due</p>
-                      {regDiscountPct > 0 ? (
-                        <div className="mt-1">
-                          <p className="text-sm text-slate-500 line-through tabular-nums">{formatKoboToNaira(ticketPrice)}</p>
-                          <p className="text-lg font-bold text-primary tabular-nums">{formatKoboToNaira(registrationDueKobo)}</p>
-                        </div>
-                      ) : (
-                        <p className="mt-1 text-lg font-bold text-primary tabular-nums">{formatKoboToNaira(ticketPrice)}</p>
-                      )}
+                      <p className="mt-1 text-lg font-bold text-primary tabular-nums">{registrationDueKobo != null ? formatKoboToNaira(registrationDueKobo) : "—"}</p>
                     </div>
                   </div>
                 </div>

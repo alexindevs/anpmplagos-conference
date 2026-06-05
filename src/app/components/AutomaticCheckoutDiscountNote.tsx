@@ -11,8 +11,8 @@ export function AutomaticCheckoutDiscountNote({ className = "" }: { className?: 
     <div
       className={`rounded-lg border border-emerald-200 bg-emerald-50/90 px-3 py-2 text-sm text-emerald-950 dark:border-emerald-800/50 dark:bg-emerald-950/30 dark:text-emerald-100 ${className}`}
     >
-      <span className="font-bold">{pct}%</span> off at checkout on booths, sponsorship plans, and conference
-      registration tickets through <span className="font-semibold">{endLabel}</span>.
+      <span className="font-bold">{pct}%</span> off at checkout on booths and sponsorship plans through{" "}
+      <span className="font-semibold">{endLabel}</span>.
     </div>
   );
 }
