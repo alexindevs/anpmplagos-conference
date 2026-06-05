@@ -2,6 +2,7 @@ import Link from "next/link";
 import CountdownTimer from "./components/CountdownTimer";
 import HeroBackgroundCarousel from "./components/HeroBackgroundCarousel";
 import { FAQItem } from "./components/FAQItem";
+import { RegistrationPriceTag } from "./components/RegistrationPriceTag";
 
 const HERO_IMAGES = [
   "https://lh3.googleusercontent.com/aida-public/AB6AXuD_kTd-14OPbdWSrY7rK7110uSZau7sXUvP1NIfInnznhVmlVCqwmtO7WiSB-m4udQlcmTw2mO6zKxmgasCK2xc44Qz5LQpCwX_CBD5Hq-ywnSWCHhK05XPI4Abj6FVMRdajOIWKRgNSAAeZuE2t4W5JTFI95RvCCPV42BvuT8MiMmT2H6pbU0KTcx9bezKfLd51JltcihIHnYscTFqichibiqblz0cQuF1vBk82FLpnt3rlwDL7mVwDWBQO6myXVKNfgTxcLpCQsRN",
@@ -284,7 +285,7 @@ export default function Home() {
             </div>
             <div className="mb-6">
               <span className="text-3xl font-mono font-bold text-charcoal">
-                ₦40,000
+                <RegistrationPriceTag type="member" />
               </span>
             </div>
             <ul className="flex-1 space-y-3 mb-8">
@@ -319,7 +320,7 @@ export default function Home() {
             </div>
             <div className="mb-6">
               <span className="text-3xl font-mono font-bold text-charcoal">
-                ₦55,000
+                <RegistrationPriceTag type="nonMember" />
               </span>
             </div>
             <ul className="flex-1 space-y-3 mb-8">
