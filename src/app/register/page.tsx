@@ -7,8 +7,8 @@ import { useSearchParams } from "next/navigation";
 import type { RegType } from "@/stores/registration-store";
 import { useRegistrationStore } from "@/stores/registration-store";
 import { useCreateRegistration, getSubmitErrorMessage } from "@/hooks/use-registration-api";
-import { lookupMdcnMember, ApiError, formatKoboToNaira, getConferenceRegistrationPricing } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
+import { lookupMdcnMember, ApiError } from "@/lib/api";
+import { RegistrationPriceTag } from "@/app/components/RegistrationPriceTag";
 import { toast } from "sonner";
 
 const PLANS: { id: RegType; name: string; description: string; icon: string; benefits: string[] }[] = [
@@ -72,11 +72,6 @@ function RegisterPageContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [mdcnLookupState, setMdcnLookupState] = useState<"idle" | "loading" | "found" | "not_found" | "error">("idle");
 
-  const { data: pricing } = useQuery({
-    queryKey: ["conference-registration-pricing"],
-    queryFn: getConferenceRegistrationPricing,
-    staleTime: 5 * 60 * 1000,
-  });
 
   const {
     step,
@@ -363,13 +358,9 @@ function RegisterPageContent() {
                     </span>
                     <span className="text-secondary font-bold text-xl">
                       {plan.id === "member"
-                        ? pricing?.memberPriceKobo != null
-                          ? formatKoboToNaira(pricing.memberPriceKobo)
-                          : "..."
+                        ? <RegistrationPriceTag type="member" />
                         : plan.id === "non-member"
-                          ? pricing?.nonMemberPriceKobo != null
-                            ? formatKoboToNaira(pricing.nonMemberPriceKobo)
-                            : "..."
+                          ? <RegistrationPriceTag type="nonMember" />
                           : "Plans from portal"}
                     </span>
                   </div>
