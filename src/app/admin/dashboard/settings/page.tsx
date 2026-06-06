@@ -94,6 +94,10 @@ function ExportModal({
     if (!open) return;
     setSelected(null);
     setDownloading(null);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !downloading) {
         if (selected) setSelected(null);
