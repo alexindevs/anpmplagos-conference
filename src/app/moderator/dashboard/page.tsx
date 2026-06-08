@@ -50,8 +50,7 @@ function checkinInitial(r: CheckinRecord): string {
 
 function checkinSubDetail(r: CheckinRecord): string | null {
   if (r.user.regType === "company" && r.guestName) {
-    const company = r.user.company?.companyName ?? "";
-    return r.guestPhone ? `${company} · ${r.guestPhone}` : company;
+    return r.user.company?.companyName ?? "";
   }
   if (r.user.regType === "member" && r.entryIndex === 2 && r.guestName) {
     return `Spouse of ${r.user.member?.fullName ?? "member"}`;
