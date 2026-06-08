@@ -38,6 +38,7 @@ function ResetPasswordContent() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (!token) {
@@ -203,18 +204,30 @@ function ResetPasswordContent() {
                   >
                     New password
                   </label>
-                  <input
-                    id="new-password"
-                    name="password"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    minLength={8}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-charcoal placeholder:text-slate-400 outline-none transition-colors focus:border-secondary focus:ring-2 focus:ring-secondary/20"
-                    placeholder="At least 8 characters"
-                  />
+                  <div className="relative">
+                    <input
+                      id="new-password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="new-password"
+                      required
+                      minLength={8}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 pr-11 text-charcoal placeholder:text-slate-400 outline-none transition-colors focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                      placeholder="At least 8 characters"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      <span className="material-symbols-outlined text-xl">
+                        {showPassword ? "visibility_off" : "visibility"}
+                      </span>
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label
@@ -223,17 +236,29 @@ function ResetPasswordContent() {
                   >
                     Confirm new password
                   </label>
-                  <input
-                    id="confirm-password"
-                    name="confirm"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    value={confirm}
-                    onChange={(e) => setConfirm(e.target.value)}
-                    className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-charcoal placeholder:text-slate-400 outline-none transition-colors focus:border-secondary focus:ring-2 focus:ring-secondary/20"
-                    placeholder="••••••••"
-                  />
+                  <div className="relative">
+                    <input
+                      id="confirm-password"
+                      name="confirm"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="new-password"
+                      required
+                      value={confirm}
+                      onChange={(e) => setConfirm(e.target.value)}
+                      className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 pr-11 text-charcoal placeholder:text-slate-400 outline-none transition-colors focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      <span className="material-symbols-outlined text-xl">
+                        {showPassword ? "visibility_off" : "visibility"}
+                      </span>
+                    </button>
+                  </div>
                 </div>
 
                 <button
