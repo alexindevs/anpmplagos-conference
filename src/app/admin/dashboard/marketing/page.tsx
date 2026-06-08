@@ -7,8 +7,6 @@ import {
   ApiError,
   adminAssignAdvertSlot,
   adminAssignBrandingSlot,
-  adminUnassignAdvertSlot,
-  adminUnassignBrandingSlot,
   apiAssetUrl,
   deleteAdminAdvertSlot,
   deleteAdminBrandingSlot,
@@ -31,7 +29,6 @@ import { CreateMarketingSlotModal, type MarketingSlotKind } from "./components/C
 
 const ADMIN_ADVERT_KEY = ["admin", "advert-slots"] as const;
 const ADMIN_BRANDING_KEY = ["admin", "branding-slots"] as const;
-const ADMIN_PLACEHOLDER_COMPANY_ID = "admin";
 
 function slotStatus(row: { availableSlots: number; totalSlots: number; isReserved: boolean }): {
   label: string;
@@ -72,7 +69,6 @@ function SlotsTable({
   unreserveMutation,
   deleteMutation,
   onAssignClick,
-  unassignMutation,
   onEditTotalClick,
 }: {
   kind: MarketingSlotKind;
@@ -83,7 +79,6 @@ function SlotsTable({
   unreserveMutation: { isPending: boolean; mutate: (id: string) => void };
   deleteMutation: { isPending: boolean; mutate: (id: string) => void };
   onAssignClick: (row: SlotRow) => void;
-  unassignMutation: { isPending: boolean; mutate: (payload: { companyId: string; slotId: string }) => void };
   onEditTotalClick: (row: SlotRow) => void;
 }) {
   return (
@@ -134,7 +129,6 @@ function SlotsTable({
                 const canReserve = !row.isReserved;
                 const canUnreserve = row.isReserved;
                 const canAssign = row.availableSlots > 0 && !row.isReserved;
-                const canFree = sold > 0;
                 return (
                   <tr key={row.id} className="hover:bg-primary/5 dark:hover:bg-background-dark-softer">
                     <td className="px-4 py-3">
@@ -178,27 +172,6 @@ function SlotsTable({
                             className="rounded-lg border border-primary/30 bg-primary/5 px-2 py-1 text-xs font-bold text-primary hover:bg-primary/10"
                           >
                             Assign
-                          </button>
-                        )}
-                        {canFree && (
-                          <button
-                            type="button"
-                            disabled={unassignMutation.isPending}
-                            onClick={() => {
-                              if (
-                                window.confirm(
-                                  "Free one copy of this slot? This increments the available count by 1."
-                                )
-                              ) {
-                                unassignMutation.mutate({
-                                  companyId: ADMIN_PLACEHOLDER_COMPANY_ID,
-                                  slotId: row.id,
-                                });
-                              }
-                            }}
-                            className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-border-dark dark:text-white"
-                          >
-                            Free 1
                           </button>
                         )}
                         {canReserve && (
@@ -427,18 +400,6 @@ export default function AdminMarketingPage() {
     },
   });
 
-  const unassignAdvert = useMutation({
-    mutationFn: ({ companyId, slotId }: { companyId: string; slotId: string }) =>
-      adminUnassignAdvertSlot(companyId, slotId),
-    onSuccess: invalidateAll,
-  });
-
-  const unassignBranding = useMutation({
-    mutationFn: ({ companyId, slotId }: { companyId: string; slotId: string }) =>
-      adminUnassignBrandingSlot(companyId, slotId),
-    onSuccess: invalidateAll,
-  });
-
   const editAdvertTotal = useMutation({
     mutationFn: ({ id, totalSlots }: { id: string; totalSlots: number }) =>
       patchAdminAdvertSlotTotalSlots(id, totalSlots),
@@ -570,7 +531,6 @@ export default function AdminMarketingPage() {
             unreserveMutation={advertUnreserve}
             deleteMutation={advertDelete}
             onAssignClick={(row) => setAssignTarget({ kind: "advert", row })}
-            unassignMutation={unassignAdvert}
             onEditTotalClick={(row) => setEditTotalTarget({ kind: "advert", row })}
           />
         </section>
@@ -599,7 +559,6 @@ export default function AdminMarketingPage() {
             unreserveMutation={brandingUnreserve}
             deleteMutation={brandingDelete}
             onAssignClick={(row) => setAssignTarget({ kind: "branding", row })}
-            unassignMutation={unassignBranding}
             onEditTotalClick={(row) => setEditTotalTarget({ kind: "branding", row })}
           />
         </section>
