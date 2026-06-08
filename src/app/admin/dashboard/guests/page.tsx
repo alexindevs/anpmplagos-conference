@@ -8,6 +8,8 @@ import {
   ApiError,
   deleteAdminSpeaker,
   deleteAdminSpecialGuest,
+  downloadPrintableBadge,
+  generateSpeakerPass,
   getAdminSpeakers,
   getAdminSpecialGuests,
   patchAdminSpeaker,
@@ -17,6 +19,7 @@ import {
   type AdminConferenceProfilePatchInput,
   type ConferenceHighlightType,
   type ConferenceProfile,
+  type ConferenceProfileKind,
 } from "@/lib/api";
 
 const SPEAKERS_KEY = ["admin", "speakers"] as const;
@@ -48,6 +51,16 @@ export default function AdminGuestsPage() {
   const [form, setForm] = useState(emptyForm);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+
+  const [showAdhocModal, setShowAdhocModal] = useState(false);
+  const [adhocForm, setAdhocForm] = useState({
+    name: "",
+    role: "",
+    qualifications: "",
+    kind: "speaker" as ConferenceProfileKind,
+  });
+  const [adhocError, setAdhocError] = useState<string | null>(null);
+  const [generatingPassId, setGeneratingPassId] = useState<string | null>(null);
 
   const { data: speakers = [], isLoading: spLoading, isError: spErr, error: spError } = useQuery({
     queryKey: SPEAKERS_KEY,
@@ -163,6 +176,42 @@ export default function AdminGuestsPage() {
     onSuccess: invalidateAll,
   });
 
+  const adhocPrintMutation = useMutation({
+    mutationFn: () => downloadPrintableBadge(adhocForm),
+    onSuccess: () => {
+      setShowAdhocModal(false);
+      setAdhocForm({ name: "", role: "", qualifications: "", kind: "speaker" });
+      setAdhocError(null);
+    },
+    onError: (e) => setAdhocError(e instanceof Error ? e.message : "Badge generation failed."),
+  });
+
+  const handleGeneratePass = async (p: ConferenceProfile) => {
+    setGeneratingPassId(p.id);
+    try {
+      const updated = await generateSpeakerPass(p.id, p.kind as ConferenceProfileKind);
+      queryClient.setQueryData<ConferenceProfile[]>(
+        p.kind === "speaker" ? SPEAKERS_KEY : GUESTS_KEY,
+        (old) => old?.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)) ?? old,
+      );
+    } catch {
+      // silently fall through — list will refetch
+      invalidateAll();
+    } finally {
+      setGeneratingPassId(null);
+    }
+  };
+
+  const handleSubmitAdhoc = (ev: React.FormEvent) => {
+    ev.preventDefault();
+    setAdhocError(null);
+    if (!adhocForm.name.trim() || !adhocForm.role.trim() || !adhocForm.qualifications.trim()) {
+      setAdhocError("Name, role, and qualifications are required.");
+      return;
+    }
+    adhocPrintMutation.mutate();
+  };
+
   const busy = createMutation.isPending || patchMutation.isPending || deleteMutation.isPending;
   const list = tab === "speakers" ? speakers : guests;
   const loading = tab === "speakers" ? spLoading : sgLoading;
@@ -254,14 +303,24 @@ export default function AdminGuestsPage() {
               curated here.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={openCreate}
-            disabled={busy}
-            className="rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90 disabled:opacity-50"
-          >
-            Add {tab === "speakers" ? "speaker" : "special guest"}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => { setShowAdhocModal(true); setAdhocError(null); }}
+              disabled={busy}
+              className="rounded-lg border border-secondary/30 bg-secondary/10 px-4 py-2.5 text-sm font-bold text-secondary transition-colors hover:bg-secondary/20 disabled:opacity-50"
+            >
+              Print adhoc badge
+            </button>
+            <button
+              type="button"
+              onClick={openCreate}
+              disabled={busy}
+              className="rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90 disabled:opacity-50"
+            >
+              Add {tab === "speakers" ? "speaker" : "special guest"}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -433,41 +492,71 @@ export default function AdminGuestsPage() {
                       </Link>
                     </div>
                   </div>
-                  <div className="flex shrink-0 flex-wrap gap-2">
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => {
-                        setShowForm(false);
-                        setEditing(p);
-                        setFormError(null);
-                      }}
-                      className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold dark:border-border-dark"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => {
-                        if (typeof window !== "undefined" && window.confirm(`Delete ${p.name}?`)) {
-                          deleteMutation.mutate(p);
-                        }
-                      }}
-                      className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-bold text-red-700 dark:border-red-900/50 dark:text-red-300"
-                    >
-                      Delete
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => {
-                        void navigator.clipboard.writeText(publicUrl(p));
-                      }}
-                      className="rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary"
-                    >
-                      Copy link
-                    </button>
+                  <div className="flex shrink-0 flex-col items-end gap-2">
+                    {p.qrCodeUrl && (
+                      <a
+                        href={p.qrCodeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-bold text-green-700 border border-green-200 hover:bg-green-100"
+                      >
+                        <span className="material-symbols-outlined text-sm">qr_code</span>
+                        Pass ready
+                      </a>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        disabled={busy || generatingPassId === p.id}
+                        onClick={() => void handleGeneratePass(p)}
+                        className="rounded-lg border border-secondary/30 bg-secondary/10 px-3 py-1.5 text-xs font-bold text-secondary disabled:opacity-50"
+                      >
+                        {generatingPassId === p.id ? (
+                          <span className="inline-flex items-center gap-1">
+                            <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>
+                            Generating…
+                          </span>
+                        ) : p.qrCodeUrl ? (
+                          "Regenerate pass"
+                        ) : (
+                          "Generate pass"
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => {
+                          setShowForm(false);
+                          setEditing(p);
+                          setFormError(null);
+                        }}
+                        className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold dark:border-border-dark"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => {
+                          if (typeof window !== "undefined" && window.confirm(`Delete ${p.name}?`)) {
+                            deleteMutation.mutate(p);
+                          }
+                        }}
+                        className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-bold text-red-700 dark:border-red-900/50 dark:text-red-300"
+                      >
+                        Delete
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => {
+                          void navigator.clipboard.writeText(publicUrl(p));
+                        }}
+                        className="rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary"
+                      >
+                        Copy link
+                      </button>
+                    </div>
                   </div>
                 </li>
               ))}
@@ -475,6 +564,101 @@ export default function AdminGuestsPage() {
           )}
         </div>
       </div>
+
+      {showAdhocModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowAdhocModal(false); }}
+        >
+          <div className="w-[80%] md:w-[50%] rounded-2xl bg-white p-6 shadow-2xl dark:bg-background-dark-soft">
+            <div className="mb-5 flex items-center justify-between">
+              <h3 className="text-lg font-black text-charcoal dark:text-white">Print Adhoc Badge</h3>
+              <button
+                type="button"
+                onClick={() => setShowAdhocModal(false)}
+                className="rounded-lg p-1 hover:bg-slate-100 dark:hover:bg-background-dark-softer"
+              >
+                <span className="material-symbols-outlined text-xl text-slate-500">close</span>
+              </button>
+            </div>
+            <p className="mb-5 text-sm text-slate-500 dark:text-white/50">
+              Generate a printable badge (without QR code) for a non-platform guest.
+            </p>
+            <form onSubmit={handleSubmitAdhoc} className="space-y-4">
+              <label className="block">
+                <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">
+                  Name
+                </span>
+                <input
+                  className="w-full rounded-lg border border-slate-200 bg-background-light px-3 py-2 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+                  value={adhocForm.name}
+                  onChange={(e) => setAdhocForm((f) => ({ ...f, name: e.target.value }))}
+                  placeholder="Full name"
+                  required
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">
+                  Role / title
+                </span>
+                <input
+                  className="w-full rounded-lg border border-slate-200 bg-background-light px-3 py-2 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+                  value={adhocForm.role}
+                  onChange={(e) => setAdhocForm((f) => ({ ...f, role: e.target.value }))}
+                  placeholder="e.g. Chief Medical Officer"
+                  required
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">
+                  Qualifications
+                </span>
+                <input
+                  className="w-full rounded-lg border border-slate-200 bg-background-light px-3 py-2 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+                  value={adhocForm.qualifications}
+                  onChange={(e) => setAdhocForm((f) => ({ ...f, qualifications: e.target.value }))}
+                  placeholder="e.g. MBBS, FRCPS"
+                  required
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">
+                  Badge type
+                </span>
+                <select
+                  className="w-full rounded-lg border border-slate-200 bg-background-light px-3 py-2 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+                  value={adhocForm.kind}
+                  onChange={(e) => setAdhocForm((f) => ({ ...f, kind: e.target.value as ConferenceProfileKind }))}
+                >
+                  <option value="speaker">Speaker</option>
+                  <option value="special_guest">Special Guest</option>
+                </select>
+              </label>
+              {adhocError && (
+                <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-200">
+                  {adhocError}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={adhocPrintMutation.isPending}
+                  className="rounded-lg bg-secondary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+                >
+                  {adhocPrintMutation.isPending ? "Generating…" : "Download badge"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAdhocModal(false)}
+                  className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium dark:border-border-dark"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }

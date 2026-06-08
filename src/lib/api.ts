@@ -1270,6 +1270,9 @@ export interface ConferenceProfile {
   name: string;
   profilePicture: string;
   role: string;
+  // Admin-only pass fields
+  passCode?: string | null;
+  qrCodeUrl?: string | null;
   qualifications: string;
   byline: string;
   highlightType: string;
@@ -1444,6 +1447,36 @@ export async function getAdminSpeakerById(id: string): Promise<ConferenceProfile
 
 export async function getAdminSpecialGuestById(id: string): Promise<ConferenceProfile> {
   return apiFetch<ConferenceProfile>(`/api/admin/special-guests/${encodeURIComponent(id)}`);
+}
+
+export async function generateSpeakerPass(id: string, kind: ConferenceProfileKind): Promise<ConferenceProfile> {
+  const base = kind === "speaker" ? "speakers" : "special-guests";
+  return apiFetch<ConferenceProfile>(`/api/admin/${base}/${encodeURIComponent(id)}/generate-pass`, {
+    method: "POST",
+  });
+}
+
+export async function downloadPrintableBadge(params: {
+  name: string;
+  role: string;
+  qualifications: string;
+  kind: ConferenceProfileKind;
+  pictureUrl?: string;
+}): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/admin/badges/print-adhoc`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) throw new ApiError(res.status, "Badge generation failed");
+  const blob = await res.blob();
+  const safeName = params.name.replace(/[^a-z0-9]/gi, "-").toLowerCase();
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `badge-${safeName}.png`;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 /** Summary row from `GET /api/companies/public` (directory index). */
@@ -3048,6 +3081,8 @@ export interface EventDay {
 export interface AttendanceEntry {
   entryIndex: number;
   markedAt: string;
+  guestName?: string | null;
+  guestPhone?: string | null;
 }
 
 export interface ScanResult {
@@ -3066,6 +3101,17 @@ export interface ScanResult {
   // all
   todayEntries: AttendanceEntry[];
   alreadyFull: boolean;
+}
+
+export interface SpeakerScanResult {
+  profileId: string;
+  kind: ConferenceProfileKind;
+  name: string;
+  role: string;
+  qualifications: string;
+  avatar: string | null;
+  admitted: boolean;
+  markedAt: string | null;
 }
 
 export interface AttendanceSummary {
@@ -3110,11 +3156,28 @@ export async function getScanDetails(userId: string, eventDayId?: string): Promi
 
 export async function markAttendance(
   userId: string,
-  eventDayId: string
+  eventDayId: string,
+  opts?: { guestName?: string; guestPhone?: string }
 ): Promise<{ entryIndex: number; markedAt: string; message: string }> {
   return apiFetch<{ entryIndex: number; markedAt: string; message: string }>("/api/attendance/mark", {
     method: "POST",
-    body: JSON.stringify({ userId, eventDayId }),
+    body: JSON.stringify({ userId, eventDayId, ...opts }),
+  });
+}
+
+export async function getSpeakerScanDetails(passCode: string, eventDayId?: string): Promise<SpeakerScanResult> {
+  const params: Record<string, string> = {};
+  if (eventDayId) params.eventDayId = eventDayId;
+  return apiFetch<SpeakerScanResult>(`/api/attendance/speaker/scan/${encodeURIComponent(passCode)}`, { params });
+}
+
+export async function markSpeakerAttendance(
+  passCode: string,
+  eventDayId: string
+): Promise<{ markedAt: string; message: string }> {
+  return apiFetch<{ markedAt: string; message: string }>("/api/attendance/speaker/mark", {
+    method: "POST",
+    body: JSON.stringify({ passCode, eventDayId }),
   });
 }
 

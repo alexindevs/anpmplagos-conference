@@ -80,13 +80,17 @@ export default function ScanPage() {
   // Mark attendance
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [markError, setMarkError] = useState<string | null>(null);
+  const [guestName, setGuestName] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
 
   const markMutation = useMutation({
-    mutationFn: ({ uid, dayId }: { uid: string; dayId: string }) =>
-      markAttendance(uid, dayId),
+    mutationFn: ({ uid, dayId, opts }: { uid: string; dayId: string; opts?: { guestName?: string; guestPhone?: string } }) =>
+      markAttendance(uid, dayId, opts),
     onSuccess: (data) => {
       setSuccessMsg(data.message);
       setMarkError(null);
+      setGuestName("");
+      setGuestPhone("");
       queryClient.invalidateQueries({ queryKey: ["attendance", "scan", userId] });
       refetchScan();
     },
@@ -104,9 +108,16 @@ export default function ScanPage() {
       setMarkError("Please select a conference day.");
       return;
     }
+    if (scanResult?.regType === "company") {
+      if (!guestName.trim()) { setMarkError("Delegate name is required."); return; }
+      if (!guestPhone.trim()) { setMarkError("Delegate phone is required."); return; }
+    }
     setSuccessMsg(null);
     setMarkError(null);
-    markMutation.mutate({ uid: userId, dayId: selectedDayId });
+    const opts = scanResult?.regType === "company"
+      ? { guestName: guestName.trim(), guestPhone: guestPhone.trim() }
+      : undefined;
+    markMutation.mutate({ uid: userId, dayId: selectedDayId, opts });
   };
 
   if (authPending) {
@@ -199,6 +210,27 @@ export default function ScanPage() {
             )}
             {scanResult.regType === "company" && (
               <CompanyCard result={scanResult} />
+            )}
+
+            {/* Delegate name+phone form for company admits */}
+            {scanResult.regType === "company" && !scanResult.alreadyFull && activeDays && activeDays.length > 0 && (
+              <div className="mt-5 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Delegate Details (required)</p>
+                <input
+                  type="text"
+                  placeholder="Full name"
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+                <input
+                  type="tel"
+                  placeholder="Phone number"
+                  value={guestPhone}
+                  onChange={(e) => setGuestPhone(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
             )}
 
             {/* Success / Error messages */}
@@ -391,6 +423,20 @@ function CompanyCard({ result }: { result: ScanResult }) {
             <span className="text-xs font-bold text-charcoal">{used}/{max}</span>
           </div>
         </div>
+        {result.todayEntries.length > 0 && (
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+            <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-slate-400">Admitted today</p>
+            <ul className="space-y-1">
+              {result.todayEntries.map((e) => (
+                <li key={e.entryIndex} className="flex items-center gap-2 text-xs">
+                  <span className="inline-flex size-4 shrink-0 items-center justify-center rounded-full bg-green-500 text-white text-[10px] font-bold">{e.entryIndex}</span>
+                  <span className="font-medium text-charcoal">{e.guestName ?? "—"}</span>
+                  {e.guestPhone && <span className="text-slate-400">{e.guestPhone}</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         {used >= max && (
           <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-primary">
             <span className="material-symbols-outlined text-base">block</span>
