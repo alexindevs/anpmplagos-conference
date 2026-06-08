@@ -952,6 +952,26 @@ export async function patchAdminExhibitor(
   return normalizeExhibitorDetailFromWire(raw);
 }
 
+export async function patchAdminCompanyImages(
+  id: string,
+  logo?: File,
+  headerImage?: File,
+): Promise<ExhibitorDetail> {
+  const form = new FormData();
+  if (logo) form.append("logo", logo);
+  if (headerImage) form.append("headerImage", headerImage);
+  const res = await fetch(`${API_BASE}/api/admin/companies/${id}/images`, {
+    method: "PATCH",
+    credentials: "include",
+    body: form,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new ApiError(res.status, (body as { message?: string }).message ?? "Image upload failed");
+  }
+  return normalizeExhibitorDetailFromWire(await res.json());
+}
+
 /** Admin create body for masterclass / panel / presentation slots (SESSIONS-API.md). */
 export interface CreateAdminSessionSlotInput {
   title: string;
