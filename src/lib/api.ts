@@ -943,6 +943,7 @@ export async function patchAdminExhibitor(
     primaryContactPhone: string;
     boothPreference: string;
     status: string;
+    highestSponsorshipTier: string;
   }>
 ): Promise<ExhibitorDetail> {
   const raw = await apiFetch<unknown>(`/api/admin/companies/${id}`, {
@@ -1654,6 +1655,23 @@ export interface SponsorshipPlanCatalogItem {
   /** Join rows from admin/detail responses */
   advertSlots?: SponsorshipPlanAdvertJoin[];
   brandingSlots?: SponsorshipPlanBrandingJoin[];
+  /** Stock fields returned by admin list endpoint */
+  purchaseCount?: number;
+  remainingPurchases?: number | null;
+  isPurchasable?: boolean;
+}
+
+export interface PlanAnalyticsConstraint {
+  label: string;
+  total: number;
+  available: number;
+}
+
+export interface PlanAnalytics {
+  purchaseCount: number;
+  remainingPurchases: number | null;
+  isPurchasable: boolean;
+  constraints: PlanAnalyticsConstraint[];
 }
 
 function normalizeSponsorshipPlanCatalogItemFromWire(raw: unknown): SponsorshipPlanCatalogItem {
@@ -1722,6 +1740,31 @@ export async function deleteAdminSponsorshipPlan(id: string): Promise<void> {
       body
     );
   }
+}
+
+export async function getPlanAnalytics(id: string): Promise<PlanAnalytics> {
+  return apiFetch<PlanAnalytics>(`/api/admin/sponsorship-plans/${encodeURIComponent(id)}/analytics`);
+}
+
+export async function downloadPlanBuyers(
+  id: string,
+  format: "pdf" | "csv",
+  planName: string
+): Promise<void> {
+  const ts = new Date().toISOString().slice(0, 16).replace("T", "-").replace(/:/g, "-");
+  const filename = `plan-buyers-${planName.replace(/\s+/g, "-").toLowerCase()}-${ts}.${format}`;
+  const url = new URL(
+    `/api/admin/export/sponsorship-plans/${encodeURIComponent(id)}/${format}`,
+    API_BASE
+  );
+  const res = await fetch(url.toString(), { credentials: "include" });
+  if (!res.ok) throw new ApiError(res.status, "Export failed");
+  const blob = await res.blob();
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 // Hotel rooms (public inventory) — see HOTEL-ROOMS.md

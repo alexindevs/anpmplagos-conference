@@ -1,19 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   deleteAdminSponsorshipPlan,
+  downloadPlanBuyers,
   formatKoboToNaira,
   getAdminAdvertSlots,
   getAdminBrandingSlots,
   getAdminSponsorshipPlans,
+  getPlanAnalytics,
   parseNairaInputToKobo,
   patchAdminSponsorshipPlan,
   postAdminSponsorshipPlan,
   type AdminAdvertSlot,
   type AdminBrandingSlot,
   type ConferenceDay,
+  type PlanAnalytics,
   type SessionSlotDuration,
   type SponsorshipBundleBoothTier,
   type SponsorshipPlanCatalogItem,
@@ -251,7 +254,7 @@ function bundleSummaryLine(plan: SponsorshipPlanCatalogItem): string {
   const nBr = plan.brandingSlots?.length ?? 0;
   if (nAdv) parts.push(`${nAdv} advert`);
   if (nBr) parts.push(`${nBr} branding`);
-  return parts.length ? parts.join(" · ") : "—";
+  return parts.length ? parts.join(" · ") : "No bundles";
 }
 
 type PlanSaveContext = { adverts: AdminAdvertSlot[]; branding: AdminBrandingSlot[] };
@@ -264,6 +267,24 @@ function DirtyDot({ show }: { show: boolean }) {
       title="Changed"
     />
   );
+}
+
+function StockBadge({ plan }: { plan: SponsorshipPlanCatalogItem }) {
+  if (plan.remainingPurchases === 0) {
+    return (
+      <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700">
+        Out of Stock
+      </span>
+    );
+  }
+  if (plan.remainingPurchases != null && plan.remainingPurchases <= 3) {
+    return (
+      <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-700">
+        Low Stock · {plan.remainingPurchases} left
+      </span>
+    );
+  }
+  return null;
 }
 
 function SlotSection({
@@ -387,6 +408,175 @@ function SlotSection({
   );
 }
 
+// ─── Analytics tab ──────────────────────────────────────────────────────────
+
+function AnalyticsTab({ plan }: { plan: SponsorshipPlanCatalogItem }) {
+  const analyticsQuery = useQuery<PlanAnalytics>({
+    queryKey: ["admin", "sponsorship-plans", plan.id, "analytics"],
+    queryFn: () => getPlanAnalytics(plan.id),
+    staleTime: 30 * 1000,
+  });
+  const [downloading, setDownloading] = useState<"pdf" | "csv" | null>(null);
+  const [dlError, setDlError] = useState<string | null>(null);
+
+  const handleDownload = async (format: "pdf" | "csv") => {
+    setDownloading(format);
+    setDlError(null);
+    try {
+      await downloadPlanBuyers(plan.id, format, plan.name);
+    } catch {
+      setDlError("Download failed. Please try again.");
+    } finally {
+      setDownloading(null);
+    }
+  };
+
+  if (analyticsQuery.isLoading) {
+    return (
+      <div className="flex items-center gap-2 py-10 text-sm text-slate-400">
+        <div className="size-5 animate-spin rounded-full border-2 border-secondary/30 border-t-secondary" />
+        Loading analytics…
+      </div>
+    );
+  }
+
+  if (analyticsQuery.isError || !analyticsQuery.data) {
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-6 text-center text-sm text-red-700">
+        Failed to load analytics.
+      </div>
+    );
+  }
+
+  const a = analyticsQuery.data;
+
+  return (
+    <div className="space-y-5">
+      {/* Summary stats */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-lg border border-slate-100 p-3 text-center dark:border-border-dark">
+          <p className="text-2xl font-black text-charcoal dark:text-white">{a.purchaseCount}</p>
+          <p className="text-xs text-slate-400 dark:text-white/40 mt-0.5">purchases</p>
+        </div>
+        <div className="rounded-lg border border-slate-100 p-3 text-center dark:border-border-dark">
+          <p className="text-2xl font-black text-charcoal dark:text-white">
+            {a.remainingPurchases ?? "∞"}
+          </p>
+          <p className="text-xs text-slate-400 dark:text-white/40 mt-0.5">remaining</p>
+        </div>
+        <div className="rounded-lg border border-slate-100 p-3 text-center dark:border-border-dark">
+          <p
+            className={`text-sm font-black ${
+              a.isPurchasable ? "text-green-600" : "text-red-600"
+            }`}
+          >
+            {a.isPurchasable ? "Available" : "Unavailable"}
+          </p>
+          <p className="text-xs text-slate-400 dark:text-white/40 mt-0.5">status</p>
+        </div>
+      </div>
+
+      {/* Constraint breakdown */}
+      {a.constraints.length > 0 && (
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30 mb-2">
+            Stock breakdown
+          </p>
+          <div className="rounded-lg border border-slate-100 dark:border-border-dark overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-background-dark border-b border-slate-100 dark:border-border-dark">
+                  <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/40">
+                    Constraint
+                  </th>
+                  <th className="px-3 py-2 text-right text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/40">
+                    Total
+                  </th>
+                  <th className="px-3 py-2 text-right text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/40">
+                    Available
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-border-dark">
+                {a.constraints.map((c, i) => (
+                  <tr
+                    key={i}
+                    className={
+                      c.available === 0
+                        ? "bg-red-50 dark:bg-red-900/20"
+                        : c.available <= 3
+                          ? "bg-amber-50/60 dark:bg-amber-900/10"
+                          : ""
+                    }
+                  >
+                    <td className="px-3 py-2 text-charcoal dark:text-white">{c.label}</td>
+                    <td className="px-3 py-2 text-right text-slate-500 dark:text-white/50">
+                      {c.total}
+                    </td>
+                    <td
+                      className={`px-3 py-2 text-right font-bold ${
+                        c.available === 0
+                          ? "text-red-600"
+                          : c.available <= 3
+                            ? "text-amber-600"
+                            : "text-green-600"
+                      }`}
+                    >
+                      {c.available}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {a.constraints.length === 0 && (
+        <p className="text-sm text-slate-400 dark:text-white/40">
+          This plan has no stock-limiting constraints — it can be purchased unlimited times while active.
+        </p>
+      )}
+
+      {/* Export */}
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30 mb-2">
+          Export buyers
+        </p>
+        {a.purchaseCount === 0 ? (
+          <p className="text-xs text-slate-400 dark:text-white/40">No purchases yet — nothing to export.</p>
+        ) : (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={!!downloading}
+              onClick={() => handleDownload("pdf")}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-border-dark px-3 py-2 text-sm font-medium text-slate-700 dark:text-white/70 hover:bg-slate-50 dark:hover:bg-background-dark disabled:opacity-50 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+              {downloading === "pdf" ? "Downloading…" : "PDF"}
+            </button>
+            <button
+              type="button"
+              disabled={!!downloading}
+              onClick={() => handleDownload("csv")}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-border-dark px-3 py-2 text-sm font-medium text-slate-700 dark:text-white/70 hover:bg-slate-50 dark:hover:bg-background-dark disabled:opacity-50 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[16px]">table_view</span>
+              {downloading === "csv" ? "Downloading…" : "CSV"}
+            </button>
+          </div>
+        )}
+        {dlError && (
+          <p className="mt-2 text-xs text-red-600">{dlError}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Plan modal ─────────────────────────────────────────────────────────────
+
 function PlanModal({
   isOpen,
   onClose,
@@ -405,6 +595,7 @@ function PlanModal({
   saveError: Error | null;
 }) {
   const isEditing = !!plan;
+  const [activeTab, setActiveTab] = useState<"edit" | "analytics">("edit");
   const [form, setForm] = useState<PlanFormData>(() => planFormDefaults(plan, { defaultTier }));
   const [snapshot] = useState<PlanFormData>(() => planFormDefaults(plan, { defaultTier }));
   const [manualPerkInput, setManualPerkInput] = useState("");
@@ -468,7 +659,7 @@ function PlanModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 overflow-y-auto">
-      <div className="my-8 w-full max-w-[90%] md:max-w-[50%] rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-border-dark dark:bg-background-dark-soft">
+      <div className="my-8 w-[80%] md:w-[50%] rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-border-dark dark:bg-background-dark-soft">
 
         {/* ── Header ── */}
         <div className="flex items-start justify-between gap-3 mb-5">
@@ -487,307 +678,332 @@ function PlanModal({
           </span>
         </div>
 
-        <div className="space-y-0 max-h-[70vh] overflow-y-auto pr-1">
+        {/* ── Tab bar (edit mode only) ── */}
+        {isEditing && (
+          <div className="flex gap-1 rounded-lg bg-slate-100 dark:bg-background-dark p-1 mb-5">
+            {(["edit", "analytics"] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 rounded-md px-3 py-1.5 text-sm font-semibold transition-colors capitalize ${
+                  activeTab === tab
+                    ? "bg-white dark:bg-background-dark-soft text-charcoal dark:text-white shadow-sm"
+                    : "text-slate-500 dark:text-white/50 hover:text-slate-700 dark:hover:text-white/70"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        )}
 
-          {/* ── Snapshot banner (edit only) ── */}
-          {isEditing && plan && (
-            <div className="mb-5 rounded-lg border border-slate-200 bg-slate-50 dark:border-border-dark dark:bg-background-dark px-3 py-2.5">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30 mb-1.5">
-                Currently saved
-              </p>
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-white/50">
-                <span className="font-semibold text-charcoal dark:text-white">{plan.name}</span>
-                <span>·</span>
-                <span>{formatKoboToNaira(plan.priceInKobo)}</span>
-                {plan.bundleBoothTier && (
-                  <><span>·</span><span>{plan.bundleBoothTier.charAt(0).toUpperCase() + plan.bundleBoothTier.slice(1)} booth</span></>
-                )}
-                {(plan.ticketAdmits ?? 1) > 1 && (
-                  <><span>·</span><span>{plan.ticketAdmits} admits</span></>
-                )}
-                {(plan.advertSlots?.length ?? 0) > 0 && (
-                  <><span>·</span><span>{plan.advertSlots!.length} advert {plan.advertSlots!.length === 1 ? "slot" : "slots"}</span></>
-                )}
-                {(plan.brandingSlots?.length ?? 0) > 0 && (
-                  <><span>·</span><span>{plan.brandingSlots!.length} branding {plan.brandingSlots!.length === 1 ? "slot" : "slots"}</span></>
-                )}
-                {(plan.manualPerks?.length ?? 0) > 0 && (
-                  <><span>·</span><span>{plan.manualPerks!.length} extra {plan.manualPerks!.length === 1 ? "perk" : "perks"}</span></>
-                )}
-                {plan.isActive === false && (
-                  <><span>·</span><span className="italic">Inactive</span></>
-                )}
+        {/* ── Analytics tab ── */}
+        {isEditing && activeTab === "analytics" && plan ? (
+          <AnalyticsTab plan={plan} />
+        ) : (
+          <div className="space-y-0 max-h-[70vh] overflow-y-auto pr-1">
+
+            {/* ── Snapshot banner (edit only) ── */}
+            {isEditing && plan && (
+              <div className="mb-5 rounded-lg border border-slate-200 bg-slate-50 dark:border-border-dark dark:bg-background-dark px-3 py-2.5">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30 mb-1.5">
+                  Currently saved
+                </p>
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-white/50">
+                  <span className="font-semibold text-charcoal dark:text-white">{plan.name}</span>
+                  <span>·</span>
+                  <span>{formatKoboToNaira(plan.priceInKobo)}</span>
+                  {plan.bundleBoothTier && (
+                    <><span>·</span><span>{plan.bundleBoothTier.charAt(0).toUpperCase() + plan.bundleBoothTier.slice(1)} booth</span></>
+                  )}
+                  {(plan.ticketAdmits ?? 1) > 1 && (
+                    <><span>·</span><span>{plan.ticketAdmits} admits</span></>
+                  )}
+                  {(plan.advertSlots?.length ?? 0) > 0 && (
+                    <><span>·</span><span>{plan.advertSlots!.length} advert {plan.advertSlots!.length === 1 ? "slot" : "slots"}</span></>
+                  )}
+                  {(plan.brandingSlots?.length ?? 0) > 0 && (
+                    <><span>·</span><span>{plan.brandingSlots!.length} branding {plan.brandingSlots!.length === 1 ? "slot" : "slots"}</span></>
+                  )}
+                  {(plan.manualPerks?.length ?? 0) > 0 && (
+                    <><span>·</span><span>{plan.manualPerks!.length} extra {plan.manualPerks!.length === 1 ? "perk" : "perks"}</span></>
+                  )}
+                  {plan.isActive === false && (
+                    <><span>·</span><span className="italic">Inactive</span></>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* ── Plan basics ── */}
-          <div className="space-y-4 pb-5">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">Plan basics</p>
+            {/* ── Plan basics ── */}
+            <div className="space-y-4 pb-5">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">Plan basics</p>
 
-            <div>
-              <label className="flex items-center gap-1 text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
-                Plan name <DirtyDot show={fieldDirty("name")} />
-              </label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-white"
-                placeholder="e.g. Gold Bundle"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="flex items-center gap-1 text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
-                  Display tier <DirtyDot show={fieldDirty("tier")} />
-                </label>
-                <select
-                  value={form.tier}
-                  onChange={(e) => setForm((f) => ({ ...f, tier: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-white"
-                >
-                  {TIER_OPTIONS.map((t) => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="flex items-center gap-1 text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
-                  Price (₦ naira) <DirtyDot show={fieldDirty("priceNaira")} />
+                  Plan name <DirtyDot show={fieldDirty("name")} />
                 </label>
                 <input
                   type="text"
-                  inputMode="decimal"
-                  autoComplete="off"
-                  value={form.priceNaira}
-                  onChange={(e) => setForm((f) => ({ ...f, priceNaira: e.target.value }))}
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-white"
-                  placeholder="e.g. 50000"
+                  placeholder="e.g. Gold Bundle"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="flex items-center gap-1 text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
+                    Display tier <DirtyDot show={fieldDirty("tier")} />
+                  </label>
+                  <select
+                    value={form.tier}
+                    onChange={(e) => setForm((f) => ({ ...f, tier: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-white"
+                  >
+                    {TIER_OPTIONS.map((t) => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="flex items-center gap-1 text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
+                    Price (₦ naira) <DirtyDot show={fieldDirty("priceNaira")} />
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    autoComplete="off"
+                    value={form.priceNaira}
+                    onChange={(e) => setForm((f) => ({ ...f, priceNaira: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark dark:text-white"
+                    placeholder="e.g. 50000"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 items-start">
+                <div>
+                  <label className="flex items-center gap-1 text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
+                    Delegate admissions <DirtyDot show={fieldDirty("ticketAdmits")} />
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={form.ticketAdmits}
+                    onChange={(e) => setForm((f) => ({ ...f, ticketAdmits: Math.max(1, parseInt(e.target.value, 10) || 1) }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
+                  />
+                </div>
+                <div className="pt-7">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={form.isActive}
+                      onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
+                      className="size-4 rounded border-slate-300 text-primary focus:ring-primary/30"
+                    />
+                    <span className="flex items-center gap-1 text-sm font-medium text-slate-700 dark:text-white/70">
+                      Active (visible to sponsors)
+                      <DirtyDot show={fieldDirty("isActive")} />
+                    </span>
+                  </label>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 items-start">
+            {/* ── Bundle contents ── */}
+            <div className="space-y-4 py-5 border-t border-slate-100 dark:border-border-dark">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">Bundle contents</p>
+
               <div>
                 <label className="flex items-center gap-1 text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
-                  Delegate admissions <DirtyDot show={fieldDirty("ticketAdmits")} />
+                  Booth <DirtyDot show={fieldDirty("bundleBoothTier")} />
                 </label>
-                <input
-                  type="number"
-                  min={1}
-                  value={form.ticketAdmits}
-                  onChange={(e) => setForm((f) => ({ ...f, ticketAdmits: Math.max(1, parseInt(e.target.value, 10) || 1) }))}
+                <select
+                  value={form.bundleBoothTier}
+                  onChange={(e) => setForm((f) => ({ ...f, bundleBoothTier: e.target.value as PlanFormData["bundleBoothTier"] }))}
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
-                />
-              </div>
-              <div className="pt-7">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={form.isActive}
-                    onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
-                    className="size-4 rounded border-slate-300 text-primary focus:ring-primary/30"
-                  />
-                  <span className="flex items-center gap-1 text-sm font-medium text-slate-700 dark:text-white/70">
-                    Active (visible to sponsors)
-                    <DirtyDot show={fieldDirty("isActive")} />
-                  </span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* ── Bundle contents ── */}
-          <div className="space-y-4 py-5 border-t border-slate-100 dark:border-border-dark">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">Bundle contents</p>
-
-            <div>
-              <label className="flex items-center gap-1 text-sm font-medium text-slate-700 dark:text-white/70 mb-1">
-                Booth <DirtyDot show={fieldDirty("bundleBoothTier")} />
-              </label>
-              <select
-                value={form.bundleBoothTier}
-                onChange={(e) => setForm((f) => ({ ...f, bundleBoothTier: e.target.value as PlanFormData["bundleBoothTier"] }))}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
-              >
-                {BUNDLE_BOOTH_OPTIONS.map((o) => (
-                  <option key={o.value || "none"} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-              <p className="mt-1 text-xs text-slate-500 dark:text-white/40">
-                Headliner, Platinum, or Gold only. Assigned at checkout.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-lg border border-slate-100 bg-slate-50/80 p-3 dark:border-border-dark dark:bg-background-dark">
-                <p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-white/40 mb-2">
-                  Masterclass slot
-                  <DirtyDot show={fieldDirty("bundleMasterclassDuration") || fieldDirty("bundleMasterclassDay")} />
+                >
+                  {BUNDLE_BOOTH_OPTIONS.map((o) => (
+                    <option key={o.value || "none"} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-slate-500 dark:text-white/40">
+                  Headliner, Platinum, or Gold only. Assigned at checkout.
                 </p>
-                <div className="space-y-2">
-                  <select
-                    value={form.bundleMasterclassDuration}
-                    onChange={(e) => setForm((f) => ({ ...f, bundleMasterclassDuration: e.target.value as PlanFormData["bundleMasterclassDuration"] }))}
-                    className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs dark:border-border-dark dark:bg-background-dark dark:text-white"
-                  >
-                    <option value="">Duration…</option>
-                    {DURATION_OPTIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
-                  </select>
-                  <select
-                    value={form.bundleMasterclassDay}
-                    onChange={(e) => setForm((f) => ({ ...f, bundleMasterclassDay: e.target.value as PlanFormData["bundleMasterclassDay"] }))}
-                    className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs dark:border-border-dark dark:bg-background-dark dark:text-white"
-                  >
-                    <option value="">Day…</option>
-                    {DAY_OPTIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
-                  </select>
-                </div>
               </div>
 
-              <div className="rounded-lg border border-slate-100 bg-slate-50/80 p-3 dark:border-border-dark dark:bg-background-dark">
-                <p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-white/40 mb-2">
-                  Presentation slot
-                  <DirtyDot show={fieldDirty("bundlePresentationDuration") || fieldDirty("bundlePresentationDay")} />
-                </p>
-                <div className="space-y-2">
-                  <select
-                    value={form.bundlePresentationDuration}
-                    onChange={(e) => setForm((f) => ({ ...f, bundlePresentationDuration: e.target.value as PlanFormData["bundlePresentationDuration"] }))}
-                    className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs dark:border-border-dark dark:bg-background-dark dark:text-white"
-                  >
-                    <option value="">Duration…</option>
-                    {DURATION_OPTIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
-                  </select>
-                  <select
-                    value={form.bundlePresentationDay}
-                    onChange={(e) => setForm((f) => ({ ...f, bundlePresentationDay: e.target.value as PlanFormData["bundlePresentationDay"] }))}
-                    className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs dark:border-border-dark dark:bg-background-dark dark:text-white"
-                  >
-                    <option value="">Day…</option>
-                    {DAY_OPTIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── Marketing slots ── */}
-          <div className="space-y-4 py-5 border-t border-slate-100 dark:border-border-dark">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">Marketing slots</p>
-
-            <SlotSection
-              label="Advert slots"
-              selectedIds={form.advertSlotIds}
-              snapshotIds={snapshot.advertSlotIds}
-              allSlots={advertsQuery.data ?? []}
-              loading={advertsQuery.isLoading}
-              isEditing={isEditing}
-              pickerOpen={advertPickerOpen}
-              onToggle={(id) => toggleId("advertSlotIds", id)}
-              onTogglePicker={() => setAdvertPickerOpen((v) => !v)}
-            />
-
-            <SlotSection
-              label="Branding slots"
-              selectedIds={form.brandingSlotIds}
-              snapshotIds={snapshot.brandingSlotIds}
-              allSlots={brandingQuery.data ?? []}
-              loading={brandingQuery.isLoading}
-              isEditing={isEditing}
-              pickerOpen={brandingPickerOpen}
-              onToggle={(id) => toggleId("brandingSlotIds", id)}
-              onTogglePicker={() => setBrandingPickerOpen((v) => !v)}
-            />
-          </div>
-
-          {/* ── Other perks ── */}
-          <div className="space-y-3 py-5 border-t border-slate-100 dark:border-border-dark">
-            <p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">
-              Other perks
-              <DirtyDot show={fieldDirty("manualPerks")} />
-            </p>
-
-            {form.manualPerks.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {form.manualPerks.map((perk, i) => {
-                  const isNew = isEditing && newPerkSet.has(perk);
-                  return (
-                    <span
-                      key={i}
-                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
-                        isNew
-                          ? "border border-dashed border-secondary/70 text-secondary"
-                          : "bg-slate-100 text-slate-700 dark:bg-background-dark dark:text-white/70"
-                      }`}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg border border-slate-100 bg-slate-50/80 p-3 dark:border-border-dark dark:bg-background-dark">
+                  <p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-white/40 mb-2">
+                    Masterclass slot
+                    <DirtyDot show={fieldDirty("bundleMasterclassDuration") || fieldDirty("bundleMasterclassDay")} />
+                  </p>
+                  <div className="space-y-2">
+                    <select
+                      value={form.bundleMasterclassDuration}
+                      onChange={(e) => setForm((f) => ({ ...f, bundleMasterclassDuration: e.target.value as PlanFormData["bundleMasterclassDuration"] }))}
+                      className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs dark:border-border-dark dark:bg-background-dark dark:text-white"
                     >
-                      {perk}
-                      <button
-                        type="button"
-                        onClick={() => removeManualPerk(i)}
-                        className="hover:text-red-500 transition-colors ml-0.5"
-                        aria-label="Remove perk"
-                      >
-                        <span className="material-symbols-outlined text-[13px]">close</span>
-                      </button>
-                    </span>
-                  );
-                })}
-              </div>
-            )}
+                      <option value="">Duration…</option>
+                      {DURATION_OPTIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+                    </select>
+                    <select
+                      value={form.bundleMasterclassDay}
+                      onChange={(e) => setForm((f) => ({ ...f, bundleMasterclassDay: e.target.value as PlanFormData["bundleMasterclassDay"] }))}
+                      className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs dark:border-border-dark dark:bg-background-dark dark:text-white"
+                    >
+                      <option value="">Day…</option>
+                      {DAY_OPTIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+                    </select>
+                  </div>
+                </div>
 
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={manualPerkInput}
-                onChange={(e) => setManualPerkInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addManualPerk(); } }}
-                placeholder="e.g. Logo on event website"
-                className="flex-1 bg-transparent border-0 border-b-2 border-secondary px-1 py-1.5 text-sm text-charcoal dark:text-white placeholder:text-slate-400 focus:outline-none"
+                <div className="rounded-lg border border-slate-100 bg-slate-50/80 p-3 dark:border-border-dark dark:bg-background-dark">
+                  <p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-white/40 mb-2">
+                    Presentation slot
+                    <DirtyDot show={fieldDirty("bundlePresentationDuration") || fieldDirty("bundlePresentationDay")} />
+                  </p>
+                  <div className="space-y-2">
+                    <select
+                      value={form.bundlePresentationDuration}
+                      onChange={(e) => setForm((f) => ({ ...f, bundlePresentationDuration: e.target.value as PlanFormData["bundlePresentationDuration"] }))}
+                      className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs dark:border-border-dark dark:bg-background-dark dark:text-white"
+                    >
+                      <option value="">Duration…</option>
+                      {DURATION_OPTIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+                    </select>
+                    <select
+                      value={form.bundlePresentationDay}
+                      onChange={(e) => setForm((f) => ({ ...f, bundlePresentationDay: e.target.value as PlanFormData["bundlePresentationDay"] }))}
+                      className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs dark:border-border-dark dark:bg-background-dark dark:text-white"
+                    >
+                      <option value="">Day…</option>
+                      {DAY_OPTIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Marketing slots ── */}
+            <div className="space-y-4 py-5 border-t border-slate-100 dark:border-border-dark">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">Marketing slots</p>
+
+              <SlotSection
+                label="Advert slots"
+                selectedIds={form.advertSlotIds}
+                snapshotIds={snapshot.advertSlotIds}
+                allSlots={advertsQuery.data ?? []}
+                loading={advertsQuery.isLoading}
+                isEditing={isEditing}
+                pickerOpen={advertPickerOpen}
+                onToggle={(id) => toggleId("advertSlotIds", id)}
+                onTogglePicker={() => setAdvertPickerOpen((v) => !v)}
               />
+
+              <SlotSection
+                label="Branding slots"
+                selectedIds={form.brandingSlotIds}
+                snapshotIds={snapshot.brandingSlotIds}
+                allSlots={brandingQuery.data ?? []}
+                loading={brandingQuery.isLoading}
+                isEditing={isEditing}
+                pickerOpen={brandingPickerOpen}
+                onToggle={(id) => toggleId("brandingSlotIds", id)}
+                onTogglePicker={() => setBrandingPickerOpen((v) => !v)}
+              />
+            </div>
+
+            {/* ── Other perks ── */}
+            <div className="space-y-3 py-5 border-t border-slate-100 dark:border-border-dark">
+              <p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">
+                Other perks
+                <DirtyDot show={fieldDirty("manualPerks")} />
+              </p>
+
+              {form.manualPerks.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {form.manualPerks.map((perk, i) => {
+                    const isNew = isEditing && newPerkSet.has(perk);
+                    return (
+                      <span
+                        key={i}
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
+                          isNew
+                            ? "border border-dashed border-secondary/70 text-secondary"
+                            : "bg-slate-100 text-slate-700 dark:bg-background-dark dark:text-white/70"
+                        }`}
+                      >
+                        {perk}
+                        <button
+                          type="button"
+                          onClick={() => removeManualPerk(i)}
+                          className="hover:text-red-500 transition-colors ml-0.5"
+                          aria-label="Remove perk"
+                        >
+                          <span className="material-symbols-outlined text-[13px]">close</span>
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={manualPerkInput}
+                  onChange={(e) => setManualPerkInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addManualPerk(); } }}
+                  placeholder="e.g. Logo on event website"
+                  className="flex-1 bg-transparent border-0 border-b-2 border-secondary px-1 py-1.5 text-sm text-charcoal dark:text-white placeholder:text-slate-400 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={addManualPerk}
+                  className="rounded-lg bg-secondary/10 px-3 py-1.5 text-xs font-bold text-secondary hover:bg-secondary/20 transition-colors"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+
+            {/* ── What companies will see ── */}
+            <div className="border-t border-slate-100 dark:border-border-dark pt-5 pb-1">
               <button
                 type="button"
-                onClick={addManualPerk}
-                className="rounded-lg bg-secondary/10 px-3 py-1.5 text-xs font-bold text-secondary hover:bg-secondary/20 transition-colors"
+                onClick={() => setPreviewOpen((v) => !v)}
+                className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/40 hover:bg-slate-50 dark:hover:bg-background-dark transition-colors"
               >
-                Add
+                <span>What companies will see</span>
+                <span className="material-symbols-outlined text-[18px]">
+                  {previewOpen ? "expand_less" : "expand_more"}
+                </span>
               </button>
+
+              {previewOpen && (
+                <ul className="mt-3 space-y-1.5 px-1">
+                  {derivedPerks.map((line, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-charcoal dark:text-white/90">
+                      <span className="material-symbols-outlined text-secondary text-[16px] shrink-0 mt-0.5">check_circle</span>
+                      <span>{line}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
+
           </div>
+        )}
 
-          {/* ── What companies will see ── */}
-          <div className="border-t border-slate-100 dark:border-border-dark pt-5 pb-1">
-            <button
-              type="button"
-              onClick={() => setPreviewOpen((v) => !v)}
-              className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/40 hover:bg-slate-50 dark:hover:bg-background-dark transition-colors"
-            >
-              <span>What companies will see</span>
-              <span className="material-symbols-outlined text-[18px]">
-                {previewOpen ? "expand_less" : "expand_more"}
-              </span>
-            </button>
-
-            {previewOpen && (
-              <ul className="mt-3 space-y-1.5 px-1">
-                {derivedPerks.map((line, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-charcoal dark:text-white/90">
-                    <span className="material-symbols-outlined text-secondary text-[16px] shrink-0 mt-0.5">check_circle</span>
-                    <span>{line}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-        </div>
-
-        {validationMsg && (
+        {activeTab === "edit" && validationMsg && (
           <p className="mt-3 text-sm text-amber-800 bg-amber-50 rounded-lg px-3 py-2">{validationMsg}</p>
         )}
-        {saveError && (
+        {activeTab === "edit" && saveError && (
           <p className="mt-3 text-sm text-red-800 bg-red-50 rounded-lg px-3 py-2">{saveError.message}</p>
         )}
 
@@ -797,21 +1013,25 @@ function PlanModal({
             onClick={onClose}
             className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-border-dark dark:text-white/70 dark:hover:bg-background-dark"
           >
-            Cancel
+            {activeTab === "analytics" ? "Close" : "Cancel"}
           </button>
-          <button
-            type="button"
-            onClick={() => onSave(form, { adverts: advertsQuery.data ?? [], branding: brandingQuery.data ?? [] })}
-            disabled={isSaving || !canSave}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {isSaving ? "Saving…" : isEditing ? "Save changes" : "Create plan"}
-          </button>
+          {activeTab === "edit" && (
+            <button
+              type="button"
+              onClick={() => onSave(form, { adverts: advertsQuery.data ?? [], branding: brandingQuery.data ?? [] })}
+              disabled={isSaving || !canSave}
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isSaving ? "Saving…" : isEditing ? "Save changes" : "Create plan"}
+            </button>
+          )}
         </div>
       </div>
     </div>
   );
 }
+
+// ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function AdminSponsorshipPlansPage() {
   const queryClient = useQueryClient();
@@ -825,25 +1045,6 @@ export default function AdminSponsorshipPlansPage() {
     queryFn: () => getAdminSponsorshipPlans(),
     staleTime: 60 * 1000,
   });
-
-  const groupedPlans = useMemo(() => {
-    const groups: Record<string, SponsorshipPlanCatalogItem[]> = {
-      headliner: [],
-      platinum: [],
-      gold: [],
-      silver: [],
-      bronze: [],
-    };
-    (plans ?? []).forEach((plan) => {
-      const tier = plan.tier.toLowerCase();
-      if (groups[tier]) {
-        groups[tier].push(plan);
-      } else {
-        groups.silver.push(plan);
-      }
-    });
-    return groups;
-  }, [plans]);
 
   const saveMutation = useMutation({
     mutationFn: async (vars: { data: PlanFormData; adverts: AdminAdvertSlot[]; branding: AdminBrandingSlot[] }) => {
@@ -893,28 +1094,29 @@ export default function AdminSponsorshipPlansPage() {
     setIsModalOpen(true);
   };
 
-  const handleCreateForTier = (tierKey: string) => {
-    saveMutation.reset();
-    setEditingPlan(null);
-    setCreateDefaultTier(tierKey);
-    setModalInstance((n) => n + 1);
-    setIsModalOpen(true);
-  };
-
   const handleDelete = (id: string) => {
     if (confirm("Delete this sponsorship plan? Only allowed if there are no payments.")) {
       deleteMutation.mutate(id);
     }
   };
 
-  const tierOrder: Array<keyof typeof groupedPlans> = ["headliner", "platinum", "gold", "silver", "bronze"];
+  // Sort: tier order, then price ascending
+  const TIER_ORDER = ["headliner", "platinum", "gold", "silver", "bronze"];
+  const sortedPlans = [...(plans ?? [])].sort((a, b) => {
+    const ta = TIER_ORDER.indexOf(a.tier.toLowerCase());
+    const tb = TIER_ORDER.indexOf(b.tier.toLowerCase());
+    if (ta !== tb) return (ta === -1 ? 99 : ta) - (tb === -1 ? 99 : tb);
+    return a.priceInKobo - b.priceInKobo;
+  });
 
   return (
     <>
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-background-light/95 px-4 py-5 backdrop-blur dark:border-border-dark dark:bg-background-dark/95 sm:px-6 sm:py-6 lg:px-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-black tracking-tight text-charcoal dark:text-white">Sponsorship plans</h2>
+            <h2 className="text-2xl font-black tracking-tight text-charcoal dark:text-white">
+              Sponsorship plans
+            </h2>
             <p className="text-sm text-slate-500 dark:text-white/50">
               Create and manage sponsorship packages with booths, sessions, and marketing slots.
             </p>
@@ -940,119 +1142,110 @@ export default function AdminSponsorshipPlansPage() {
           <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-6 text-center text-red-800">
             Failed to load sponsorship plans. Please try again.
           </div>
+        ) : sortedPlans.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 py-16 text-center dark:border-border-dark dark:bg-background-dark-soft/40">
+            <p className="text-slate-400 dark:text-white/30 text-sm">No sponsorship plans yet.</p>
+            <button
+              type="button"
+              onClick={handleCreate}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-bold text-white hover:bg-red-700 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[16px]">add</span>
+              Create your first plan
+            </button>
+          </div>
         ) : (
-          <div className="space-y-6">
-            {tierOrder.map((tierKey) => {
-              const tierPlans = groupedPlans[tierKey];
-              const tierInfo = getTierStyle(tierKey);
-
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {sortedPlans.map((plan) => {
+              const tierInfo = getTierStyle(plan.tier);
               return (
-                <section key={tierKey} className="space-y-2">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className={`rounded-full px-3 py-1 text-sm font-black ${tierInfo.color}`}>{tierInfo.label}</span>
-                    {tierPlans.length === 0 && (
+                <div
+                  key={plan.id}
+                  className="flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm dark:border-border-dark dark:bg-background-dark-soft"
+                >
+                  {/* Card header */}
+                  <div className="flex items-start justify-between gap-2 px-5 pt-5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${tierInfo.color}`}>
+                        {tierInfo.label}
+                      </span>
+                      <StockBadge plan={plan} />
+                      {plan.isActive === false && (
+                        <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-500 dark:bg-background-dark dark:text-white/50">
+                          INACTIVE
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-0.5">
                       <button
                         type="button"
-                        onClick={() => handleCreateForTier(tierKey)}
-                        className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white p-2 text-slate-500 transition-colors hover:border-secondary hover:bg-secondary/5 hover:text-secondary dark:border-border-dark dark:bg-background-dark-soft dark:hover:border-secondary"
-                        title="Create plan"
+                        onClick={() => handleEdit(plan)}
+                        className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-secondary/10 hover:text-secondary"
+                        title="Edit"
                       >
-                        <span className="material-symbols-outlined text-[20px]">add</span>
+                        <span className="material-symbols-outlined text-[20px]">edit</span>
                       </button>
-                    )}
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(plan.id)}
+                        className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                        title="Delete"
+                      >
+                        <span className="material-symbols-outlined text-[20px]">delete</span>
+                      </button>
+                    </div>
                   </div>
 
-                  {tierPlans.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 py-10 dark:border-border-dark dark:bg-background-dark-soft/40" />
-                  ) : (
-                    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                          <thead>
-                            <tr className="border-b border-slate-200 bg-slate-50 dark:border-border-dark dark:bg-background-dark-softer">
-                              <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
-                                Name
-                              </th>
-                              <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
-                                Price
-                              </th>
-                              <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
-                                Bundle
-                              </th>
-                              <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
-                                Perks
-                              </th>
-                              <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">
-                                Actions
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-100 dark:divide-border-dark">
-                            {tierPlans.map((plan) => (
-                              <tr
-                                key={plan.id}
-                                className="transition-colors hover:bg-slate-50 dark:hover:bg-background-dark-softer"
-                              >
-                                <td className="px-4 py-3">
-                                  <div className="font-bold text-charcoal dark:text-white">{plan.name}</div>
-                                  {plan.isActive === false && (
-                                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 dark:bg-background-dark dark:text-white/50">
-                                      INACTIVE
-                                    </span>
-                                  )}
-                                </td>
-                                <td className="px-4 py-3 whitespace-nowrap">
-                                  <span className="font-black text-primary">{formatKoboToNaira(plan.priceInKobo)}</span>
-                                </td>
-                                <td className="px-4 py-3 text-xs text-slate-600 dark:text-white/60 max-w-[220px]">
-                                  {bundleSummaryLine(plan)}
-                                </td>
-                                <td className="px-4 py-3">
-                                  <div className="text-sm text-slate-600 dark:text-white/60">
-                                    {plan.perks && plan.perks.length > 0 ? (
-                                      <ul className="space-y-0.5">
-                                        {plan.perks.slice(0, 2).map((perk, idx) => (
-                                          <li key={idx} className="truncate max-w-[200px]">
-                                            {perk}
-                                          </li>
-                                        ))}
-                                        {plan.perks.length > 2 && (
-                                          <li className="text-xs text-slate-400">+{plan.perks.length - 2} more</li>
-                                        )}
-                                      </ul>
-                                    ) : (
-                                      <span className="text-slate-400">—</span>
-                                    )}
-                                  </div>
-                                </td>
-                                <td className="px-4 py-3 text-right">
-                                  <div className="inline-flex items-center gap-1">
-                                    <button
-                                      type="button"
-                                      onClick={() => handleEdit(plan)}
-                                      className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-secondary/10 hover:text-secondary"
-                                      title="Edit"
-                                    >
-                                      <span className="material-symbols-outlined text-[20px]">edit</span>
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleDelete(plan.id)}
-                                      className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                                      title="Delete"
-                                    >
-                                      <span className="material-symbols-outlined text-[20px]">delete</span>
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
+                  {/* Plan name + price */}
+                  <div className="px-5 pt-3">
+                    <h3 className="text-lg font-black text-charcoal dark:text-white leading-tight">
+                      {plan.name}
+                    </h3>
+                    <p className="text-2xl font-black text-primary mt-0.5">
+                      {formatKoboToNaira(plan.priceInKobo)}
+                    </p>
+                  </div>
+
+                  {/* Bundle summary */}
+                  <p className="px-5 pt-2 text-xs text-slate-500 dark:text-white/40">
+                    {bundleSummaryLine(plan)}
+                  </p>
+
+                  {/* Perks preview */}
+                  {plan.perks && plan.perks.length > 0 && (
+                    <ul className="px-5 pt-3 space-y-1">
+                      {plan.perks.slice(0, 3).map((perk, idx) => (
+                        <li key={idx} className="flex items-start gap-1.5 text-xs text-slate-600 dark:text-white/60">
+                          <span className="material-symbols-outlined text-secondary text-[13px] shrink-0 mt-0.5">check_circle</span>
+                          <span className="line-clamp-1">{perk}</span>
+                        </li>
+                      ))}
+                      {plan.perks.length > 3 && (
+                        <li className="text-xs text-slate-400 pl-5">+{plan.perks.length - 3} more</li>
+                      )}
+                    </ul>
                   )}
-                </section>
+
+                  {/* Footer stats */}
+                  <div className="mt-auto flex items-center gap-4 border-t border-slate-100 dark:border-border-dark px-5 py-3 mt-4">
+                    <span className="text-sm text-slate-600 dark:text-white/60">
+                      <span className="font-bold text-charcoal dark:text-white">
+                        {plan.purchaseCount ?? 0}
+                      </span>{" "}
+                      bought
+                    </span>
+                    {plan.remainingPurchases != null ? (
+                      <span className="text-sm text-slate-600 dark:text-white/60">
+                        <span className="font-bold text-charcoal dark:text-white">
+                          {plan.remainingPurchases}
+                        </span>{" "}
+                        remaining
+                      </span>
+                    ) : (
+                      <span className="text-xs text-slate-400 dark:text-white/30">No stock limit</span>
+                    )}
+                  </div>
+                </div>
               );
             })}
           </div>

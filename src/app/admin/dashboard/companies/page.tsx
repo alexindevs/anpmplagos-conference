@@ -31,6 +31,7 @@ function EditCompanyModal({
   const [primaryContactName, setPrimaryContactName] = useState(company.primaryContactName ?? "");
   const [primaryContactPhone, setPrimaryContactPhone] = useState(company.primaryContactPhone ?? "");
   const [website, setWebsite] = useState(company.website ?? "");
+  const [sponsorshipTier, setSponsorshipTier] = useState(company.highestSponsorshipTier ?? "");
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(company.logo ?? null);
@@ -69,6 +70,7 @@ function EditCompanyModal({
         primaryContactName: primaryContactName.trim() || undefined,
         primaryContactPhone: primaryContactPhone.trim() || undefined,
         website: website.trim() || undefined,
+        highestSponsorshipTier: sponsorshipTier || undefined,
       });
 
       if (logoFile || headerFile) {
@@ -255,6 +257,27 @@ function EditCompanyModal({
                 onChange={(e) => setPrimaryContactPhone(e.target.value)}
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
               />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-white/60">
+                Sponsorship Tier
+              </label>
+              <select
+                value={sponsorshipTier}
+                onChange={(e) => setSponsorshipTier(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+              >
+                <option value="">Default (no tier)</option>
+                <option value="bronze">Bronze</option>
+                <option value="silver">Silver</option>
+                <option value="gold">Gold</option>
+                <option value="platinum">Platinum</option>
+                <option value="headliner">Headliner</option>
+              </select>
+              <p className="mt-1 text-xs text-slate-400 dark:text-white/30">
+                Manually override the highest sponsorship tier assigned to this company.
+              </p>
             </div>
           </div>
 
