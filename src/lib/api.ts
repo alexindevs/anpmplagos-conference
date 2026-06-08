@@ -3186,6 +3186,8 @@ export interface CheckinRecord {
   userId: string;
   entryIndex: number;
   markedAt: string;
+  guestName?: string | null;
+  guestPhone?: string | null;
   user: {
     id: string;
     regType: string;

@@ -33,6 +33,8 @@ function formatTime(iso: string) {
 }
 
 function checkinName(r: CheckinRecord): string {
+  // Prefer the collected delegate/spouse name when available
+  if (r.guestName) return r.guestName;
   return (
     r.user.member?.fullName ??
     r.user.attendee?.fullName ??
@@ -44,6 +46,17 @@ function checkinName(r: CheckinRecord): string {
 function checkinInitial(r: CheckinRecord): string {
   const n = checkinName(r);
   return n.charAt(0).toUpperCase();
+}
+
+function checkinSubDetail(r: CheckinRecord): string | null {
+  if (r.user.regType === "company" && r.guestName) {
+    const company = r.user.company?.companyName ?? "";
+    return r.guestPhone ? `${company} · ${r.guestPhone}` : company;
+  }
+  if (r.user.regType === "member" && r.entryIndex === 2 && r.guestName) {
+    return `Spouse of ${r.user.member?.fullName ?? "member"}`;
+  }
+  return null;
 }
 
 const TYPE_STYLE: Record<string, string> = {
@@ -127,6 +140,11 @@ function DayCheckinList({ dayId }: { dayId: string }) {
                 <p className="truncate text-sm font-semibold text-charcoal leading-tight">
                   {checkinName(r)}
                 </p>
+                {checkinSubDetail(r) && (
+                  <p className="truncate text-[10px] text-slate-400 leading-tight">
+                    {checkinSubDetail(r)}
+                  </p>
+                )}
                 <div className="mt-0.5 flex items-center gap-1.5">
                   <span
                     className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${TYPE_STYLE[r.user.regType] ?? "bg-slate-100 text-slate-600"}`}
