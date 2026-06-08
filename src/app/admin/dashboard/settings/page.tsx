@@ -69,9 +69,8 @@ async function downloadExport(
   const blob = await res.blob();
   const objectUrl = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  const disposition = res.headers.get("Content-Disposition") ?? "";
-  const match = disposition.match(/filename="([^"]+)"/);
-  a.download = match?.[1] ?? `${dataset}-export.${format}`;
+  const ts = new Date().toISOString().slice(0, 16).replace("T", "-").replace(/:/g, "-");
+  a.download = `${dataset}-${ts}.${format}`;
   a.href = objectUrl;
   a.click();
   URL.revokeObjectURL(objectUrl);
