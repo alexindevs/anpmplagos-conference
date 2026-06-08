@@ -18,14 +18,17 @@ export default function AdminPage() {
   // Login State
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   // Claim State
   const [adminCode, setAdminCode] = useState("");
   const [claimToken, setClaimToken] = useState<string | null>(null);
+  const [showAdminCode, setShowAdminCode] = useState(false);
 
   // Register State
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
+  const [showRegPassword, setShowRegPassword] = useState(false);
   const [regName, setRegName] = useState("");
   const [regAvatar, setRegAvatar] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -172,16 +175,28 @@ export default function AdminPage() {
                 <label htmlFor="login-password" className="sr-only">
                   Password
                 </label>
-                <input
-                  id="login-password"
-                  name="password"
-                  type="password"
-                  required
-                  className="relative block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
-                  placeholder="Password"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                />
+                <div className="relative">
+                  <input
+                    id="login-password"
+                    name="password"
+                    type={showLoginPassword ? "text" : "password"}
+                    required
+                    className="relative block w-full rounded-lg border border-gray-300 px-3 py-2 pr-10 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
+                    placeholder="Password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword((v) => !v)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-gray-400 hover:text-gray-600"
+                    aria-label={showLoginPassword ? "Hide password" : "Show password"}
+                  >
+                    <span className="material-symbols-outlined text-xl">
+                      {showLoginPassword ? "visibility_off" : "visibility"}
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -216,16 +231,28 @@ export default function AdminPage() {
               <label htmlFor="admin-code" className="sr-only">
                 Admin Code
               </label>
-              <input
-                id="admin-code"
-                name="code"
-                type="password"
-                required
-                className="relative block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
-                placeholder="Enter Admin Code"
-                value={adminCode}
-                onChange={(e) => setAdminCode(e.target.value)}
-              />
+              <div className="relative">
+                <input
+                  id="admin-code"
+                  name="code"
+                  type={showAdminCode ? "text" : "password"}
+                  required
+                  className="relative block w-full rounded-lg border border-gray-300 px-3 py-2 pr-10 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
+                  placeholder="Enter Admin Code"
+                  value={adminCode}
+                  onChange={(e) => setAdminCode(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAdminCode((v) => !v)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-gray-400 hover:text-gray-600"
+                  aria-label={showAdminCode ? "Hide code" : "Show code"}
+                >
+                  <span className="material-symbols-outlined text-xl">
+                    {showAdminCode ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
+              </div>
             </div>
 
             <div>
@@ -277,14 +304,26 @@ export default function AdminPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Password</label>
-              <input
-                type="password"
-                required
-                minLength={8}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
-                value={regPassword}
-                onChange={(e) => setRegPassword(e.target.value)}
-              />
+              <div className="relative mt-1">
+                <input
+                  type={showRegPassword ? "text" : "password"}
+                  required
+                  minLength={8}
+                  className="block w-full rounded-lg border border-gray-300 px-3 py-2 pr-10 shadow-sm focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
+                  value={regPassword}
+                  onChange={(e) => setRegPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowRegPassword((v) => !v)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-gray-400 hover:text-gray-600"
+                  aria-label={showRegPassword ? "Hide password" : "Show password"}
+                >
+                  <span className="material-symbols-outlined text-xl">
+                    {showRegPassword ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Profile Picture (Optional)</label>
