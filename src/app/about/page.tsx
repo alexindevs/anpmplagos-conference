@@ -236,7 +236,7 @@ export default function AboutPage() {
 
           {/* State Chairman — featured at centre top */}
           <div className="flex justify-center mb-12">
-            <div className="flex flex-col items-center gap-4 p-8 bg-white border-l-4 border-deep-forest shadow-md hover:shadow-xl transition-all w-full max-w-sm">
+            <div className="flex flex-col items-center gap-4 p-8 bg-white border-l-4 border-deep-forest shadow-md hover:shadow-xl transition-all w-full md:max-w-[400px]">
               <div className="relative size-[200px] shrink-0 overflow-hidden rounded-full border-4 border-mint-whisper bg-gray-100">
                 <Image
                   src="/dr-jonathan-esegine.jpeg"
