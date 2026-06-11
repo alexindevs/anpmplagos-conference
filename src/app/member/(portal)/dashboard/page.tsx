@@ -34,7 +34,7 @@ export default function MemberDashboardPage() {
 
   const ticketPrice = isMember ? pricing?.memberPriceKobo : pricing?.nonMemberPriceKobo;
   const registrationDueKobo = ticketPrice;
-  const isPaid = registration?.payment?.status === "success";
+  const isPaid = registration?.payment?.status === "success" || registration?.user?.registrationStatus === "registered";
   const isPending = registration?.user?.registrationStatus === "pending_payment";
 
   const avatarUrl = profile?.avatar
@@ -148,6 +148,13 @@ export default function MemberDashboardPage() {
                       <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-slate-500">ANPMP ID</p>
                         <p className="mt-1 text-sm font-semibold text-charcoal">{memberProfile.anpmpId || "—"}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Dues Payment</p>
+                        <span className={`mt-1 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${memberProfile.duesPaid ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}>
+                          <span className="material-symbols-outlined text-[13px]">{memberProfile.duesPaid ? "check_circle" : "cancel"}</span>
+                          {memberProfile.duesPaid ? "Paid" : "Unpaid"}
+                        </span>
                       </div>
                       <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Specialty</p>

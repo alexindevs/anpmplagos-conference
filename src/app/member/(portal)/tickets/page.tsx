@@ -45,7 +45,7 @@ export default function MemberTicketsPage() {
 
   const ticketPrice = isMember ? pricing?.memberPriceKobo : pricing?.nonMemberPriceKobo;
   const registrationDueKobo = ticketPrice;
-  const isPaid = registration?.payment?.status === "success";
+  const isPaid = registration?.payment?.status === "success" || registration?.user?.registrationStatus === "registered";
   const isPending = registration?.user?.registrationStatus === "pending_payment";
 
   const {

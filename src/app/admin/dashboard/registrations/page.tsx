@@ -1,15 +1,18 @@
 "use client";
 
 import Image from "next/image";
-import { Fragment, useDeferredValue, useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { Fragment, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ApiError,
   getAdminRegistrations,
   getAdminRegistrationsSummary,
   getAllAdminRegistrationsMerged,
+  uploadBulkImport,
+  getBulkImportJob,
   type AdminRegistrationRow,
   type AdminRegistrationsListResponse,
+  type BulkImportJob,
 } from "@/lib/api";
 import { adminRegistrationAvatarUrl } from "@/lib/company-branding";
 
@@ -90,6 +93,10 @@ export default function RegistrationsPage() {
   const deferredSearch = useDeferredValue(search);
   const q = deferredSearch.trim().toLowerCase();
   const hasFilters = Boolean(typeFilter || statusFilter || q);
+
+  // ── Bulk import modal state ──────────────────────────────────────────────
+  const [showImport, setShowImport] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     setPage(1);
@@ -178,6 +185,14 @@ export default function RegistrationsPage() {
               View conference registrations — members, attendees, companies, and other non-admin accounts
             </p>
           </div>
+          <button
+            type="button"
+            onClick={() => setShowImport(true)}
+            className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-secondary/90"
+          >
+            <span className="material-symbols-outlined text-[18px]">upload_file</span>
+            Import CSV
+          </button>
         </div>
       </header>
 
@@ -266,6 +281,16 @@ export default function RegistrationsPage() {
                 </div>
               ))}
         </div>
+
+        {showImport && (
+          <BulkImportModal
+            onClose={() => {
+              setShowImport(false);
+              // Refresh list + summary after a completed import
+              void queryClient.invalidateQueries({ queryKey: ["admin", "registrations"] });
+            }}
+          />
+        )}
 
         <div className="overflow-hidden rounded-xl border border-primary/5 bg-white shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
           <div className="overflow-x-auto">
@@ -367,20 +392,14 @@ function RegistrationTableRow({ row }: { row: AdminRegistrationRow }) {
     : "—";
   const avatarUrl = adminRegistrationAvatarUrl(row);
   const hasMemberDetails = row.type === "member" && row.memberDetails != null;
+  const hasAttendeeDetails = row.type === "attendee" && row.attendeeDetails != null;
+  const hasDetails = hasMemberDetails || hasAttendeeDetails;
 
   return (
     <Fragment>
-      <tr
-        className={`transition-colors hover:bg-primary/5 dark:hover:bg-background-dark-softer ${hasMemberDetails ? "cursor-pointer" : ""}`}
-        onClick={hasMemberDetails ? () => setExpanded((v) => !v) : undefined}
-      >
+      <tr className="transition-colors hover:bg-primary/5 dark:hover:bg-background-dark-softer">
         <td className="px-6 py-4">
           <div className="flex items-start gap-3">
-            {hasMemberDetails && (
-              <span className="material-symbols-outlined mt-3 shrink-0 text-[16px] text-slate-400 dark:text-white/30">
-                {expanded ? "expand_less" : "expand_more"}
-              </span>
-            )}
             <div className="relative mt-0.5 size-10 shrink-0 overflow-hidden rounded-full bg-slate-100 dark:bg-background-dark-softer">
               {avatarUrl ? (
                 isProbablySameOriginOrAllowedForNextImage(avatarUrl) ? (
@@ -408,8 +427,16 @@ function RegistrationTableRow({ row }: { row: AdminRegistrationRow }) {
             {status.label}
           </span>
         </td>
-        <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-          {row.profileUrl ? (
+        <td className="px-6 py-4 text-right">
+          {hasDetails ? (
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="inline-block rounded-lg bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-200 dark:bg-background-dark-softer dark:text-white/90 dark:hover:bg-background-dark"
+            >
+              View
+            </button>
+          ) : row.profileUrl ? (
             <a
               href={row.profileUrl}
               target="_blank"
@@ -439,6 +466,13 @@ function RegistrationTableRow({ row }: { row: AdminRegistrationRow }) {
               <MemberDetailCell label="Zone" value={row.memberDetails.zone || "—"} />
               <MemberDetailCell label="State" value={row.memberDetails.state || "—"} />
               <MemberDetailCell label="ANPMP ID" value={row.memberDetails.anpmpId || "—"} />
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider text-slate-400 dark:text-white/35">Dues Paid</p>
+                <span className={`mt-0.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${row.memberDetails.duesPaid ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-slate-100 text-slate-500 dark:bg-background-dark-softer dark:text-white/40"}`}>
+                  <span className="material-symbols-outlined text-[13px]">{row.memberDetails.duesPaid ? "check_circle" : "cancel"}</span>
+                  {row.memberDetails.duesPaid ? "Paid" : "Unpaid"}
+                </span>
+              </div>
               <MemberDetailCell
                 label="Spouse"
                 value={
@@ -453,6 +487,36 @@ function RegistrationTableRow({ row }: { row: AdminRegistrationRow }) {
           </td>
         </tr>
       )}
+      {hasAttendeeDetails && expanded && row.attendeeDetails && (
+        <tr className="bg-primary/3 dark:bg-background-dark-softer/60">
+          <td colSpan={5} className="px-6 py-4">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-3 lg:grid-cols-4">
+              <MemberDetailCell label="Phone" value={row.attendeeDetails.phone} />
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider text-slate-400 dark:text-white/35">Medical Field</p>
+                <p className="mt-0.5 text-sm text-charcoal dark:text-white/80">
+                  {row.attendeeDetails.inMedicalField ? "Yes" : "No"}
+                </p>
+              </div>
+              {row.attendeeDetails.primarySpecialty && (
+                <MemberDetailCell label="Specialty" value={row.attendeeDetails.primarySpecialty} />
+              )}
+              {row.attendeeDetails.hospitalOrg && (
+                <MemberDetailCell label="Hospital / Org" value={row.attendeeDetails.hospitalOrg} />
+              )}
+              {row.attendeeDetails.occupation && (
+                <MemberDetailCell label="Occupation" value={row.attendeeDetails.occupation} />
+              )}
+              {row.attendeeDetails.bio && (
+                <div className="col-span-2 sm:col-span-3 lg:col-span-4">
+                  <p className="text-xs font-medium uppercase tracking-wider text-slate-400 dark:text-white/35">Bio</p>
+                  <p className="mt-0.5 text-sm text-charcoal dark:text-white/80">{row.attendeeDetails.bio}</p>
+                </div>
+              )}
+            </div>
+          </td>
+        </tr>
+      )}
     </Fragment>
   );
 }
@@ -462,6 +526,245 @@ function MemberDetailCell({ label, value }: { label: string; value: string }) {
     <div>
       <p className="text-xs font-medium uppercase tracking-wider text-slate-400 dark:text-white/35">{label}</p>
       <p className="mt-0.5 text-sm text-charcoal dark:text-white/80">{value || "—"}</p>
+    </div>
+  );
+}
+
+// ─── Bulk Import Modal ───────────────────────────────────────────────────────
+
+function BulkImportModal({ onClose }: { onClose: () => void }) {
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [job, setJob] = useState<BulkImportJob | null>(null);
+  const [showErrors, setShowErrors] = useState(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isDone = job?.status === "done" || job?.status === "failed";
+
+  // Poll for job status
+  useEffect(() => {
+    if (!job || isDone) return;
+    pollRef.current = setInterval(async () => {
+      try {
+        const updated = await getBulkImportJob(job.id);
+        setJob(updated);
+        if (updated.status === "done" || updated.status === "failed") {
+          clearInterval(pollRef.current!);
+        }
+      } catch {
+        // swallow — keep polling
+      }
+    }, 2000);
+    return () => clearInterval(pollRef.current!);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [job?.id, isDone]);
+
+  async function handleUpload() {
+    if (!file) return;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const { jobId } = await uploadBulkImport(file);
+      const initialJob = await getBulkImportJob(jobId);
+      setJob(initialJob);
+    } catch (err) {
+      setUploadError(err instanceof ApiError ? err.message : "Upload failed. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (f) {
+      setFile(f);
+      setUploadError(null);
+    }
+  }
+
+  const statusLabel: Record<string, string> = {
+    pending: "Queued…",
+    processing: "Processing…",
+    done: "Complete",
+    failed: "Failed",
+  };
+
+  const progressPct =
+    job && job.total > 0
+      ? Math.round(((job.created + job.skipped) / job.total) * 100)
+      : 0;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-[80%] md:max-w-[50%] rounded-2xl bg-white shadow-2xl dark:bg-background-dark-soft">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 dark:border-border-dark">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-[22px] text-secondary">upload_file</span>
+            <h2 className="text-base font-bold text-charcoal dark:text-white">Bulk Member Import</h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-background-dark-softer dark:hover:text-white"
+          >
+            <span className="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="space-y-5 px-6 py-5">
+          {!job && (
+            <>
+              <p className="text-sm text-slate-600 dark:text-white/70">
+                Upload a CSV exported from your zone&apos;s registration sheet. The platform will create
+                member accounts and email each person a link to set their password.
+              </p>
+
+              {/* File picker */}
+              <div
+                className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 px-6 py-8 transition-colors hover:border-secondary/50 hover:bg-secondary/5 dark:border-border-dark dark:bg-background-dark-softer dark:hover:border-secondary/40"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <span className="material-symbols-outlined text-[36px] text-slate-300 dark:text-white/20">
+                  description
+                </span>
+                {file ? (
+                  <p className="text-sm font-medium text-slatecoal dark:text-white">{file.name}</p>
+                ) : (
+                  <p className="text-sm text-slate-500 dark:text-white/50">
+                    Click to select a <span className="font-bold">.csv</span> file
+                  </p>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+              </div>
+
+              {uploadError && (
+                <p className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">
+                  {uploadError}
+                </p>
+              )}
+            </>
+          )}
+
+          {/* Job progress */}
+          {job && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-charcoal dark:text-white">{job.filename}</span>
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                    job.status === "done"
+                      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                      : job.status === "failed"
+                        ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                        : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                  }`}
+                >
+                  {statusLabel[job.status] ?? job.status}
+                </span>
+              </div>
+
+              {/* Progress bar */}
+              {!isDone && (
+                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-background-dark-softer">
+                  <div
+                    className="h-full rounded-full bg-secondary transition-all duration-500"
+                    style={{ width: `${progressPct}%` }}
+                  />
+                </div>
+              )}
+
+              {/* Counts */}
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="rounded-lg bg-slate-50 py-3 dark:bg-background-dark-softer">
+                  <p className="text-2xl font-black text-charcoal dark:text-white">{job.total}</p>
+                  <p className="text-xs text-slate-400 dark:text-white/35">Total rows</p>
+                </div>
+                <div className="rounded-lg bg-green-50 py-3 dark:bg-green-900/20">
+                  <p className="text-2xl font-black text-green-700 dark:text-green-400">{job.created}</p>
+                  <p className="text-xs text-green-600 dark:text-green-500/70">Created</p>
+                </div>
+                <div className="rounded-lg bg-slate-50 py-3 dark:bg-background-dark-softer">
+                  <p className="text-2xl font-black text-slate-500 dark:text-white/60">{job.skipped}</p>
+                  <p className="text-xs text-slate-400 dark:text-white/35">Skipped</p>
+                </div>
+              </div>
+
+              {/* Errors */}
+              {job.errors.length > 0 && (
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setShowErrors((v) => !v)}
+                    className="flex items-center gap-1 text-xs font-medium text-amber-600 underline dark:text-amber-400"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">warning</span>
+                    {job.errors.length} warning{job.errors.length !== 1 ? "s" : ""}
+                    <span className="material-symbols-outlined text-[14px]">
+                      {showErrors ? "expand_less" : "expand_more"}
+                    </span>
+                  </button>
+                  {showErrors && (
+                    <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto rounded-lg bg-amber-50 px-3 py-2 dark:bg-amber-900/20">
+                      {job.errors.map((e, i) => (
+                        <li key={i} className="text-xs text-amber-800 dark:text-amber-300">
+                          {e}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+
+              {!isDone && (
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  Please keep this dialog open until the import finishes.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-3 border-t border-slate-100 px-6 py-4 dark:border-border-dark">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-border-dark dark:bg-background-dark-softer dark:text-white/80 dark:hover:bg-background-dark"
+          >
+            {isDone ? "Close" : "Cancel"}
+          </button>
+          {!job && (
+            <button
+              type="button"
+              disabled={!file || uploading}
+              onClick={handleUpload}
+              className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-secondary/90 disabled:opacity-50"
+            >
+              {uploading ? (
+                <>
+                  <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+                  Uploading…
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-[18px]">upload</span>
+                  Upload &amp; Import
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

@@ -59,6 +59,8 @@ export default function AdminGuestsPage() {
     qualifications: "",
     kind: "speaker" as ConferenceProfileKind,
   });
+  const [adhocImage, setAdhocImage] = useState<File | null>(null);
+  const [adhocImagePreview, setAdhocImagePreview] = useState<string | null>(null);
   const [adhocError, setAdhocError] = useState<string | null>(null);
   const [generatingPassId, setGeneratingPassId] = useState<string | null>(null);
 
@@ -177,10 +179,12 @@ export default function AdminGuestsPage() {
   });
 
   const adhocPrintMutation = useMutation({
-    mutationFn: () => downloadPrintableBadge(adhocForm),
+    mutationFn: () => downloadPrintableBadge({ ...adhocForm, imageFile: adhocImage }),
     onSuccess: () => {
       setShowAdhocModal(false);
       setAdhocForm({ name: "", role: "", qualifications: "", kind: "speaker" });
+      setAdhocImage(null);
+      setAdhocImagePreview(null);
       setAdhocError(null);
     },
     onError: (e) => setAdhocError(e instanceof Error ? e.message : "Badge generation failed."),
@@ -568,14 +572,14 @@ export default function AdminGuestsPage() {
       {showAdhocModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
-          onClick={(e) => { if (e.target === e.currentTarget) setShowAdhocModal(false); }}
+          onClick={(e) => { if (e.target === e.currentTarget) { setShowAdhocModal(false); setAdhocImage(null); if (adhocImagePreview) URL.revokeObjectURL(adhocImagePreview); setAdhocImagePreview(null); } }}
         >
           <div className="w-[80%] md:w-[50%] rounded-2xl bg-white p-6 shadow-2xl dark:bg-background-dark-soft">
             <div className="mb-5 flex items-center justify-between">
               <h3 className="text-lg font-black text-charcoal dark:text-white">Print Adhoc Badge</h3>
               <button
                 type="button"
-                onClick={() => setShowAdhocModal(false)}
+                onClick={() => { setShowAdhocModal(false); setAdhocImage(null); if (adhocImagePreview) URL.revokeObjectURL(adhocImagePreview); setAdhocImagePreview(null); }}
                 className="rounded-lg p-1 hover:bg-slate-100 dark:hover:bg-background-dark-softer"
               >
                 <span className="material-symbols-outlined text-xl text-slate-500">close</span>
@@ -634,6 +638,50 @@ export default function AdminGuestsPage() {
                   <option value="special_guest">Special Guest</option>
                 </select>
               </label>
+              <div>
+                <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">
+                  Profile photo <span className="normal-case font-normal">(optional)</span>
+                </span>
+                <div className="flex items-center gap-3">
+                  {adhocImagePreview ? (
+                    <div className="relative size-14 shrink-0 overflow-hidden rounded-full border border-slate-200">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={adhocImagePreview} alt="Preview" className="size-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="flex size-14 shrink-0 items-center justify-center rounded-full border border-dashed border-slate-300 bg-slate-50 dark:border-border-dark dark:bg-background-dark-softer">
+                      <span className="material-symbols-outlined text-2xl text-slate-300">person</span>
+                    </div>
+                  )}
+                  <label className="cursor-pointer rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 dark:border-border-dark dark:text-white/70 dark:hover:bg-background-dark-softer">
+                    {adhocImage ? "Change photo" : "Upload photo"}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="sr-only"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] ?? null;
+                        setAdhocImage(file);
+                        if (adhocImagePreview) URL.revokeObjectURL(adhocImagePreview);
+                        setAdhocImagePreview(file ? URL.createObjectURL(file) : null);
+                      }}
+                    />
+                  </label>
+                  {adhocImage && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAdhocImage(null);
+                        if (adhocImagePreview) URL.revokeObjectURL(adhocImagePreview);
+                        setAdhocImagePreview(null);
+                      }}
+                      className="text-slate-400 hover:text-slate-600 dark:text-white/30 dark:hover:text-white/60"
+                    >
+                      <span className="material-symbols-outlined text-xl">close</span>
+                    </button>
+                  )}
+                </div>
+              </div>
               {adhocError && (
                 <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-200">
                   {adhocError}
@@ -649,7 +697,7 @@ export default function AdminGuestsPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowAdhocModal(false)}
+                  onClick={() => { setShowAdhocModal(false); setAdhocImage(null); if (adhocImagePreview) URL.revokeObjectURL(adhocImagePreview); setAdhocImagePreview(null); }}
                   className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium dark:border-border-dark"
                 >
                   Cancel

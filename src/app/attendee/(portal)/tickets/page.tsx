@@ -43,7 +43,7 @@ export default function AttendeeTicketsPage() {
   const userId = user?.id || "";
 
   const registrationDueKobo = pricing?.nonMemberPriceKobo;
-  const isPaid = registration?.payment?.status === "success";
+  const isPaid = registration?.payment?.status === "success" || registration?.user?.registrationStatus === "registered";
   const isPending = registration?.user?.registrationStatus === "pending_payment";
 
   const {

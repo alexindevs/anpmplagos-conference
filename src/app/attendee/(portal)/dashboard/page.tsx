@@ -28,7 +28,7 @@ export default function AttendeeDashboardPage() {
   const fullName = profile?.fullName || user?.attendee?.fullName || "Attendee";
   const userId = user?.id || "";
 
-  const isPaid = registration?.payment?.status === "success";
+  const isPaid = registration?.payment?.status === "success" || registration?.user?.registrationStatus === "registered";
   const isPending = registration?.user?.registrationStatus === "pending_payment";
 
   const registrationDueKobo = pricing?.nonMemberPriceKobo;

@@ -69,6 +69,8 @@ export default function MemberElectionsPage() {
   });
 
   const isLoading = loadingStatus || (status?.isActive && loadingPositions) || loadingVotes;
+  const duesPaid = user?.member?.duesPaid ?? true; // default true while loading to avoid flash
+  const canVote = user?.regType === "member" ? duesPaid : true;
 
   return (
     <MemberPortalShell userId={userId} fullName={fullName}>
@@ -83,6 +85,18 @@ export default function MemberElectionsPage() {
               Cast your vote for each position below.
             </p>
           </div>
+
+          {/* Dues unpaid banner */}
+          {!loadingStatus && status?.isActive && user?.regType === "member" && !canVote && (
+            <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <span className="material-symbols-outlined mt-0.5 shrink-0 text-[20px] text-amber-500">
+                warning
+              </span>
+              <p className="text-sm text-amber-800">
+                <span className="font-bold">Your ANPMP dues are unpaid.</span> You can view the candidates below, but you must pay your dues to be eligible to vote.
+              </p>
+            </div>
+          )}
 
           {/* Voting closed state */}
           {!loadingStatus && !status?.isActive && (
@@ -225,7 +239,7 @@ export default function MemberElectionsPage() {
                                   )}
 
                                   {/* Vote button */}
-                                  {!hasVoted && (
+                                  {!hasVoted && canVote && (
                                     <button
                                       type="button"
                                       disabled={
@@ -249,6 +263,11 @@ export default function MemberElectionsPage() {
                                         "Vote"
                                       )}
                                     </button>
+                                  )}
+                                  {!hasVoted && !canVote && (
+                                    <span className="w-full shrink-0 rounded-lg border border-slate-200 bg-slate-100 px-4 py-2 text-center text-sm font-semibold text-slate-400 sm:w-auto">
+                                      Dues required
+                                    </span>
                                   )}
                                 </div>
                               );
