@@ -233,6 +233,33 @@ export default function AboutPage() {
               Local Organizing Committee for the AGM &amp; scientific conference.
             </p>
           </div>
+
+          {/* State Chairman — featured at centre top */}
+          <div className="flex justify-center mb-12">
+            <div className="flex flex-col items-center gap-4 p-8 bg-white border-l-4 border-deep-forest shadow-md hover:shadow-xl transition-all w-full max-w-xs">
+              <div className="relative size-[200px] shrink-0 overflow-hidden rounded-full border-4 border-mint-whisper bg-gray-100">
+                <Image
+                  src="/dr-jonathan-esegine.jpeg"
+                  alt="Dr. Jonathan Esegine"
+                  width={200}
+                  height={200}
+                  className="h-full w-full object-cover object-top"
+                />
+              </div>
+              <div className="text-center">
+                <h3 className="text-xl font-bold text-charcoal mb-1">
+                  Dr. Jonathan Esegine
+                </h3>
+                <span className="inline-block py-0.5 px-3 bg-deep-forest/10 text-deep-forest text-xs font-bold tracking-widest uppercase border border-deep-forest/20 mb-2">
+                  DMP
+                </span>
+                <p className="text-sm font-bold text-deep-forest leading-snug">
+                  State Chairman, ANPMP Lagos
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {COMMITTEE.map((member) => (
               <div

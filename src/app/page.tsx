@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import CountdownTimer from "./components/CountdownTimer";
 import HeroBackgroundCarousel from "./components/HeroBackgroundCarousel";
@@ -442,6 +443,40 @@ export default function Home() {
               className="h-full w-full border-0"
             />
           </div>
+        </div>
+      </section>
+
+      {/* Organizing Committee / Chairman Courtesy */}
+      <section className="py-24 bg-deep-forest relative overflow-hidden">
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-5 pointer-events-none select-none">
+          <span className="material-symbols-outlined text-white" style={{ fontSize: "320px" }}>medical_services</span>
+        </div>
+        <div className="max-w-5xl mx-auto px-4 relative z-10 flex flex-col items-center text-center">
+          {/* Photo */}
+          <div className="relative w-44 h-44 rounded-full overflow-hidden border-4 border-fresh-green/40 shadow-2xl mb-6">
+            <Image
+              src="/dr-jonathan-esegine.jpeg"
+              alt="Dr. Jonathan Esegine"
+              fill
+              className="object-cover object-top"
+            />
+          </div>
+
+          <p className="text-white/50 text-xs font-mono uppercase tracking-widest mb-4">
+            Conference Platform Presented Courtesy of
+          </p>
+
+          <h3 className="font-serif text-white text-3xl md:text-4xl font-bold mb-3">
+            Dr. Jonathan Esegine
+          </h3>
+
+          <span className="inline-block py-1 px-4 bg-fresh-green/20 text-fresh-green text-xs font-bold tracking-widest uppercase border border-fresh-green/30 mb-3">
+            DMP
+          </span>
+
+          <p className="text-white/60 text-sm font-mono tracking-wide">
+            State Chairman, ANPMP Lagos
+          </p>
         </div>
       </section>
 
