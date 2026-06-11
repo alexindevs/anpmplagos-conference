@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getMyReceipts,
@@ -10,10 +10,13 @@ import {
   adminFailManualPayment,
   adminRefundPayment,
   adminReconcilePayment,
+  adminCreateExternalPayment,
+  getExternalPayments,
   formatKoboToNaira,
   ApiError,
   type ReceiptData,
   type ReceiptLineItem,
+  type ExternalPaymentRecord,
 } from "@/lib/api";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -520,6 +523,229 @@ function ReconcileModal({
   );
 }
 
+// ─── Manual Payment Modal ─────────────────────────────────────────────────────
+
+function ManualPaymentModal({
+  onClose,
+  onSaved,
+}: {
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const today = new Date().toISOString().slice(0, 10);
+  const [payerName, setPayerName] = useState("");
+  const [payerEmail, setPayerEmail] = useState("");
+  const [kind, setKind] = useState("");
+  const [amount, setAmount] = useState("");
+  const [date, setDate] = useState(today);
+  const [reference, setReference] = useState("");
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const kobo = nairaStringToKobo(amount);
+    if (kobo === null) {
+      setError("Enter a valid amount greater than ₦0");
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      await adminCreateExternalPayment({
+        payerName: payerName.trim(),
+        payerEmail: payerEmail.trim() || undefined,
+        kind: kind.trim(),
+        amountKobo: kobo,
+        paidAt: new Date(date).toISOString(),
+        reference: reference.trim() || undefined,
+        note: note.trim() || undefined,
+      });
+      setSuccess("Payment recorded successfully.");
+      onSaved();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Failed to record payment.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div
+      ref={backdropRef}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+      onClick={(e) => { if (e.target === backdropRef.current) onClose(); }}
+    >
+      <div className="w-full max-w-[80%] md:max-w-[50%] rounded-xl bg-white shadow-2xl dark:bg-background-dark-soft">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 dark:border-border-dark">
+          <div>
+            <h3 className="text-base font-black text-charcoal dark:text-white">Record External Payment</h3>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-white/50">Cash, bank transfers, or any payment collected outside the platform</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:text-white/40 dark:hover:bg-background-dark-softer dark:hover:text-white"
+          >
+            <span className="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4 p-5">
+          {/* Payer name */}
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-white/60">
+              Payer name
+            </label>
+            <input
+              type="text"
+              value={payerName}
+              onChange={(e) => setPayerName(e.target.value)}
+              required
+              placeholder="Dr. Adebayo Okafor"
+              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+            />
+          </div>
+
+          {/* Payer email (optional) */}
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-white/60">
+              Payer email <span className="font-normal normal-case text-slate-400">(optional)</span>
+            </label>
+            <input
+              type="email"
+              value={payerEmail}
+              onChange={(e) => setPayerEmail(e.target.value)}
+              placeholder="payer@example.com"
+              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+            />
+          </div>
+
+          {/* Kind */}
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-white/60">
+              Payment type
+            </label>
+            <input
+              type="text"
+              value={kind}
+              onChange={(e) => setKind(e.target.value)}
+              required
+              placeholder="e.g. Conference Dues, Sponsorship, Advert"
+              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+            />
+          </div>
+
+          {/* Amount + Date row */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-white/60">
+                Amount (₦)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                required
+                placeholder="0.00"
+                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-white/60">
+                Payment date
+              </label>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
+                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+              />
+            </div>
+          </div>
+
+          {/* External reference (optional) */}
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-white/60">
+              Reference <span className="font-normal normal-case text-slate-400">(optional)</span>
+            </label>
+            <input
+              type="text"
+              value={reference}
+              onChange={(e) => setReference(e.target.value)}
+              placeholder="Bank transfer ref, receipt number, etc."
+              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+            />
+          </div>
+
+          {/* Note (optional) */}
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-white/60">
+              Note <span className="font-normal normal-case text-slate-400">(optional)</span>
+            </label>
+            <textarea
+              rows={2}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Additional details about this payment"
+              className="w-full resize-none rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+            />
+          </div>
+
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700 dark:border-green-900/40 dark:bg-green-950/30 dark:text-green-300">
+              {success}
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 dark:border-border-dark dark:text-white/80 dark:hover:bg-background-dark-softer"
+            >
+              {success ? "Close" : "Cancel"}
+            </button>
+            {!success && (
+              <button
+                type="submit"
+                disabled={saving}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-2.5 text-sm font-bold text-white hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? (
+                  <>
+                    <span className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                    Saving…
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-[18px]">add_card</span>
+                    Record payment
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main list component ──────────────────────────────────────────────────────
 
 interface ReceiptListPageProps {
@@ -529,6 +755,10 @@ interface ReceiptListPageProps {
   accent?: "primary" | "secondary";
   /** If true, hides the page title header (useful when parent provides its own header) */
   hideHeader?: boolean;
+  /** When flipped to true by a parent, opens the manual payment modal */
+  triggerManualPayment?: boolean;
+  /** Called when the modal opened via triggerManualPayment closes */
+  onManualPaymentClose?: () => void;
 }
 
 const STATUS_FILTERS = [
@@ -539,11 +769,12 @@ const STATUS_FILTERS = [
   { value: "refunded", label: "Refunded" },
 ] as const;
 
-export function ReceiptListPage({ isAdmin = false, accent = "primary", hideHeader = false }: ReceiptListPageProps) {
+export function ReceiptListPage({ isAdmin = false, accent = "primary", hideHeader = false, triggerManualPayment, onManualPaymentClose }: ReceiptListPageProps) {
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState("");
   const [kindFilter, setKindFilter] = useState("");
   const [page, setPage] = useState(1);
+  const [externalPage, setExternalPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [verifyingRef, setVerifyingRef] = useState<string | null>(null);
   const [verifyError, setVerifyError] = useState<string | null>(null);
@@ -552,7 +783,13 @@ export function ReceiptListPage({ isAdmin = false, accent = "primary", hideHeade
   const [refundingRef, setRefundingRef] = useState<string | null>(null);
   const [refundNotice, setRefundNotice] = useState<{ kind: "success" | "warning" | "error"; message: string } | null>(null);
   const [reconcileReceipt, setReconcileReceipt] = useState<ReceiptData | null>(null);
+  const [showManualPayment, setShowManualPayment] = useState(false);
   const PAGE_SIZE = 20;
+
+  // Allow parent to open the modal via prop
+  useEffect(() => {
+    if (triggerManualPayment) setShowManualPayment(true);
+  }, [triggerManualPayment]);
 
   const handleVerifyPayment = async (reference: string) => {
     setVerifyingRef(reference);
@@ -634,6 +871,13 @@ export function ReceiptListPage({ isAdmin = false, accent = "primary", hideHeade
         kind: kindFilter || undefined,
       }),
     staleTime: 30_000,
+  });
+
+  const { data: externalData, isPending: externalPending } = useQuery({
+    queryKey: ["receipts", "external", externalPage],
+    queryFn: () => getExternalPayments({ page: externalPage, pageSize: PAGE_SIZE }),
+    staleTime: 30_000,
+    enabled: isAdmin,
   });
 
   const accentActive =
@@ -748,6 +992,19 @@ export function ReceiptListPage({ isAdmin = false, accent = "primary", hideHeade
             close
           </button>
         </div>
+      )}
+
+      {/* Manual payment modal */}
+      {isAdmin && showManualPayment && (
+        <ManualPaymentModal
+          onClose={() => {
+            setShowManualPayment(false);
+            onManualPaymentClose?.();
+          }}
+          onSaved={async () => {
+            await queryClient.invalidateQueries({ queryKey: ["receipts", "external"] });
+          }}
+        />
       )}
 
       {/* Reconcile modal */}
@@ -916,6 +1173,114 @@ export function ReceiptListPage({ isAdmin = false, accent = "primary", hideHeade
                   Next
                 </button>
               </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* External payment records section (admin only) */}
+      {isAdmin && (
+        <div className="mt-10">
+          <div className="mb-4">
+            <h2 className="text-lg font-black tracking-tight text-charcoal dark:text-white">External Payment Records</h2>
+            <p className="mt-0.5 text-sm text-slate-500 dark:text-white/50">
+              Manually recorded payments not tied to platform accounts. These are included in total revenue.
+            </p>
+          </div>
+
+          {externalPending && (
+            <div className="flex items-center gap-2 rounded-xl border border-primary/5 bg-white px-6 py-8 text-slate-400 shadow-sm dark:border-border-dark dark:bg-background-dark-soft dark:text-white/50">
+              <span className="material-symbols-outlined animate-spin">progress_activity</span>
+              Loading…
+            </div>
+          )}
+
+          {!externalPending && externalData && externalData.data.length === 0 && (
+            <div className="rounded-xl border border-primary/5 bg-white px-6 py-10 text-center shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
+              <span className="material-symbols-outlined mb-3 block text-4xl text-slate-300 dark:text-white/20">add_card</span>
+              <p className="font-bold text-slate-600 dark:text-white/70">No external records yet</p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-white/50">Use &ldquo;Record Payment&rdquo; above to add one.</p>
+            </div>
+          )}
+
+          {externalData && externalData.data.length > 0 && (
+            <div className="rounded-xl border border-primary/5 bg-white shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-primary/10 bg-primary/5 text-left dark:border-border-dark dark:bg-background-dark-softer">
+                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">Payer</th>
+                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">Type</th>
+                      <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">Amount</th>
+                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">Date</th>
+                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">Reference</th>
+                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">Note</th>
+                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-white/50">Recorded by</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-primary/5 dark:divide-border-dark">
+                    {externalData.data.map((rec: ExternalPaymentRecord) => (
+                      <tr key={rec.id} className="hover:bg-primary/5 dark:hover:bg-background-dark-softer">
+                        <td className="px-6 py-4">
+                          <p className="font-bold text-charcoal dark:text-white">{rec.payerName}</p>
+                          {rec.payerEmail && (
+                            <p className="text-xs text-slate-500 dark:text-white/50">{rec.payerEmail}</p>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="inline-block rounded-full border border-secondary/30 bg-secondary/10 px-2 py-0.5 text-xs font-bold text-secondary dark:border-secondary/20 dark:bg-secondary/10 dark:text-secondary/90">
+                            {rec.kind}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <p className="font-bold text-charcoal dark:text-white">{formatKoboToNaira(rec.amountKobo)}</p>
+                        </td>
+                        <td className="px-6 py-4 text-slate-500 dark:text-white/70">
+                          {new Date(rec.paidAt).toLocaleDateString("en-NG", { dateStyle: "medium" })}
+                        </td>
+                        <td className="px-6 py-4">
+                          {rec.reference ? (
+                            <span className="font-mono text-xs text-slate-600 dark:text-white/70">{rec.reference}</span>
+                          ) : (
+                            <span className="text-xs text-slate-300 dark:text-white/20">—</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-xs text-slate-500 dark:text-white/50">
+                          {rec.note ?? <span className="text-slate-300 dark:text-white/20">—</span>}
+                        </td>
+                        <td className="px-6 py-4 text-xs text-slate-500 dark:text-white/50">
+                          {rec.createdBy.name}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {externalData.pagination.totalPages > 1 && (
+                <div className="flex flex-col gap-3 border-t border-primary/10 bg-primary/5 px-4 py-4 dark:border-border-dark dark:bg-background-dark-softer sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                  <p className="text-sm text-slate-500 dark:text-white/50">
+                    {externalData.pagination.total} record{externalData.pagination.total !== 1 ? "s" : ""} ·{" "}
+                    Page {externalData.pagination.page} of {externalData.pagination.totalPages}
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      disabled={externalPage === 1}
+                      onClick={() => setExternalPage((p) => p - 1)}
+                      className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50 dark:border-border-dark dark:text-white/90 dark:hover:bg-background-dark-soft"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      disabled={externalPage === externalData.pagination.totalPages}
+                      onClick={() => setExternalPage((p) => p + 1)}
+                      className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50 dark:border-border-dark dark:text-white/90 dark:hover:bg-background-dark-soft"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

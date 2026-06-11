@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { deleteAdminAccount, logout } from "@/lib/auth-api";
+import { deleteAdminAccount, getAdminSiteSettings, setAdminPaymentMode, logout } from "@/lib/auth-api";
 import { useAuthStore } from "@/stores/auth-store";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
@@ -396,6 +397,83 @@ function DeleteAccountModal({
   );
 }
 
+// ─── Payment Mode Section ────────────────────────────────────────────────────
+
+function PaymentModeSection() {
+  const queryClient = useQueryClient();
+  const [saving, setSaving] = useState(false);
+
+  const { data, isPending, isError } = useQuery({
+    queryKey: ["admin", "site-settings"],
+    queryFn: getAdminSiteSettings,
+    staleTime: 60_000,
+  });
+
+  const currentMode = data?.paymentMode ?? "paystack";
+
+  const handleToggle = async () => {
+    const next = currentMode === "paystack" ? "manual" : "paystack";
+    setSaving(true);
+    try {
+      await setAdminPaymentMode(next);
+      await queryClient.invalidateQueries({ queryKey: ["admin", "site-settings"] });
+      toast.success(`Payment mode switched to ${next === "paystack" ? "Paystack (online)" : "Manual (bank transfer)"}.`);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to update payment mode.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-background-dark-soft">
+      <h3 className="text-sm font-bold text-charcoal dark:text-white">Payment mode</h3>
+      <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-medium text-charcoal dark:text-white">
+            {isPending ? "Loading…" : isError ? "Unavailable" : currentMode === "paystack" ? "Paystack (online)" : "Manual (bank transfer)"}
+          </p>
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-white/50">
+            {currentMode === "paystack"
+              ? "Users are redirected to Paystack to pay online. Switch to manual to collect bank-transfer payments instead."
+              : "Users receive bank account details and submit transfers for admin verification. Switch back to go online."}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-3">
+          {/* Mode badge */}
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold ${
+              currentMode === "paystack"
+                ? "border-green-200 bg-green-50 text-green-700 dark:border-green-700/40 dark:bg-green-900/20 dark:text-green-300"
+                : "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-700/40 dark:bg-amber-900/20 dark:text-amber-300"
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">
+              {currentMode === "paystack" ? "credit_card" : "account_balance"}
+            </span>
+            {currentMode === "paystack" ? "Online" : "Manual"}
+          </span>
+
+          {/* Toggle button */}
+          <button
+            type="button"
+            onClick={handleToggle}
+            disabled={saving || isPending || isError}
+            className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-charcoal transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+          >
+            {saving ? (
+              <span className="size-4 animate-spin rounded-full border-2 border-slate-300 border-t-charcoal dark:border-white/20 dark:border-t-white" />
+            ) : (
+              <span className="material-symbols-outlined text-[18px]">swap_horiz</span>
+            )}
+            {saving ? "Switching…" : `Switch to ${currentMode === "paystack" ? "manual" : "Paystack"}`}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
@@ -438,6 +516,9 @@ export default function SettingsPage() {
           </button>
         </div>
       </div>
+
+      {/* Payment Mode */}
+      <PaymentModeSection />
 
       {/* Danger Zone */}
       <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-5 dark:border-red-900/40 dark:bg-red-950/20">

@@ -1157,6 +1157,15 @@ export interface AdminRegistrationRow {
     spouseName: string | null;
     spouseEmail: string | null;
     spousePhone: string | null;
+    duesPaid: boolean;
+  };
+  attendeeDetails?: {
+    phone: string;
+    bio: string | null;
+    inMedicalField: boolean;
+    primarySpecialty: string | null;
+    hospitalOrg: string | null;
+    occupation: string | null;
   };
 }
 
@@ -1198,6 +1207,36 @@ export async function getAllAdminRegistrationsMerged(maxPages = 100): Promise<Ad
     if (page > maxPages) break;
   }
   return out;
+}
+
+export interface BulkImportJob {
+  id: string;
+  filename: string;
+  /** `pending` | `processing` | `done` | `failed` */
+  status: string;
+  total: number;
+  created: number;
+  skipped: number;
+  errors: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Upload a CSV file for bulk member import.
+ * Returns immediately with a `jobId`; poll `getBulkImportJob` for progress.
+ */
+export async function uploadBulkImport(file: File): Promise<{ jobId: string }> {
+  const fd = new FormData();
+  fd.append("file", file);
+  return apiFetch<{ jobId: string }>("/api/admin/registrations/bulk-import", {
+    method: "POST",
+    body: fd,
+  });
+}
+
+export async function getBulkImportJob(jobId: string): Promise<BulkImportJob> {
+  return apiFetch<BulkImportJob>(`/api/admin/registrations/bulk-import/${jobId}`);
 }
 
 /** `GET /api/gallery` / admin list — see GALLERY-API.md */
@@ -1461,13 +1500,19 @@ export async function downloadPrintableBadge(params: {
   role: string;
   qualifications: string;
   kind: ConferenceProfileKind;
-  pictureUrl?: string;
+  imageFile?: File | null;
 }): Promise<void> {
+  const fd = new FormData();
+  fd.append("name", params.name);
+  fd.append("role", params.role);
+  fd.append("qualifications", params.qualifications);
+  fd.append("kind", params.kind);
+  if (params.imageFile) fd.append("image", params.imageFile);
+
   const res = await fetch(`${API_BASE}/api/admin/badges/print-adhoc`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify(params),
+    body: fd,
   });
   if (!res.ok) throw new ApiError(res.status, "Badge generation failed");
   const blob = await res.blob();
@@ -2604,6 +2649,61 @@ export async function claimPaymentMade(reference: string): Promise<void> {
   });
 }
 
+export async function adminCreateDirectPayment(params: {
+  userEmail: string;
+  amountKobo: number;
+  paidAt: string;
+  note?: string;
+}): Promise<{ reference: string }> {
+  return apiFetch<{ reference: string }>("/api/payments/admin/create", {
+    method: "POST",
+    body: JSON.stringify(params),
+  });
+}
+
+export interface ExternalPaymentRecord {
+  id: string;
+  payerName: string;
+  payerEmail: string | null;
+  kind: string;
+  amountKobo: number;
+  paidAt: string;
+  reference: string | null;
+  note: string | null;
+  createdAt: string;
+  createdBy: { name: string };
+}
+
+export async function adminCreateExternalPayment(params: {
+  payerName: string;
+  payerEmail?: string;
+  kind: string;
+  amountKobo: number;
+  paidAt: string;
+  reference?: string;
+  note?: string;
+}): Promise<{ id: string }> {
+  return apiFetch<{ id: string }>("/api/payments/admin/external", {
+    method: "POST",
+    body: JSON.stringify(params),
+  });
+}
+
+export async function getExternalPayments(params?: {
+  page?: number;
+  pageSize?: number;
+}): Promise<{
+  data: ExternalPaymentRecord[];
+  pagination: { page: number; pageSize: number; total: number; totalPages: number };
+}> {
+  return apiFetch("/api/payments/admin/external", {
+    params: {
+      page: String(params?.page ?? 1),
+      pageSize: String(params?.pageSize ?? 20),
+    },
+  });
+}
+
 export async function adminVerifyManualPayment(reference: string): Promise<void> {
   await apiFetch<unknown>(`/api/payments/admin/${encodeURIComponent(reference)}/verify`, {
     method: "POST",
@@ -2832,6 +2932,7 @@ export interface MemberProfile {
   zone?: string | null;
   state?: string | null;
   avatar?: string | null;
+  duesPaid?: boolean;
   createdAt: string;
   updatedAt: string;
 }

@@ -17,7 +17,7 @@ export interface AuthUser {
   registrationStatus?: string;
   regType: "admin" | "member" | "attendee" | "company" | "exhibitor" | "sponsor";
   admin?: AuthAdmin;
-  member?: { fullName: string };
+  member?: { fullName: string; duesPaid?: boolean };
   attendee?: { fullName: string };
   /** Unified company account (preferred). */
   company?: { id: string; companyName: string };
@@ -204,5 +204,18 @@ export async function deleteAdminAccount(
   return authFetch<{ message: string }>("/api/admin/me", {
     method: "DELETE",
     body: JSON.stringify({ password, adminCode }),
+  });
+}
+
+export async function getAdminSiteSettings(): Promise<{ paymentMode: "paystack" | "manual" }> {
+  return authFetch<{ paymentMode: "paystack" | "manual" }>("/api/admin/settings");
+}
+
+export async function setAdminPaymentMode(
+  mode: "paystack" | "manual"
+): Promise<{ paymentMode: "paystack" | "manual"; message: string }> {
+  return authFetch("/api/admin/settings/payment-mode", {
+    method: "PATCH",
+    body: JSON.stringify({ mode }),
   });
 }
