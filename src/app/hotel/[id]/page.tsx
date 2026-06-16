@@ -228,7 +228,7 @@ export default function HotelPage() {
                       <p className="text-xs font-bold uppercase tracking-wider text-warm-gray mb-1">
                         Check-in Period
                       </p>
-                      <p className="text-charcoal font-bold">September 15–16, 2026</p>
+                      <p className="text-charcoal font-bold">September 16–17, 2026</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">

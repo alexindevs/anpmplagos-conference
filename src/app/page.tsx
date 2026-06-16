@@ -31,7 +31,7 @@ export default function Home() {
             <div className="flex flex-col gap-4 text-white/80 text-base font-mono mb-10">
               <div className="flex items-center gap-3">
                 <span className="material-symbols-outlined text-fresh-green">calendar_month</span>
-                <span>September 15–16, 2026</span>
+                <span>September 16–17, 2026</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="material-symbols-outlined text-fresh-green">location_on</span>
@@ -206,7 +206,7 @@ export default function Home() {
               </div>
               <div className="relative z-10">
                 <span className="inline-block px-3 py-1 bg-white/20 text-white text-xs font-mono font-bold mb-4 border border-white/30">
-                  SEPTEMBER 15
+                  SEPTEMBER 16
                 </span>
                 <h3 className="text-3xl md:text-4xl font-serif font-bold mb-6">Day 1</h3>
                 <h4 className="text-xl font-bold mb-4 text-white/90">
@@ -236,7 +236,7 @@ export default function Home() {
               </div>
               <div className="relative z-10">
                 <span className="inline-block px-3 py-1 bg-white/20 text-white text-xs font-mono font-bold mb-4 border border-white/30">
-                  SEPTEMBER 16
+                  SEPTEMBER 17
                 </span>
                 <h3 className="text-3xl md:text-4xl font-serif font-bold mb-6">Day 2</h3>
                 <h4 className="text-xl font-bold mb-4 text-white/90">
