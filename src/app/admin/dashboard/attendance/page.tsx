@@ -147,7 +147,7 @@ function ConferenceDaysSection({
   const [showForm, setShowForm] = useState(false);
   const [newLabel, setNewLabel] = useState("");
   const [newDate, setNewDate] = useState("");
-  const [newActive, setNewActive] = useState(false);
+  const [newActive, setNewActive] = useState(true);
   const [formError, setFormError] = useState<string | null>(null);
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -162,7 +162,6 @@ function ConferenceDaysSection({
       setShowForm(false);
       setNewLabel("");
       setNewDate("");
-      setNewActive(false);
       setFormError(null);
     },
     onError: (err) => {
@@ -246,15 +245,6 @@ function ConferenceDaysSection({
               />
             </div>
           </div>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={newActive}
-              onChange={(e) => setNewActive(e.target.checked)}
-              className="rounded"
-            />
-            <span>Activate immediately</span>
-          </label>
           <div className="flex flex-col-reverse gap-3 sm:flex-row">
             <button
               type="submit"

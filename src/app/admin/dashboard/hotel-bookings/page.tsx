@@ -250,7 +250,7 @@ export default function HotelBookingsPage() {
           </div>
         </div>
 
-        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <div className="rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
             <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">
               Total slots
@@ -272,6 +272,12 @@ export default function HotelBookingsPage() {
           <div className="rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
             <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">Booked</p>
             <p className="mt-1 text-2xl font-black text-primary">{stats?.booked ?? "—"}</p>
+          </div>
+          <div className="rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
+            <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">Revenue</p>
+            <p className="mt-1 text-2xl font-black text-secondary">
+              {stats?.revenueKobo != null ? formatKoboToNaira(stats.revenueKobo) : "—"}
+            </p>
           </div>
         </div>
 

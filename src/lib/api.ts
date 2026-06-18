@@ -1887,6 +1887,7 @@ export interface AdminHotelRoomStats {
   available: number;
   reserved: number;
   booked: number;
+  revenueKobo?: number;
 }
 
 export async function getAdminHotelRooms(params?: {

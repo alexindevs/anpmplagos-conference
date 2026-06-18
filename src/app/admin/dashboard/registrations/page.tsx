@@ -5,7 +5,6 @@ import { Fragment, useDeferredValue, useEffect, useMemo, useRef, useState } from
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ApiError,
-  getAdminRegistrations,
   getAdminRegistrationsSummary,
   getAllAdminRegistrationsMerged,
   uploadBulkImport,
@@ -22,7 +21,6 @@ const TYPE_FILTER_VALUES = [
   { value: "", label: "All types" },
   { value: "member", label: "Member" },
   { value: "attendee", label: "Attendee" },
-  { value: "company", label: "Company" },
   { value: "speaker", label: "Speaker" },
   { value: "special_guest", label: "Special guest" },
 ] as const;
@@ -89,10 +87,11 @@ export default function RegistrationsPage() {
   const [page, setPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [zoneFilter, setZoneFilter] = useState("");
+  const [stateFilter, setStateFilter] = useState("");
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search);
   const q = deferredSearch.trim().toLowerCase();
-  const hasFilters = Boolean(typeFilter || statusFilter || q);
 
   // ── Bulk import modal state ──────────────────────────────────────────────
   const [showImport, setShowImport] = useState(false);
@@ -100,76 +99,83 @@ export default function RegistrationsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [typeFilter, statusFilter, deferredSearch]);
+  }, [typeFilter, statusFilter, deferredSearch, zoneFilter, stateFilter]);
 
   const { data: summary, isPending: summaryPending, isError: summaryError } = useQuery({
     queryKey: ["admin", "registrations", "summary"],
     queryFn: getAdminRegistrationsSummary,
   });
 
-  const listQuery = useQuery({
-    queryKey: hasFilters
-      ? ["admin", "registrations", "filtered", typeFilter, statusFilter, q, page, PAGE_SIZE]
-      : ["admin", "registrations", "list", page, PAGE_SIZE],
-    queryFn: async (): Promise<AdminRegistrationsListResponse> => {
-      if (!hasFilters) {
-        return getAdminRegistrations({ page, limit: PAGE_SIZE });
-      }
-      const all = await getAllAdminRegistrationsMerged();
-      const filtered = all.filter((row) => {
-        if (typeFilter && row.type !== typeFilter) return false;
-        if (statusFilter && row.status !== statusFilter) return false;
-        if (q) {
-          const hay = `${row.name} ${row.email}`.toLowerCase();
-          if (!hay.includes(q)) return false;
-        }
-        return true;
-      });
-      const total = filtered.length;
-      const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE) || 1);
-      const safePage = Math.min(page, totalPages);
-      const start = (safePage - 1) * PAGE_SIZE;
-      return {
-        items: filtered.slice(start, start + PAGE_SIZE),
-        page: safePage,
-        limit: PAGE_SIZE,
-        total,
-        totalPages,
-      };
-    },
+  const allDataQuery = useQuery({
+    queryKey: ["admin", "registrations", "all"],
+    queryFn: (): Promise<AdminRegistrationRow[]> => getAllAdminRegistrationsMerged(),
+    staleTime: 30_000,
   });
 
-  const data = listQuery.data;
-  const isLoading = listQuery.isPending;
-  const isFetching = listQuery.isFetching;
-  const isError = listQuery.isError;
+  const uniqueZones = useMemo(() => {
+    if (!allDataQuery.data) return [];
+    const zones = new Set<string>();
+    for (const row of allDataQuery.data) {
+      if (row.memberDetails?.zone) zones.add(row.memberDetails.zone);
+    }
+    return [...zones].sort();
+  }, [allDataQuery.data]);
+
+  const uniqueStates = useMemo(() => {
+    if (!allDataQuery.data) return [];
+    const states = new Set<string>();
+    for (const row of allDataQuery.data) {
+      if (row.memberDetails?.state) states.add(row.memberDetails.state);
+    }
+    return [...states].sort();
+  }, [allDataQuery.data]);
+
+  const data = useMemo((): AdminRegistrationsListResponse => {
+    const all = allDataQuery.data ?? [];
+    const filtered = all.filter((row) => {
+      if (row.type === "company") return false;
+      if (typeFilter && row.type !== typeFilter) return false;
+      if (statusFilter && row.status !== statusFilter) return false;
+      if (zoneFilter && row.memberDetails?.zone !== zoneFilter) return false;
+      if (stateFilter && row.memberDetails?.state !== stateFilter) return false;
+      if (q) {
+        const hay = `${row.name} ${row.email}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    const total = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    const safePage = Math.min(page, Math.max(1, totalPages));
+    const start = (safePage - 1) * PAGE_SIZE;
+    return {
+      items: filtered.slice(start, start + PAGE_SIZE),
+      page: safePage,
+      limit: PAGE_SIZE,
+      total,
+      totalPages,
+    };
+  }, [allDataQuery.data, typeFilter, statusFilter, zoneFilter, stateFilter, q, page]);
+
+  const isLoading = allDataQuery.isPending;
+  const isFetching = allDataQuery.isFetching;
+  const isError = allDataQuery.isError;
   const listErr =
-    listQuery.error instanceof ApiError
-      ? (listQuery.error.body?.message as string) || listQuery.error.message
-      : listQuery.error instanceof Error
-        ? listQuery.error.message
+    allDataQuery.error instanceof ApiError
+      ? (allDataQuery.error.body?.message as string) || allDataQuery.error.message
+      : allDataQuery.error instanceof Error
+        ? allDataQuery.error.message
         : null;
 
-  const totalPages = Math.max(1, data?.totalPages ?? 1);
-  const displayPage = data?.page ?? Math.min(page, totalPages);
-
-  const reportPage = data?.page;
-
-  /** When the API clamps an out-of-range page, align local state after the request settles. */
-  useEffect(() => {
-    if (isFetching) return;
-    if (reportPage != null && reportPage !== page) setPage(reportPage);
-  }, [isFetching, reportPage, page]);
+  const totalPages = Math.max(1, data.totalPages);
+  const displayPage = data.page;
 
   const stats: { label: string; value: number; valueClass?: string }[] = useMemo(() => {
     if (!summary) return [];
     return [
-      { label: "Total registrations", value: summary.totalRegistrations },
+      { label: "Total registrations", value: summary.members + summary.attendees },
       { label: "Members", value: summary.members, valueClass: "text-primary" },
       { label: "Attendees", value: summary.attendees, valueClass: "text-secondary" },
-      { label: "Companies", value: summary.companies, valueClass: "text-secondary" },
-      { label: "Speakers", value: summary.speakers },
-      { label: "Special guests", value: summary.specialGuests },
     ];
   }, [summary]);
 
@@ -182,7 +188,7 @@ export default function RegistrationsPage() {
               Registrations
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              View conference registrations — members, attendees, companies, and other non-admin accounts
+              View conference registrations — members, attendees, and other non-admin accounts
             </p>
           </div>
           <button
@@ -244,19 +250,32 @@ export default function RegistrationsPage() {
                 </option>
               ))}
             </select>
+            <select
+              value={zoneFilter}
+              onChange={(e) => setZoneFilter(e.target.value)}
+              className="w-full min-w-0 cursor-pointer rounded-lg border-none bg-background-light px-4 py-2 text-sm focus:ring-2 focus:ring-primary/50 dark:bg-background-dark-softer dark:text-white sm:w-auto"
+            >
+              <option value="">All zones</option>
+              {uniqueZones.map((z) => (
+                <option key={z} value={z}>{z}</option>
+              ))}
+            </select>
+            <select
+              value={stateFilter}
+              onChange={(e) => setStateFilter(e.target.value)}
+              className="w-full min-w-0 cursor-pointer rounded-lg border-none bg-background-light px-4 py-2 text-sm focus:ring-2 focus:ring-primary/50 dark:bg-background-dark-softer dark:text-white sm:w-auto"
+            >
+              <option value="">All states</option>
+              {uniqueStates.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
           </div>
         </div>
 
-        {hasFilters && (
-          <p className="mb-4 text-xs text-slate-500 dark:text-white/45">
-            Search and type/status filters load the full list in the browser, then narrow results. Use clear filters for
-            faster paging on large datasets.
-          </p>
-        )}
-
-        <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {summaryPending
-            ? Array.from({ length: 6 }).map((_, i) => (
+            ? Array.from({ length: 3 }).map((_, i) => (
                 <div
                   key={i}
                   className="animate-pulse rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft"
@@ -322,7 +341,7 @@ export default function RegistrationsPage() {
                     </td>
                   </tr>
                 )}
-                {!isLoading && !isError && (data?.items?.length ?? 0) === 0 && (
+                {!isLoading && !isError && data.items.length === 0 && (
                   <tr>
                     <td className="px-6 py-10 text-center text-sm text-slate-500 dark:text-white/50" colSpan={5}>
                       No registrations match the current filters.
@@ -331,7 +350,7 @@ export default function RegistrationsPage() {
                 )}
                 {!isLoading &&
                   !isError &&
-                  (data?.items ?? []).map((row: AdminRegistrationRow) => (
+                  data.items.map((row: AdminRegistrationRow) => (
                     <RegistrationTableRow key={row.userId} row={row} />
                   ))}
               </tbody>
@@ -339,7 +358,7 @@ export default function RegistrationsPage() {
           </div>
           <div className="flex flex-col gap-3 bg-primary/5 px-6 py-4 dark:bg-background-dark-softer sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-slate-500 dark:text-white/50">
-              {data && data.total > 0 ? (
+              {data.total > 0 ? (
                 <>
                   Showing{" "}
                   <span className="font-bold text-slate-700 dark:text-white/70">
