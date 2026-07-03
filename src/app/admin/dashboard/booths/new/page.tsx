@@ -21,6 +21,7 @@ export default function AddNewBoothPage() {
   const [size, setSize] = useState("");
   const [priceNaira, setPriceNaira] = useState("");
   const [description, setDescription] = useState("");
+  const [quantity, setQuantity] = useState(1);
   const [reserveOnCreate, setReserveOnCreate] = useState(false);
   const [boothImageFile, setBoothImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
@@ -56,6 +57,7 @@ export default function AddNewBoothPage() {
         description: description || null,
         isReserved: reserveOnCreate || undefined,
         boothImageFile: boothImageFile ?? undefined,
+        quantity: quantity > 1 ? quantity : undefined,
       });
       void queryClient.invalidateQueries({ queryKey: ["admin", "booths"] });
       router.push("/admin/dashboard/booths");
@@ -188,6 +190,23 @@ export default function AddNewBoothPage() {
             </div>
             <div>
               <label
+                htmlFor="quantity"
+                className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
+              >
+                Number of slots
+              </label>
+              <input
+                id="quantity"
+                type="number"
+                min={1}
+                max={500}
+                value={quantity}
+                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-charcoal outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-slate-100"
+              />
+            </div>
+            <div>
+              <label
                 htmlFor="boothImage"
                 className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
               >
@@ -252,7 +271,7 @@ export default function AddNewBoothPage() {
               disabled={submitting}
               className="rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90 disabled:opacity-60"
             >
-              {submitting ? "Saving…" : "Create Booth"}
+              {submitting ? "Saving…" : quantity > 1 ? `Create ${quantity} Booths` : "Create Booth"}
             </button>
             <Link
               href="/admin/dashboard/booths"

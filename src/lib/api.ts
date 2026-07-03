@@ -370,6 +370,8 @@ export type AdminCreateBoothInput = {
   isReserved?: boolean;
   /** Optional image file; sent as multipart field `boothImage` (matches backend). */
   boothImageFile?: File | null;
+  /** Number of identical slots to create (1–500). Defaults to 1. */
+  quantity?: number;
 };
 
 const ADMIN_BOOTH_IMAGE_FIELD = "boothImage";
@@ -391,7 +393,7 @@ export async function adminUnreserveBooth(id: string): Promise<Booth> {
  * POST /api/admin/booths — multipart/form-data with field `boothImage` when a file is provided.
  * Text fields are always sent as form fields so multer-style handlers work consistently.
  */
-export async function adminCreateBooth(input: AdminCreateBoothInput): Promise<Booth> {
+export async function adminCreateBooth(input: AdminCreateBoothInput): Promise<Booth | { created: number }> {
   const fd = new FormData();
   fd.append("name", input.name);
   fd.append("description", input.description ?? "");
@@ -399,13 +401,16 @@ export async function adminCreateBooth(input: AdminCreateBoothInput): Promise<Bo
   fd.append("tier", input.tier);
   fd.append("price", String(Math.round(input.price)));
   fd.append("isReserved", input.isReserved ? "true" : "false");
+  if (input.quantity && input.quantity > 1) {
+    fd.append("quantity", String(input.quantity));
+  }
   if (input.boothImageFile) {
     fd.append(ADMIN_BOOTH_IMAGE_FIELD, input.boothImageFile);
   }
-  return apiFetch<Booth>("/api/admin/booths", {
+  return apiFetch<Booth | { created: number }>("/api/admin/booths", {
     method: "POST",
     body: fd,
-  });
+  }) as Promise<Booth | { created: number }>;
 }
 
 /** Parse user-entered naira (e.g. "50000" or "50,000") into kobo. */
@@ -981,6 +986,8 @@ export interface CreateAdminSessionSlotInput {
   /** Required by API for masterclasses and presentations; omit for panel slots if unused. */
   slotDuration?: SessionSlotDuration;
   conferenceDay?: ConferenceDay;
+  /** Number of identical slots to create (1–500). Defaults to 1. */
+  quantity?: number;
 }
 
 export type PatchAdminSessionSlotPayload = Partial<
@@ -1978,12 +1985,15 @@ export async function deleteAdminHotelRoom(id: string): Promise<void> {
 // —— Marketing: advert & branding slots — see FRONTEND-ADVERT-BRANDING-SLOTS.md
 
 /** Admin list: includes slot counters. */
+export type AdvertSlotType = "digital" | "brochure";
+
 export interface AdminAdvertSlot {
   id: string;
   title: string;
   image: string | null;
   price: number;
   description: string | null;
+  type: AdvertSlotType;
   totalSlots: number;
   availableSlots: number;
   isReserved: boolean;
@@ -2012,6 +2022,7 @@ export type CompanyMarketingSlot = Pick<
   | "image"
   | "price"
   | "description"
+  | "type"
   | "isReserved"
   | "totalSlots"
   | "availableSlots"
@@ -2064,6 +2075,7 @@ export interface CreateAdminAdvertSlotInput {
   isReserved?: boolean;
   /** Number of identical copies for sale. Defaults to 1. */
   totalSlots?: number;
+  type: AdvertSlotType;
   advertSlotImage: File;
 }
 
@@ -2074,6 +2086,7 @@ export async function postAdminAdvertSlot(input: CreateAdminAdvertSlotInput): Pr
   fd.append("description", input.description?.trim() ?? "");
   fd.append("isReserved", input.isReserved ? "true" : "false");
   fd.append("totalSlots", String(Math.max(1, Math.round(input.totalSlots ?? 1))));
+  fd.append("type", input.type);
   fd.append("advertSlotImage", input.advertSlotImage);
   return apiFetch<AdminAdvertSlot>("/api/admin/advert-slots", {
     method: "POST",

@@ -93,6 +93,7 @@ export function AdminSessionInventoryPage({ config }: { config: AdminSessionInve
   const [formConferenceDay, setFormConferenceDay] = useState<ConferenceDay>("day_1");
   const [formStatus, setFormStatus] = useState<SessionStatus>("draft");
   const [formReserved, setFormReserved] = useState(false);
+  const [formQuantity, setFormQuantity] = useState(1);
   const [formError, setFormError] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
@@ -111,6 +112,7 @@ export function AdminSessionInventoryPage({ config }: { config: AdminSessionInve
         title: formTitle.trim() || config.createDefaults.title,
         description: formDescription.trim() || config.createDefaults.description,
         priceInKobo,
+        quantity: formQuantity > 1 ? formQuantity : undefined,
       };
       if (collectSlotShape) {
         body.slotDuration = formSlotDuration;
@@ -168,6 +170,7 @@ export function AdminSessionInventoryPage({ config }: { config: AdminSessionInve
     setFormConferenceDay("day_1");
     setFormStatus("draft");
     setFormReserved(false);
+    setFormQuantity(1);
     setFormError(null);
     setModal({ mode: "create" });
   };
@@ -476,6 +479,19 @@ export function AdminSessionInventoryPage({ config }: { config: AdminSessionInve
                   className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
                 />
               </label>
+              {modal.mode === "create" && (
+                <label className="block text-xs font-bold uppercase text-slate-500 dark:text-white/50">
+                  Number of slots
+                  <input
+                    type="number"
+                    min={1}
+                    max={500}
+                    value={formQuantity}
+                    onChange={(e) => setFormQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
+                  />
+                </label>
+              )}
               {collectSlotShape && (
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <label className="block text-xs font-bold uppercase text-slate-500 dark:text-white/50">

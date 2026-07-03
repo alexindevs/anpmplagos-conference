@@ -89,6 +89,9 @@ function SlotsTable({
             <tr className="border-b border-primary/10 bg-primary/5 dark:border-border-dark dark:bg-background-dark-softer">
               <th className="px-4 py-3 text-xs font-bold uppercase text-slate-500 dark:text-white/50">Image</th>
               <th className="px-4 py-3 text-xs font-bold uppercase text-slate-500 dark:text-white/50">Title</th>
+              {kind === "advert" && (
+                <th className="px-4 py-3 text-xs font-bold uppercase text-slate-500 dark:text-white/50">Type</th>
+              )}
               <th className="px-4 py-3 text-xs font-bold uppercase text-slate-500 dark:text-white/50">Price</th>
               <th className="px-4 py-3 text-xs font-bold uppercase text-slate-500 dark:text-white/50">Slots</th>
               <th className="px-4 py-3 text-xs font-bold uppercase text-slate-500 dark:text-white/50">Status</th>
@@ -100,21 +103,21 @@ function SlotsTable({
           <tbody className="divide-y divide-primary/5 dark:divide-border-dark">
             {isLoading && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-sm text-slate-500 dark:text-white/50">
+                <td colSpan={kind === "advert" ? 7 : 6} className="px-4 py-8 text-sm text-slate-500 dark:text-white/50">
                   Loading…
                 </td>
               </tr>
             )}
             {isError && !isLoading && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-sm text-red-600 dark:text-red-400">
+                <td colSpan={kind === "advert" ? 7 : 6} className="px-4 py-8 text-sm text-red-600 dark:text-red-400">
                   Could not load {kind} slots.
                 </td>
               </tr>
             )}
             {!isLoading && !isError && rows.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-sm text-slate-500 dark:text-white/50">
+                <td colSpan={kind === "advert" ? 7 : 6} className="px-4 py-8 text-sm text-slate-500 dark:text-white/50">
                   No {kind} slots yet.
                 </td>
               </tr>
@@ -141,6 +144,11 @@ function SlotsTable({
                     <td className="px-4 py-3 text-sm font-medium text-charcoal dark:text-white/90 max-w-[200px]">
                       <span className="line-clamp-2">{row.title}</span>
                     </td>
+                    {kind === "advert" && (
+                      <td className="px-4 py-3 text-sm capitalize text-slate-600 dark:text-white/70 whitespace-nowrap">
+                        {"type" in row ? row.type : "—"}
+                      </td>
+                    )}
                     <td className="px-4 py-3 text-sm whitespace-nowrap">{formatKoboToNaira(row.price)}</td>
                     <td className="px-4 py-3 text-sm whitespace-nowrap">
                       <span className="font-mono font-bold text-charcoal dark:text-white">
@@ -576,6 +584,7 @@ export default function AdminMarketingPage() {
             description: payload.description,
             isReserved: payload.isReserved,
             totalSlots: payload.totalSlots,
+            type: payload.type ?? "brochure",
             advertSlotImage: payload.imageFile,
           })
         }

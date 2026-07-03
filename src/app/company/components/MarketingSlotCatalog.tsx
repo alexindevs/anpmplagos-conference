@@ -28,7 +28,14 @@ export function MarketingCatalogCard({
         )}
       </div>
       <div className="p-4 flex flex-col flex-1">
-        <h4 className="font-bold text-charcoal line-clamp-2">{slot.title}</h4>
+        <div className="flex items-start justify-between gap-2">
+          <h4 className="font-bold text-charcoal line-clamp-2">{slot.title}</h4>
+          {"type" in slot && slot.type && (
+            <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold capitalize text-slate-500 dark:bg-background-dark-softer dark:text-white/50">
+              {slot.type}
+            </span>
+          )}
+        </div>
         <p className="text-lg font-black text-primary mt-2">{formatKoboToNaira(slot.price)}</p>
         {slot.description?.trim() ? (
           <p className="text-xs text-slate-600 mt-2 line-clamp-3">{slot.description}</p>
@@ -76,6 +83,7 @@ export function MarketingMySlotsTable({ rows, emptyLabel }: { rows: CompanyMarke
           <tr className="border-b border-slate-200 bg-slate-50">
             <th className="py-2.5 px-3 text-xs font-bold uppercase text-slate-500 w-16" />
             <th className="py-2.5 px-3 text-xs font-bold uppercase text-slate-500">Title</th>
+            <th className="py-2.5 px-3 text-xs font-bold uppercase text-slate-500">Type</th>
             <th className="py-2.5 px-3 text-xs font-bold uppercase text-slate-500 text-right">Price</th>
           </tr>
         </thead>
@@ -92,6 +100,9 @@ export function MarketingMySlotsTable({ rows, emptyLabel }: { rows: CompanyMarke
                   )}
                 </td>
                 <td className="py-2.5 px-3 font-semibold text-charcoal">{slot.title}</td>
+                <td className="py-2.5 px-3 text-sm capitalize text-slate-500">
+                  {"type" in slot ? slot.type : "—"}
+                </td>
                 <td className="py-2.5 px-3 text-right font-bold text-primary whitespace-nowrap">
                   {formatKoboToNaira(slot.price)}
                 </td>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { parseNairaInputToKobo } from "@/lib/api";
+import { parseNairaInputToKobo, type AdvertSlotType } from "@/lib/api";
 
 export type MarketingSlotKind = "advert" | "branding";
 
@@ -17,6 +17,7 @@ type Props = {
     isReserved: boolean;
     totalSlots: number;
     imageFile: File;
+    type?: AdvertSlotType;
   }) => void;
 };
 
@@ -27,6 +28,7 @@ export function CreateMarketingSlotModal({ open, kind, isSubmitting, onClose, on
   const [isReserved, setIsReserved] = useState(false);
   const [totalSlots, setTotalSlots] = useState("1");
   const [file, setFile] = useState<File | null>(null);
+  const [advertType, setAdvertType] = useState<AdvertSlotType>("brochure");
   const [localError, setLocalError] = useState<string | null>(null);
 
   const reset = () => {
@@ -36,6 +38,7 @@ export function CreateMarketingSlotModal({ open, kind, isSubmitting, onClose, on
     setIsReserved(false);
     setTotalSlots("1");
     setFile(null);
+    setAdvertType("brochure");
     setLocalError(null);
   };
 
@@ -47,6 +50,7 @@ export function CreateMarketingSlotModal({ open, kind, isSubmitting, onClose, on
     setIsReserved(false);
     setTotalSlots("1");
     setFile(null);
+    setAdvertType("brochure");
     setLocalError(null);
   }, [open, kind]);
 
@@ -91,6 +95,7 @@ export function CreateMarketingSlotModal({ open, kind, isSubmitting, onClose, on
       isReserved,
       totalSlots: slots,
       imageFile: file,
+      type: kind === "advert" ? advertType : undefined,
     });
   };
 
@@ -154,6 +159,29 @@ export function CreateMarketingSlotModal({ open, kind, isSubmitting, onClose, on
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
             />
           </div>
+          {kind === "advert" && (
+            <div>
+              <label className="block text-xs font-bold uppercase text-slate-500 dark:text-white/50 mb-1">
+                Advert type
+              </label>
+              <div className="flex gap-2">
+                {(["brochure", "digital"] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setAdvertType(t)}
+                    className={`flex-1 rounded-lg border px-3 py-2 text-sm font-bold capitalize transition-colors ${
+                      advertType === t
+                        ? "border-primary bg-primary text-white"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-primary/40 dark:border-border-dark dark:bg-background-dark dark:text-white"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <div>
             <label className="block text-xs font-bold uppercase text-slate-500 dark:text-white/50 mb-1">
               Image (JPEG/PNG, max 5MB)

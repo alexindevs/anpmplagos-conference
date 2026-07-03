@@ -7,7 +7,7 @@ import { MarketingCatalogCard, MarketingMySlotsTable } from "@/app/company/compo
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { conferenceCartQueryKey, useAddConferenceCartItem } from "@/hooks/use-conference-cart";
 import { getCompanyNameFromAuthUser, isCompanyRegType } from "@/lib/auth-api";
-import { ApiError, formatKoboToNaira, getAvailableAdvertSlots, getMyAdvertSlots } from "@/lib/api";
+import { ApiError, formatKoboToNaira, getAvailableAdvertSlots, getMyAdvertSlots, type AdvertSlotType } from "@/lib/api";
 import { useClientPagination } from "@/hooks/use-shop-client-pagination";
 
 const Q_ADV_AVAIL = ["advert-slots", "available"] as const;
@@ -48,10 +48,17 @@ function PaginationBar({
   );
 }
 
+const TYPE_FILTERS: { value: AdvertSlotType | "all"; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "brochure", label: "Brochure" },
+  { value: "digital", label: "Digital" },
+];
+
 export function AdvertsTab() {
   const queryClient = useQueryClient();
   const { data: user, isPending: userLoading } = useAuthSession();
   const [addingId, setAddingId] = useState<string | null>(null);
+  const [typeFilter, setTypeFilter] = useState<AdvertSlotType | "all">("all");
   const isCompany = !!user && isCompanyRegType(user);
   const companyName = getCompanyNameFromAuthUser(user ?? undefined);
   const addCartMutation = useAddConferenceCartItem();
@@ -69,7 +76,8 @@ export function AdvertsTab() {
     staleTime: 60 * 1000,
   });
 
-  const catalog = advertAvail.data ?? [];
+  const allSlots = advertAvail.data ?? [];
+  const catalog = typeFilter === "all" ? allSlots : allSlots.filter((s) => s.type === typeFilter);
   const { page, setPage, totalPages, pageItems } = useClientPagination(catalog);
 
   const cartError =
@@ -146,7 +154,25 @@ export function AdvertsTab() {
       </div>
 
       <div>
-        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3">Available Brochure Advert Slots</h3>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Available advert slots</h3>
+          <div className="flex gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 dark:border-border-dark dark:bg-background-dark-soft">
+            {TYPE_FILTERS.map((f) => (
+              <button
+                key={f.value}
+                type="button"
+                onClick={() => { setTypeFilter(f.value); setPage(1); }}
+                className={`rounded-md px-3 py-1 text-xs font-bold capitalize transition-colors ${
+                  typeFilter === f.value
+                    ? "bg-white text-secondary shadow-sm dark:bg-background-dark dark:text-secondary"
+                    : "text-slate-500 hover:text-slate-700 dark:text-white/50 dark:hover:text-white/80"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
         {advertAvail.isError && (
           <p className="text-sm text-red-600 mb-2">
             {advertAvail.error instanceof Error ? advertAvail.error.message : "Could not load catalog."}
