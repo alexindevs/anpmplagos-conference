@@ -1997,6 +1997,7 @@ export interface AdminAdvertSlot {
   totalSlots: number;
   availableSlots: number;
   isReserved: boolean;
+  linkedPlanCount: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -2010,6 +2011,7 @@ export interface AdminBrandingSlot {
   totalSlots: number;
   availableSlots: number;
   isReserved: boolean;
+  linkedPlanCount: number;
   createdAt?: string;
   updatedAt?: string;
 }

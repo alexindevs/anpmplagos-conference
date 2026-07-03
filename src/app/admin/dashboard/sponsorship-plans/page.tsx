@@ -313,7 +313,7 @@ function SlotSection({
     slot: allSlots.find((s) => s.id === id),
   }));
   const availableToAdd = allSlots.filter(
-    (s) => !selectedIds.includes(s.id) && s.availableSlots === s.totalSlots && !s.isReserved,
+    (s) => !selectedIds.includes(s.id) && !s.isReserved && s.availableSlots > 0,
   );
   const slotsDirty =
     isEditing &&
