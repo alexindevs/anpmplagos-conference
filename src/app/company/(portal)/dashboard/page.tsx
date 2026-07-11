@@ -15,7 +15,6 @@ import {
   getExhibitorRepresentatives,
   deleteExhibitorProduct,
   deleteExhibitorRepresentative,
-  getExhibitorProfile,
 } from "@/lib/api";
 import { boothPrimaryName, boothSizeTierLine } from "@/lib/booth-display";
 import { exhibitorBoothPaymentResultKey } from "@/lib/company-local-storage";
@@ -136,26 +135,6 @@ export default function ExhibitorDashboardPage() {
     enabled: Boolean(companyId) && !meLoading && hasAssignedBooth,
     retry: false,
   });
-
-  // Fetch company profile to check tier
-  const {
-    data: profile,
-    isPending: profileLoading,
-  } = useQuery({
-    queryKey: ["company", "profile", "tier-check"],
-    queryFn: getExhibitorProfile,
-    enabled: Boolean(companyId) && !meLoading,
-    retry: false,
-  });
-
-  // Determine if user can add products (Gold tier or higher)
-  const canAddProducts = useMemo(() => {
-    if (!profile) return false;
-    const tier = (profile.highestSponsorshipTier ?? profile.effectiveDisplayTier ?? profile.tier ?? "").trim().toLowerCase();
-    if (!tier || tier === "default") return false;
-    // Allowed tiers: headliner, platinum, gold
-    return ["headliner", "platinum", "gold"].includes(tier);
-  }, [profile]);
 
   const deleteProductMutation = useMutation({
     mutationFn: deleteExhibitorProduct,
@@ -356,25 +335,25 @@ export default function ExhibitorDashboardPage() {
                 <button
                   type="button"
                   onClick={() => dispatchModal({ type: "OPEN_ADD_PRODUCT" })}
-                  disabled={!canAddProducts}
+                  disabled={!hasAssignedBooth}
                   className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 transition-colors ${
-                    canAddProducts
+                    hasAssignedBooth
                       ? "border-secondary/20 bg-slate-50 hover:bg-secondary/10"
                       : "border-slate-200 bg-slate-100 cursor-not-allowed opacity-60"
                   }`}
-                  title={canAddProducts ? "Add a new product" : "Upgrade to Gold or higher tier to add products"}
+                  title={hasAssignedBooth ? "Add a new product" : "A booth assignment is required to add products"}
                 >
-                  <span className={`flex items-center gap-2 font-bold ${canAddProducts ? "text-slate-700" : "text-slate-500"}`}>
-                    <span className={`material-symbols-outlined ${canAddProducts ? "text-secondary" : "text-slate-400"}`}>add</span>
+                  <span className={`flex items-center gap-2 font-bold ${hasAssignedBooth ? "text-slate-700" : "text-slate-500"}`}>
+                    <span className={`material-symbols-outlined ${hasAssignedBooth ? "text-secondary" : "text-slate-400"}`}>add</span>
                     Add New Product
                   </span>
-                  <span className={`material-symbols-outlined ${canAddProducts ? "text-slate-400" : "text-slate-300"}`}>
-                    {canAddProducts ? "chevron_right" : "lock"}
+                  <span className={`material-symbols-outlined ${hasAssignedBooth ? "text-slate-400" : "text-slate-300"}`}>
+                    {hasAssignedBooth ? "chevron_right" : "lock"}
                   </span>
                 </button>
-                {!canAddProducts && !profileLoading && (
+                {!hasAssignedBooth && !dashboardLoading && (
                   <p className="text-xs text-amber-600 mt-2">
-                    Product creation is available for Gold tier sponsors and above.
+                    Product creation is available once your booth is confirmed.
                   </p>
                 )}
                 <button
