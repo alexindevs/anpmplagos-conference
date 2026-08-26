@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useState } from "react";
 
-const TARGET = new Date("2026-09-25T00:00:00").getTime();
+const TARGET = new Date("2026-09-16T00:00:00").getTime();
 
 function getRemaining(now: number) {
   const diff = Math.max(0, TARGET - now);
