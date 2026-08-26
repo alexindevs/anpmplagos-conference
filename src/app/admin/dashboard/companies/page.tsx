@@ -335,6 +335,9 @@ export default function AdminCompaniesPage() {
 
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const withPurchases = (data?.items ?? []).filter(
+    (r) => r.booth != null || (r.highestSponsorshipTier != null && r.highestSponsorshipTier !== ""),
+  ).length;
 
   return (
     <>
@@ -388,11 +391,9 @@ export default function AdminCompaniesPage() {
           </div>
           <div className="rounded-xl border border-primary/5 bg-white p-4 shadow-sm dark:border-border-dark dark:bg-background-dark-soft">
             <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">
-              Page
+              With booth or sponsorship
             </p>
-            <p className="mt-1 text-2xl font-black text-secondary">
-              {page} / {totalPages}
-            </p>
+            <p className="mt-1 text-2xl font-black text-secondary">{withPurchases}</p>
           </div>
         </div>
 

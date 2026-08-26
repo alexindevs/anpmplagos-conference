@@ -30,6 +30,7 @@ const TIER_DISPLAY: Record<string, { label: string; color: string; bg: string }>
 };
 
 const SLOT_DURATION_LABEL: Record<string, string> = {
+  m5: "5 min",
   m10: "10 min",
   m15: "15 min",
   m20: "20 min",

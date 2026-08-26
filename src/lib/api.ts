@@ -1709,7 +1709,7 @@ export async function getPublicSponsors(): Promise<PublicSponsor[]> {
 }
 
 /** Bundle session shape (must be paired on create/update). See ADMIN-SPONSORSHIP-BUNDLES.md */
-export type SessionSlotDuration = "m10" | "m15" | "m20" | "m30" | "m45" | "h1" | "h2";
+export type SessionSlotDuration = "m5" | "m10" | "m15" | "m20" | "m30" | "m45" | "h1" | "h2";
 export type ConferenceDay = "day_1" | "day_2";
 /** Booth tier assigned at checkout when plan is purchased — not the same as display `tier`. */
 export type SponsorshipBundleBoothTier = "gold" | "platinum" | "headliner";

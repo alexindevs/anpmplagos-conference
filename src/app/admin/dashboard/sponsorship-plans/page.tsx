@@ -41,6 +41,7 @@ const BUNDLE_BOOTH_OPTIONS: { value: "" | SponsorshipBundleBoothTier; label: str
 ];
 
 const DURATION_OPTIONS: { value: SessionSlotDuration; label: string }[] = [
+  { value: "m5", label: "5 min" },
   { value: "m10", label: "10 min" },
   { value: "m15", label: "15 min" },
   { value: "m20", label: "20 min" },
