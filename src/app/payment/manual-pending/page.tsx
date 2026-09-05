@@ -1,8 +1,8 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { claimPaymentMade, ApiError } from "@/lib/api";
+import { useRouter, useSearchParams } from "next/navigation";
+import { claimPaymentMade, cancelPayment, ApiError } from "@/lib/api";
 
 const BANK_NAME = process.env.NEXT_PUBLIC_BANK_NAME ?? "";
 const ACCOUNT_NUMBER = process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER ?? "";
@@ -17,10 +17,12 @@ export default function ManualPaymentPendingPage() {
 }
 
 function ManualPaymentPendingContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const reference = searchParams.get("reference") ?? "";
   const [claimed, setClaimed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleClaim = async () => {
@@ -34,6 +36,21 @@ function ManualPaymentPendingContent() {
       setError(e instanceof ApiError ? e.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!reference) return;
+    if (!confirm("Cancel this payment? Your cart items will remain available so you can check out again.")) return;
+    setCancelling(true);
+    setError(null);
+    try {
+      await cancelPayment(reference);
+      router.push("/");
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Something went wrong. Please try again.");
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -112,7 +129,7 @@ function ManualPaymentPendingContent() {
               )}
               <button
                 onClick={handleClaim}
-                disabled={loading || !reference}
+                disabled={loading || cancelling || !reference}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading && (
@@ -123,6 +140,13 @@ function ManualPaymentPendingContent() {
               <p className="text-center text-xs text-slate-400 dark:text-white/30">
                 Only click after you&rsquo;ve completed the bank transfer.
               </p>
+              <button
+                onClick={handleCancel}
+                disabled={loading || cancelling || !reference}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-6 py-3 text-sm font-bold text-slate-500 transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 dark:border-border-dark dark:text-white/50"
+              >
+                {cancelling ? "Cancelling…" : "Cancel this payment"}
+              </button>
             </div>
           )}
         </div>
