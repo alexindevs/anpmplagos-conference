@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { useCheckoutHotelCart, useHotelCart, useRemoveHotelCartItem } from "@/hooks/use-hotel-cart";
-import { ApiError, formatKoboToNaira, parseKoboField, type CartItem } from "@/lib/api";
+import { ApiError, cancelPayment, formatKoboToNaira, parseKoboField, type CartItem } from "@/lib/api";
 
 function lineTitle(item: CartItem): string {
   if (item.type === "hotel_room" && item.hotelRoom) {
@@ -34,6 +34,8 @@ export default function HotelCartPage() {
   const cartQuery = useHotelCart(!!user);
   const removeMutation = useRemoveHotelCartItem();
   const checkoutMutation = useCheckoutHotelCart();
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userLoading && !user) {
@@ -73,6 +75,24 @@ export default function HotelCartPage() {
       : checkoutMutation.error
         ? "Checkout could not be started."
         : null;
+  const blockingReference =
+    checkoutMutation.error instanceof ApiError
+      ? (checkoutMutation.error.body?.reference as string | undefined | null)
+      : null;
+
+  const handleCancelInProgressCheckout = async () => {
+    if (!blockingReference) return;
+    setCancelling(true);
+    setCancelError(null);
+    try {
+      await cancelPayment(blockingReference);
+      checkoutMutation.reset();
+    } catch (e) {
+      setCancelError(e instanceof ApiError ? e.message : "Could not cancel that checkout. Please try again.");
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   return (
     <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
@@ -96,7 +116,18 @@ export default function HotelCartPage() {
 
       {checkoutErr && (
         <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          {checkoutErr}
+          <p>{checkoutErr}</p>
+          {cancelError && <p className="mt-2 text-red-700">{cancelError}</p>}
+          {blockingReference && (
+            <button
+              type="button"
+              onClick={handleCancelInProgressCheckout}
+              disabled={cancelling}
+              className="mt-3 inline-flex items-center gap-2 rounded-lg border border-amber-300 bg-white px-4 py-2 text-xs font-bold text-amber-900 hover:bg-amber-100 disabled:opacity-50"
+            >
+              {cancelling ? "Cancelling…" : "Cancel checkout in progress"}
+            </button>
+          )}
         </div>
       )}
 
