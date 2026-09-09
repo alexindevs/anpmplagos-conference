@@ -42,3 +42,6 @@ next-env.d.ts
 *.md
 !README.md
 .cursorrules
+
+# Claude Code local settings
+.claude/

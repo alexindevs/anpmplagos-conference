@@ -3624,23 +3624,34 @@ export interface MyVote {
   candidate: { name: string; avatar: string | null };
 }
 
-export interface AuditVote {
+export interface AuditEvent {
   id: string;
-  votedAt: string;
-  voterEmail: string;
-  voterName: string;
-  positionTitle: string;
-  candidateName: string;
-  ipAddress: string | null;
-  userAgent: string | null;
+  type: string;
+  line: string;
+  createdAt: string;
 }
 
-export interface AuditPage {
-  data: AuditVote[];
+export interface AuditFeedPage {
+  data: AuditEvent[];
   total: number;
   page: number;
   limit: number;
   totalPages: number;
+}
+
+export const RESET_CONFIRMATION_PHRASE =
+  "reset everything - this cannot be reversed";
+
+export interface ResetVotingDataInput {
+  resetCandidates: boolean;
+  resetVotes: boolean;
+  resetPositions: boolean;
+  resetVotingState: boolean;
+  confirmationPhrase: string;
+}
+
+export interface ResetVotingDataResult {
+  reset: string[];
 }
 
 export interface CastVoteInput {
@@ -3718,18 +3729,35 @@ export async function getElectionsResults(): Promise<PositionResult[]> {
 export async function getAdminElectionsAudit(params: {
   page: number;
   limit: number;
-}): Promise<AuditPage> {
+}): Promise<AuditFeedPage> {
   return apiFetch("/api/admin/elections/audit", {
     params: { page: String(params.page), limit: String(params.limit) },
   });
 }
 
-export function downloadElectionsAuditCsv() {
+export function downloadElectionsAuditTxt() {
   const url = new URL(
     "/api/admin/elections/audit/export",
     process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"
   );
   window.open(url.toString(), "_blank");
+}
+
+export function downloadPreResetSnapshot() {
+  const url = new URL(
+    "/api/admin/elections/reset/export",
+    process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"
+  );
+  window.open(url.toString(), "_blank");
+}
+
+export async function resetVotingData(
+  body: ResetVotingDataInput
+): Promise<ResetVotingDataResult> {
+  return apiFetch("/api/admin/elections/reset", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }
 
 export async function listAdminPositions(): Promise<AdminPositionWithCounts[]> {

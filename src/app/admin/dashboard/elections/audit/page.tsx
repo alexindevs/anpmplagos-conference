@@ -3,9 +3,22 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getAdminElectionsAudit, downloadElectionsAuditCsv } from "@/lib/api";
+import { getAdminElectionsAudit, downloadElectionsAuditTxt } from "@/lib/api";
 
 const PAGE_SIZE = 50;
+
+const TYPE_ICON: Record<string, string> = {
+  VOTE_CAST: "how_to_vote",
+  CANDIDATE_CREATED: "person_add",
+  CANDIDATE_UPDATED: "edit",
+  CANDIDATE_DELETED: "person_remove",
+  POSITION_CREATED: "playlist_add",
+  POSITION_UPDATED: "edit_note",
+  POSITION_DELETED: "playlist_remove",
+  VOTING_OPENED: "lock_open",
+  VOTING_CLOSED: "lock",
+  DATA_RESET: "warning",
+};
 
 export default function ElectionsAuditPage() {
   const [page, setPage] = useState(1);
@@ -29,109 +42,68 @@ export default function ElectionsAuditPage() {
               <span>Audit Log</span>
             </div>
             <h1 className="mt-1 text-2xl font-bold text-charcoal dark:text-white">
-              Vote Audit Log
+              Election Audit Log
             </h1>
-            {data && (
-              <p className="text-xs text-slate-500 dark:text-white/50">
-                {data.total.toLocaleString()} total vote
-                {data.total !== 1 ? "s" : ""}
-              </p>
-            )}
+            <p className="text-xs text-slate-500 dark:text-white/50">
+              {data
+                ? `${data.total.toLocaleString()} event${data.total !== 1 ? "s" : ""} — `
+                : ""}
+              permanent record of votes cast and admin actions. Never cleared, not even by a data reset.
+            </p>
           </div>
 
           <button
             type="button"
-            onClick={downloadElectionsAuditCsv}
+            onClick={downloadElectionsAuditTxt}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm font-bold text-primary hover:bg-primary/10 sm:w-auto"
           >
             <span className="material-symbols-outlined text-[18px]">
               download
             </span>
-            Export CSV
+            Export .txt
           </button>
         </div>
 
-        {/* Table */}
-        <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-white/10">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-b border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/5">
-                <tr>
-                  {[
-                    "Voter",
-                    "Position",
-                    "Candidate",
-                    "Voted At",
-                    "IP Address",
-                    "User Agent",
-                  ].map((h) => (
-                    <th
-                      key={h}
-                      className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-white/40"
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                {isLoading ? (
-                  [...Array(10)].map((_, i) => (
-                    <tr key={i}>
-                      {[...Array(6)].map((_, j) => (
-                        <td key={j} className="px-4 py-3">
-                          <div className="h-4 animate-pulse rounded bg-slate-100 dark:bg-white/5" />
-                        </td>
-                      ))}
-                    </tr>
-                  ))
-                ) : !data?.data.length ? (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="py-12 text-center text-slate-400 dark:text-white/30"
-                    >
-                      No votes recorded yet.
-                    </td>
-                  </tr>
-                ) : (
-                  data.data.map((vote) => (
-                    <tr
-                      key={vote.id}
-                      className="bg-white hover:bg-slate-50 dark:bg-transparent dark:hover:bg-white/5"
-                    >
-                      <td className="px-4 py-3">
-                        <p className="font-semibold text-charcoal dark:text-white">
-                          {vote.voterName}
-                        </p>
-                        <p className="text-xs text-slate-400 dark:text-white/30">
-                          {vote.voterEmail}
-                        </p>
-                      </td>
-                      <td className="px-4 py-3 text-slate-600 dark:text-white/70">
-                        {vote.positionTitle}
-                      </td>
-                      <td className="px-4 py-3 font-semibold text-charcoal dark:text-white">
-                        {vote.candidateName}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500 dark:text-white/50">
-                        {new Date(vote.votedAt).toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3 font-mono text-xs text-slate-400 dark:text-white/30">
-                        {vote.ipAddress ?? "—"}
-                      </td>
-                      <td
-                        className="truncate px-4 py-3 text-xs text-slate-400 dark:text-white/30"
-                        title={vote.userAgent ?? undefined}
-                      >
-                        {vote.userAgent ?? "—"}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+        {/* Log feed */}
+        <div className="rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-background-dark-soft">
+          {isLoading ? (
+            <div className="space-y-2 p-4">
+              {[...Array(10)].map((_, i) => (
+                <div
+                  key={i}
+                  className="h-5 animate-pulse rounded bg-slate-100 dark:bg-white/5"
+                />
+              ))}
+            </div>
+          ) : !data?.data.length ? (
+            <p className="py-12 text-center text-sm text-slate-400 dark:text-white/30">
+              No activity recorded yet.
+            </p>
+          ) : (
+            <div className="divide-y divide-slate-100 font-mono text-xs dark:divide-white/5">
+              {data.data.map((event) => (
+                <div
+                  key={event.id}
+                  className="flex items-start gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5"
+                >
+                  <span
+                    className={`material-symbols-outlined mt-0.5 shrink-0 text-[16px] ${
+                      event.type === "DATA_RESET"
+                        ? "text-red-500"
+                        : event.type === "VOTE_CAST"
+                        ? "text-green-500"
+                        : "text-slate-400 dark:text-white/40"
+                    }`}
+                  >
+                    {TYPE_ICON[event.type] ?? "info"}
+                  </span>
+                  <span className="whitespace-pre-wrap break-all text-slate-700 dark:text-white/70">
+                    {event.line}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Pagination */}
