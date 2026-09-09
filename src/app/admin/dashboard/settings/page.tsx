@@ -8,6 +8,47 @@ import { useAuthStore } from "@/stores/auth-store";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
+async function downloadMemberBadgesPdf(): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/event-pass/admin/member-badges/pdf`, {
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { message?: string }).message ?? `Download failed (${res.status})`);
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const ts = new Date().toISOString().slice(0, 10);
+  a.download = `member-badges-${ts}.pdf`;
+  a.href = url;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function downloadStaffBadgesPdf(
+  entries: { role: string; count: number }[]
+): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/admin/badges/staff-pdf`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ entries }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { message?: string }).message ?? `Download failed (${res.status})`);
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const ts = new Date().toISOString().slice(0, 10);
+  a.download = `staff-badges-${ts}.pdf`;
+  a.href = url;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // ─── Export helpers ─────────────────────────────────────────────────────────
 
 type ExportDataset =
@@ -397,6 +438,175 @@ function DeleteAccountModal({
   );
 }
 
+// ─── Staff Badges Modal ──────────────────────────────────────────────────────
+
+function StaffBadgesModal({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
+  const [entries, setEntries] = useState<{ role: string; count: number }[]>([
+    { role: "", count: 1 },
+  ]);
+  const [downloading, setDownloading] = useState(false);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    setEntries([{ role: "", count: 1 }]);
+    setDownloading(false);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !downloading) onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [open, downloading, onClose]);
+
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (downloading) return;
+    if (e.target === overlayRef.current) onClose();
+  };
+
+  const updateEntry = (i: number, field: "role" | "count", value: string | number) => {
+    setEntries((prev) =>
+      prev.map((e, idx) => (idx === i ? { ...e, [field]: value } : e))
+    );
+  };
+
+  const addEntry = () => setEntries((prev) => [...prev, { role: "", count: 1 }]);
+  const removeEntry = (i: number) =>
+    setEntries((prev) => prev.filter((_, idx) => idx !== i));
+
+  const handleGenerate = async () => {
+    const valid = entries.filter((e) => e.role.trim() && e.count > 0);
+    if (!valid.length) {
+      toast.error("Add at least one role with a count.");
+      return;
+    }
+    setDownloading(true);
+    try {
+      await downloadStaffBadgesPdf(valid.map((e) => ({ role: e.role.trim(), count: e.count })));
+      toast.success("Staff badges PDF downloaded.");
+      onClose();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Download failed.");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div
+      ref={overlayRef}
+      onClick={handleOverlayClick}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+    >
+      <div className="w-full max-w-md rounded-2xl bg-white shadow-xl dark:bg-background-dark-soft">
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 dark:border-white/10">
+          <h3 className="text-base font-bold text-charcoal dark:text-white">
+            Print staff badges
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={downloading}
+            className="flex size-7 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-charcoal disabled:opacity-50 dark:hover:bg-white/10 dark:hover:text-white"
+          >
+            <span className="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+
+        <div className="p-6">
+          <p className="mb-4 text-xs text-slate-500 dark:text-white/50">
+            Enter each staff role and how many badges to print. Badges have the
+            role text centered in large print — no QR or photo.
+          </p>
+
+          <div className="space-y-2">
+            {entries.map((entry, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={entry.role}
+                  onChange={(e) => updateEntry(i, "role", e.target.value)}
+                  disabled={downloading}
+                  placeholder="Role (e.g. STAFF)"
+                  className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-charcoal uppercase placeholder-slate-400 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                />
+                <input
+                  type="number"
+                  min={1}
+                  max={500}
+                  value={entry.count}
+                  onChange={(e) => updateEntry(i, "count", Math.max(1, parseInt(e.target.value) || 1))}
+                  disabled={downloading}
+                  className="w-20 rounded-lg border border-slate-200 bg-white px-3 py-2 text-center text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                />
+                {entries.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeEntry(i)}
+                    disabled={downloading}
+                    className="flex size-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-50 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={addEntry}
+            disabled={downloading}
+            className="mt-3 flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:text-primary/80 disabled:opacity-50"
+          >
+            <span className="material-symbols-outlined text-[16px]">add</span>
+            Add role
+          </button>
+
+          <div className="mt-5 flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={downloading}
+              className="flex-1 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleGenerate}
+              disabled={downloading}
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-60"
+            >
+              {downloading ? (
+                <span className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              ) : (
+                <span className="material-symbols-outlined text-[18px]">print</span>
+              )}
+              {downloading ? "Generating…" : "Generate PDF"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Payment Mode Section ────────────────────────────────────────────────────
 
 function PaymentModeSection() {
@@ -479,6 +689,8 @@ function PaymentModeSection() {
 export default function SettingsPage() {
   const [exportOpen, setExportOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [badgesDownloading, setBadgesDownloading] = useState(false);
+  const [staffBadgesOpen, setStaffBadgesOpen] = useState(false);
 
   return (
     <div className="min-h-full bg-background-light p-4 dark:bg-background-dark sm:p-6 lg:p-8">
@@ -517,6 +729,69 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {/* Print Member Badges */}
+      <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-background-dark-soft">
+        <h3 className="text-sm font-bold text-charcoal dark:text-white">
+          Print member badges
+        </h3>
+        <div className="mt-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-medium text-charcoal dark:text-white">
+              Download all member badges as PDF
+            </p>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-white/50">
+              Generates a printable PDF with 4 badges per A4 page (cut to size).
+            </p>
+          </div>
+          <button
+            type="button"
+            disabled={badgesDownloading}
+            onClick={async () => {
+              setBadgesDownloading(true);
+              try {
+                await downloadMemberBadgesPdf();
+                toast.success("Member badges PDF downloaded.");
+              } catch (err: unknown) {
+                toast.error(err instanceof Error ? err.message : "Download failed.");
+              } finally {
+                setBadgesDownloading(false);
+              }
+            }}
+            className="mt-3 flex shrink-0 items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-60 sm:mt-0"
+          >
+            <span className="material-symbols-outlined text-[18px]">
+              {badgesDownloading ? "hourglass_empty" : "print"}
+            </span>
+            {badgesDownloading ? "Generating…" : "Print badges"}
+          </button>
+        </div>
+      </div>
+
+      {/* Print Staff Badges */}
+      <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-background-dark-soft">
+        <h3 className="text-sm font-bold text-charcoal dark:text-white">
+          Print staff badges
+        </h3>
+        <div className="mt-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-medium text-charcoal dark:text-white">
+              Download staff role badges as PDF
+            </p>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-white/50">
+              Generates printable badges with large role text — no QR or photo. 4 badges per A4 page.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setStaffBadgesOpen(true)}
+            className="mt-3 flex shrink-0 items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90 sm:mt-0"
+          >
+            <span className="material-symbols-outlined text-[18px]">badge</span>
+            Print staff badges
+          </button>
+        </div>
+      </div>
+
       {/* Payment Mode */}
       <PaymentModeSection />
 
@@ -545,6 +820,7 @@ export default function SettingsPage() {
       </div>
 
       <ExportModal open={exportOpen} onClose={() => setExportOpen(false)} />
+      <StaffBadgesModal open={staffBadgesOpen} onClose={() => setStaffBadgesOpen(false)} />
       <DeleteAccountModal
         open={deleteOpen}
         onClose={() => setDeleteOpen(false)}
