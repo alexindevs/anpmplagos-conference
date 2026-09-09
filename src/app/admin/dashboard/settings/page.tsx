@@ -368,7 +368,7 @@ function DeleteAccountModal({
       onClick={handleOverlayClick}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
     >
-      <div className="w-full rounded-2xl bg-white p-6 shadow-xl dark:bg-background-dark-soft">
+      <div className="w-full max-w-[80%] rounded-2xl bg-white p-6 shadow-xl dark:bg-background-dark-soft md:max-w-[50%]">
         <div className="mb-4 flex items-start gap-3">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
             <span className="material-symbols-outlined text-[20px] text-red-600 dark:text-red-400">
@@ -513,7 +513,7 @@ function StaffBadgesModal({
       onClick={handleOverlayClick}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
     >
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-xl dark:bg-background-dark-soft">
+      <div className="w-full max-w-[80%] rounded-2xl bg-white shadow-xl dark:bg-background-dark-soft md:max-w-[50%]">
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 dark:border-white/10">
           <h3 className="text-base font-bold text-charcoal dark:text-white">
             Print staff badges
