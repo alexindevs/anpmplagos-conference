@@ -387,6 +387,7 @@ export default function AdminGuestsPage() {
               onFileChange={onFileChange}
               requireImage
               existingImageUrl={null}
+              showHighlightType={tab === "speakers"}
             />
             <div className="mt-6 flex flex-wrap gap-3">
               <button
@@ -426,6 +427,7 @@ export default function AdminGuestsPage() {
               onFileChange={onFileChange}
               requireImage={false}
               existingImageUrl={editing.profilePicture}
+              showHighlightType={tab === "speakers"}
             />
             <div className="mt-6 flex flex-wrap gap-3">
               <button
@@ -720,6 +722,7 @@ function ProfileFormFields({
   onFileChange,
   requireImage,
   existingImageUrl,
+  showHighlightType = true,
 }: {
   form: typeof emptyForm;
   setForm: React.Dispatch<React.SetStateAction<typeof emptyForm>>;
@@ -729,6 +732,7 @@ function ProfileFormFields({
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   requireImage: boolean;
   existingImageUrl: string | null;
+  showHighlightType?: boolean;
 }) {
   const field =
     "w-full rounded-lg border border-slate-200 bg-background-light px-3 py-2 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white";
@@ -802,21 +806,23 @@ function ProfileFormFields({
           required
         />
       </label>
-      <label>
-        <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">
-          Highlight
-        </span>
-        <select
-          className={field}
-          value={form.highlightType}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, highlightType: e.target.value as ConferenceHighlightType }))
-          }
-        >
-          <option value="keynote">Keynote</option>
-          <option value="featured">Featured</option>
-        </select>
-      </label>
+      {showHighlightType && (
+        <label>
+          <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">
+            Highlight
+          </span>
+          <select
+            className={field}
+            value={form.highlightType}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, highlightType: e.target.value as ConferenceHighlightType }))
+            }
+          >
+            <option value="keynote">Keynote</option>
+            <option value="featured">Featured</option>
+          </select>
+        </label>
+      )}
       <label className="md:col-span-2">
         <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-white/50">
           Bio (description)
