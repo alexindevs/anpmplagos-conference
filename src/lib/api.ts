@@ -413,6 +413,28 @@ export async function adminCreateBooth(input: AdminCreateBoothInput): Promise<Bo
   }) as Promise<Booth | { created: number }>;
 }
 
+export type AdminUpdateBoothInput = {
+  name?: string;
+  description?: string;
+  size?: string;
+  price?: number;
+  tier?: BoothTier;
+  isReserved?: boolean;
+  boothImageFile?: File | null;
+};
+
+export async function adminUpdateBooth(id: string, input: AdminUpdateBoothInput): Promise<Booth> {
+  const fd = new FormData();
+  if (input.name !== undefined) fd.append("name", input.name);
+  if (input.description !== undefined) fd.append("description", input.description);
+  if (input.size !== undefined) fd.append("size", input.size);
+  if (input.price !== undefined) fd.append("price", String(Math.round(input.price)));
+  if (input.tier !== undefined) fd.append("tier", input.tier);
+  if (input.isReserved !== undefined) fd.append("isReserved", input.isReserved ? "true" : "false");
+  if (input.boothImageFile) fd.append(ADMIN_BOOTH_IMAGE_FIELD, input.boothImageFile);
+  return apiFetch<Booth>(`/api/admin/booths/${id}`, { method: "PATCH", body: fd });
+}
+
 /** Parse user-entered naira (e.g. "50000" or "50,000") into kobo. */
 export function parseNairaInputToKobo(raw: string): number | null {
   const cleaned = raw.replace(/[^\d.]/g, "");

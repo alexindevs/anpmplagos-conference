@@ -6,12 +6,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   adminReserveBooth,
   adminUnreserveBooth,
+  adminUpdateBooth,
   ApiError,
+  BOOTH_TIER_OPTIONS,
   formatKoboToNaira,
   getAdminBooths,
   getAdminCompanies,
+  parseNairaInputToKobo,
   postAdminCompanyBooth,
   type Booth,
+  type BoothTier,
   type CompanySummary,
 } from "@/lib/api";
 
@@ -51,6 +55,13 @@ export default function BoothManagementPage() {
   const [reservingId, setReservingId] = useState<string | null>(null);
   const [assignModalBoothId, setAssignModalBoothId] = useState<string | null>(null);
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
+  const [editBooth, setEditBooth] = useState<Booth | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editSize, setEditSize] = useState("");
+  const [editPrice, setEditPrice] = useState("");
+  const [editTier, setEditTier] = useState<BoothTier | "">("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editImageFile, setEditImageFile] = useState<File | null>(null);
 
   const {
     data: booths = [],
@@ -129,6 +140,39 @@ export default function BoothManagementPage() {
     mutationFn: (companyId: string) => postAdminCompanyBooth(companyId, null),
     onSuccess: invalidateBoothData,
   });
+
+  const editMutation = useMutation({
+    mutationFn: ({ id, ...input }: Parameters<typeof adminUpdateBooth>[1] & { id: string }) =>
+      adminUpdateBooth(id, input),
+    onSuccess: () => {
+      setEditBooth(null);
+      invalidateBoothData();
+    },
+  });
+
+  const openEditModal = (booth: Booth) => {
+    setEditBooth(booth);
+    setEditName(booth.name ?? "");
+    setEditSize(booth.size ?? "");
+    setEditPrice(booth.price != null ? String(booth.price / 100) : "");
+    setEditTier((booth.tier as BoothTier | "") ?? "");
+    setEditDescription(booth.description ?? "");
+    setEditImageFile(null);
+  };
+
+  const confirmEdit = () => {
+    if (!editBooth) return;
+    const priceKobo = parseNairaInputToKobo(editPrice);
+    editMutation.mutate({
+      id: editBooth.id,
+      name: editName.trim() || undefined,
+      size: editSize.trim() || undefined,
+      price: priceKobo ?? undefined,
+      tier: editTier || undefined,
+      description: editDescription,
+      boothImageFile: editImageFile,
+    });
+  };
 
   const reserveError =
     reserveMutation.isError && reserveMutation.error instanceof ApiError
@@ -264,6 +308,12 @@ export default function BoothManagementPage() {
           </div>
         )}
 
+        {editMutation.isError && (
+          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
+            {editMutation.error instanceof ApiError ? editMutation.error.message : "Could not update booth."}
+          </div>
+        )}
+
         {(assignError || unassignError) && (
           <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
             {assignError || unassignError}
@@ -350,6 +400,13 @@ export default function BoothManagementPage() {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex flex-wrap items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => openEditModal(row)}
+                              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition-all hover:border-primary/30 hover:text-primary dark:border-border-dark dark:bg-background-dark-soft dark:text-slate-200"
+                            >
+                              Edit
+                            </button>
                             {canReserve && (
                               <button
                                 type="button"
@@ -415,6 +472,107 @@ export default function BoothManagementPage() {
           )}
         </div>
       </div>
+
+      {editBooth && (
+        <div
+          className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="edit-booth-title"
+        >
+          <div className="w-full max-w-[90%] md:max-w-[560px] rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-border-dark dark:bg-background-dark-soft">
+            <h3 id="edit-booth-title" className="text-lg font-black text-charcoal dark:text-white">
+              Edit booth
+            </h3>
+            <p className="mt-1 text-sm text-slate-500 dark:text-white/50">
+              Only filled fields will be updated.
+            </p>
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Name</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Size</label>
+                <input
+                  type="text"
+                  value={editSize}
+                  onChange={(e) => setEditSize(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Price (₦)</label>
+                <input
+                  type="text"
+                  value={editPrice}
+                  onChange={(e) => setEditPrice(e.target.value)}
+                  placeholder="e.g. 150000"
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Tier</label>
+                <select
+                  value={editTier}
+                  onChange={(e) => setEditTier(e.target.value as BoothTier | "")}
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+                >
+                  <option value="">— no change —</option>
+                  {BOOTH_TIER_OPTIONS.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Description</label>
+                <textarea
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  rows={2}
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-border-dark dark:bg-background-dark-softer dark:text-white"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Replace image <span className="font-normal text-slate-400">(optional)</span>
+                </label>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  onChange={(e) => setEditImageFile(e.target.files?.[0] ?? null)}
+                  className="mt-1 w-full text-sm text-slate-600 dark:text-white/70"
+                />
+                {editBooth.boothImage && !editImageFile && (
+                  <p className="mt-1 text-xs text-slate-400">Current image will be kept.</p>
+                )}
+              </div>
+            </div>
+            <div className="mt-6 flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 dark:border-border-dark dark:text-slate-200 dark:hover:bg-background-dark-softer"
+                onClick={() => setEditBooth(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={editMutation.isPending}
+                onClick={confirmEdit}
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white hover:bg-primary/90 disabled:opacity-50"
+              >
+                {editMutation.isPending ? "Saving…" : "Save changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {assignModalBoothId && (
         <div
