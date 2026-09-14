@@ -3150,6 +3150,8 @@ export interface ConferencePassData {
   bio: string;
   qrCodeUrl: string;
   viewCount: number;
+  spouseBadgeUrl?: string | null;
+  spouseName?: string | null;
 }
 
 export interface HotelBooking {
@@ -3169,6 +3171,9 @@ export interface EventPassSummary {
     qrCodeUrl: string;
     viewCount: number;
     createdAt: string;
+    /** Present only for members with a registered spouse — same QR link as the member's own pass, labeled SSG. */
+    spouseBadgeUrl?: string | null;
+    spouseName?: string | null;
   } | null;
   hotelPass: {
     qrCodeUrl: string;
@@ -3176,10 +3181,13 @@ export interface EventPassSummary {
   } | null;
 }
 
-export async function generateConferencePass(userId: string): Promise<{ qrCodeUrl: string }> {
-  return apiFetch<{ qrCodeUrl: string }>(`/api/event-pass/conference/${userId}`, {
-    method: "POST",
-  });
+export async function generateConferencePass(
+  userId: string,
+): Promise<{ qrCodeUrl: string; spouseBadgeUrl?: string | null }> {
+  return apiFetch<{ qrCodeUrl: string; spouseBadgeUrl?: string | null }>(
+    `/api/event-pass/conference/${userId}`,
+    { method: "POST" },
+  );
 }
 
 export async function getConferencePassData(userId: string): Promise<ConferencePassData> {

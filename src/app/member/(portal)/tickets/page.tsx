@@ -257,6 +257,30 @@ export default function MemberTicketsPage() {
                         <span className="material-symbols-outlined">download</span>
                       </button>
 
+                      {eventPasses?.conferencePass?.spouseBadgeUrl && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleDownloadTicket(
+                              eventPasses.conferencePass?.spouseBadgeUrl ?? undefined,
+                              `spouse-ticket-${eventPasses.conferencePass?.spouseName || fullName}.png`,
+                            )
+                          }
+                          className="flex w-full flex-col gap-3 p-4 bg-gradient-to-r from-emerald-600 to-teal-700 text-white font-bold shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 sm:flex-row sm:items-center sm:justify-between"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="material-symbols-outlined text-2xl">favorite</span>
+                            <div className="text-left">
+                              <p className="font-black">Spouse Ticket</p>
+                              <p className="text-xs text-white/80 font-normal">
+                                {eventPasses.conferencePass.spouseName || "Plus-One"} · Same QR as your ticket
+                              </p>
+                            </div>
+                          </div>
+                          <span className="material-symbols-outlined">download</span>
+                        </button>
+                      )}
+
                       {eventPasses?.hotelPass && (
                         <div className="space-y-2">
                           <button
