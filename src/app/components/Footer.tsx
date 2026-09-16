@@ -18,7 +18,8 @@ function companyLogoUrl(c: PublicCompany): string {
 export default async function Footer() {
   let footerLogos: PublicCompany[] = [];
   try {
-    const all = await getPublicCompanies();
+    // TEMP: caching disabled while debugging stale company data — remove `cache: "no-store"` after
+    const all = await getPublicCompanies({ cache: "no-store" });
     footerLogos = all
       .filter((c) => companyLogoUrl(c))
       .slice(0, FOOTER_LOGO_SLOTS);

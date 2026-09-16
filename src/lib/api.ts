@@ -1598,8 +1598,8 @@ export interface PublicSponsor {
   booth?: Booth | null;
 }
 
-export async function getPublicCompanies(): Promise<PublicCompany[]> {
-  return apiFetch<PublicCompany[]>("/api/companies/public");
+export async function getPublicCompanies(options?: RequestInit): Promise<PublicCompany[]> {
+  return apiFetch<PublicCompany[]>("/api/companies/public", options);
 }
 
 /** @deprecated Use `getPublicCompanies` */

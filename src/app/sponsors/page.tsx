@@ -132,7 +132,7 @@ function partitionSponsorSections(companies: PublicCompany[]) {
   return { valued, defaultRest, sortedTierKeys, byTier };
 }
 
-export const revalidate = 120;
+export const revalidate = 0; // TEMP: caching disabled while debugging stale company data — restore to 120 after
 
 export default async function SponsorsPage() {
   let companies: PublicCompany[] = [];
