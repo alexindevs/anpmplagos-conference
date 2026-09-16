@@ -3,7 +3,7 @@ import Link from "next/link";
 import { companyLogoImageUrl } from "@/lib/company-branding";
 import { getPublicCompanies, type PublicCompany } from "@/lib/api";
 
-const FOOTER_LOGO_SLOTS = 4;
+const FOOTER_LOGO_SLOTS = 8;
 
 function companySlug(c: PublicCompany): string {
   const s = c.slug?.trim();
