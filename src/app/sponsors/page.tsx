@@ -1,13 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { companyLogoImageUrl } from "@/lib/company-branding";
-import { getPublicCompanies, type PublicCompany } from "@/lib/api";
+import { getPublicCompanies, getRecentPublicReviews, type PublicCompany } from "@/lib/api";
 import {
   isOurValuedSponsorRow,
   normalizedPublicSponsorTierKey,
   publicSponsorTierBadgeLabel,
   publicSponsorTierSectionTitle,
 } from "@/lib/public-sponsor-display";
+import { ReviewCard } from "./components/ReviewCard";
 
 export const metadata = {
   title: "Our Sponsors - ANPMP Lagos Conference",
@@ -144,6 +145,8 @@ export default async function SponsorsPage() {
     loadError =
       e instanceof Error ? e.message : "Unable to load companies. Please try again later.";
   }
+
+  const recentReviews = await getRecentPublicReviews(3).catch(() => []);
 
   const { valued, defaultRest, sortedTierKeys, byTier } = partitionSponsorSections(companies);
 
@@ -323,6 +326,36 @@ export default async function SponsorsPage() {
             <p className="mt-2 text-sm text-[#896165]">
               Check back soon — profiles appear here once companies complete registration.
             </p>
+          </div>
+        </section>
+      ) : null}
+
+      {recentReviews.length > 0 ? (
+        <section className="w-full border-t border-gray-100 bg-mint-whisper/40 px-4 py-16 sm:px-10">
+          <div className="mx-auto max-w-[1280px]">
+            <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h2 className="text-3xl font-black tracking-tight text-charcoal">
+                  What our sponsors say
+                </h2>
+                <p className="mt-2 text-sm text-[#896165]">
+                  Hear directly from companies who sponsored ANPMP Lagos.
+                </p>
+              </div>
+              <Link
+                href="/sponsors/reviews"
+                className="inline-flex items-center gap-2 rounded-xl border border-secondary/30 px-4 py-2.5 text-sm font-bold text-secondary transition-colors hover:bg-secondary/10"
+              >
+                See all reviews
+                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {recentReviews.map((review) => (
+                <ReviewCard key={review.id} review={review} />
+              ))}
+            </div>
           </div>
         </section>
       ) : null}

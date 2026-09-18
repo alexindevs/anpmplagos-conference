@@ -192,6 +192,34 @@ export interface UpdateRepresentativeInput {
   phone?: string;
 }
 
+export type ReviewStatus = "pending" | "approved" | "rejected";
+
+/** A company's review of the conference */
+export interface CompanyReview {
+  id: string;
+  companyId: string;
+  rating: number;
+  comment: string;
+  status: ReviewStatus;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+/** Review with the company summary joined in (public/admin listings) */
+export interface CompanyReviewWithCompany extends CompanyReview {
+  company: {
+    companyName: string;
+    logo?: string | null;
+    slug: string;
+  };
+}
+
+/** Submit a conference review */
+export interface CreateReviewInput {
+  rating: number;
+  comment: string;
+}
+
 /** Create product */
 export interface CreateProductInput {
   name: string;
@@ -274,6 +302,19 @@ export async function updateExhibitorRepresentative(
 export async function deleteExhibitorRepresentative(id: string): Promise<{ success: boolean }> {
   return apiFetch<{ success: boolean }>(`/api/companies/me/representatives/${id}`, {
     method: "DELETE",
+  });
+}
+
+/** GET /api/companies/me/reviews */
+export async function getExhibitorReviews(): Promise<CompanyReview[]> {
+  return apiFetch<CompanyReview[]>("/api/companies/me/reviews");
+}
+
+/** POST /api/companies/me/reviews */
+export async function createExhibitorReview(input: CreateReviewInput): Promise<CompanyReview> {
+  return apiFetch<CompanyReview>("/api/companies/me/reviews", {
+    method: "POST",
+    body: JSON.stringify(input),
   });
 }
 
@@ -884,6 +925,28 @@ export async function getAdminSponsors(query: AdminSponsorsQuery = {}): Promise<
 export async function getAdminSponsor(id: string): Promise<SponsorDetail> {
   const raw = await apiFetch<unknown>(`/api/admin/companies/${id}`);
   return normalizeExhibitorDetailFromWire(raw) as SponsorDetail;
+}
+
+/** GET /api/admin/companies/reviews - all conference reviews, paginated, optionally filtered by status */
+export async function getAdminCompanyReviews(
+  query: { page?: number; pageSize?: number; status?: ReviewStatus } = {}
+): Promise<PaginatedResponse<CompanyReviewWithCompany>> {
+  const params: Record<string, string> = {};
+  if (query.page) params.page = String(query.page);
+  if (query.pageSize) params.pageSize = String(query.pageSize);
+  if (query.status) params.status = query.status;
+  return apiFetch<PaginatedResponse<CompanyReviewWithCompany>>("/api/admin/companies/reviews", { params });
+}
+
+/** PATCH /api/admin/companies/reviews/:id/status - approve or reject a review */
+export async function updateAdminCompanyReviewStatus(
+  id: string,
+  status: ReviewStatus
+): Promise<CompanyReview> {
+  return apiFetch<CompanyReview>(`/api/admin/companies/reviews/${id}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
 }
 
 export async function patchAdminSponsor(
@@ -1600,6 +1663,31 @@ export interface PublicSponsor {
 
 export async function getPublicCompanies(options?: RequestInit): Promise<PublicCompany[]> {
   return apiFetch<PublicCompany[]>("/api/companies/public", options);
+}
+
+/** GET /api/companies/reviews/recent - most recent approved sponsor reviews */
+export async function getRecentPublicReviews(
+  limit = 3,
+  options?: RequestInit
+): Promise<CompanyReviewWithCompany[]> {
+  return apiFetch<CompanyReviewWithCompany[]>("/api/companies/reviews/recent", {
+    ...options,
+    params: { limit: String(limit) },
+  });
+}
+
+/** GET /api/companies/reviews - approved sponsor reviews, paginated */
+export async function getPublicReviews(
+  query: { page?: number; pageSize?: number } = {},
+  options?: RequestInit
+): Promise<PaginatedResponse<CompanyReviewWithCompany>> {
+  const params: Record<string, string> = {};
+  if (query.page) params.page = String(query.page);
+  if (query.pageSize) params.pageSize = String(query.pageSize);
+  return apiFetch<PaginatedResponse<CompanyReviewWithCompany>>("/api/companies/reviews", {
+    ...options,
+    params,
+  });
 }
 
 /** @deprecated Use `getPublicCompanies` */

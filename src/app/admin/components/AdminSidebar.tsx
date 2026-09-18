@@ -15,6 +15,7 @@ const NAV = [
   { href: "/admin/dashboard/guests", label: "Guests", icon: "record_voice_over" },
   { href: "/admin/dashboard/hotel-bookings", label: "Hotel Bookings", icon: "night_shelter" },
   { href: "/admin/dashboard/companies", label: "Companies", icon: "business" },
+  { href: "/admin/dashboard/reviews", label: "Reviews", icon: "rate_review" },
   { href: "/admin/dashboard/sponsorship-plans", label: "Sponsorship Plans", icon: "workspace_premium" },
   { href: "/admin/dashboard/marketing", label: "Marketing", icon: "campaign" },
   { href: "/admin/dashboard/media", label: "Media", icon: "perm_media" },
