@@ -7,6 +7,7 @@ export interface ExhibitorDashboardModals {
   addRepresentative: boolean;
   editRepresentative: string | null;
   addReview: boolean;
+  editReview: string | null;
 }
 
 export const initialModalsState: ExhibitorDashboardModals = {
@@ -16,6 +17,7 @@ export const initialModalsState: ExhibitorDashboardModals = {
   addRepresentative: false,
   editRepresentative: null,
   addReview: false,
+  editReview: null,
 };
 
 export type ModalAction =
@@ -31,6 +33,8 @@ export type ModalAction =
   | { type: "CLOSE_EDIT_REPRESENTATIVE" }
   | { type: "OPEN_ADD_REVIEW" }
   | { type: "CLOSE_ADD_REVIEW" }
+  | { type: "OPEN_EDIT_REVIEW"; reviewId: string }
+  | { type: "CLOSE_EDIT_REVIEW" }
   | { type: "CLOSE_ALL" };
 
 export function modalsReducer(state: ExhibitorDashboardModals, action: ModalAction): ExhibitorDashboardModals {
@@ -59,6 +63,10 @@ export function modalsReducer(state: ExhibitorDashboardModals, action: ModalActi
       return { ...initialModalsState, addReview: true };
     case "CLOSE_ADD_REVIEW":
       return { ...state, addReview: false };
+    case "OPEN_EDIT_REVIEW":
+      return { ...initialModalsState, editReview: action.reviewId };
+    case "CLOSE_EDIT_REVIEW":
+      return { ...state, editReview: null };
     case "CLOSE_ALL":
       return initialModalsState;
     default:

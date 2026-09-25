@@ -16,6 +16,7 @@ import {
   getExhibitorReviews,
   deleteExhibitorProduct,
   deleteExhibitorRepresentative,
+  deleteExhibitorReview,
 } from "@/lib/api";
 import { boothPrimaryName, boothSizeTierLine } from "@/lib/booth-display";
 import { exhibitorBoothPaymentResultKey } from "@/lib/company-local-storage";
@@ -168,6 +169,13 @@ export default function ExhibitorDashboardPage() {
     mutationFn: deleteExhibitorRepresentative,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["company", "representatives"] });
+    },
+  });
+
+  const deleteReviewMutation = useMutation({
+    mutationFn: deleteExhibitorReview,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["company", "reviews"] });
     },
   });
 
@@ -589,41 +597,90 @@ export default function ExhibitorDashboardPage() {
             </div>
           ) : (
             <ul className="divide-y divide-secondary/15">
-              {reviews.map((review) => (
-                <li key={review.id} className="py-4 first:pt-0 last:pb-0">
-                  <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-                    <div className="flex items-center gap-0.5">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <span
-                          key={star}
-                          className={`material-symbols-outlined text-[18px] ${
-                            review.rating >= star ? "text-yellow-400" : "text-slate-300"
-                          }`}
-                          style={{ fontVariationSettings: review.rating >= star ? "'FILL' 1" : "'FILL' 0" }}
-                        >
-                          star
+              {reviews.map((review) => {
+                const reviewYear = new Date(review.createdAt).getFullYear();
+                const reviewDate = new Date(review.createdAt).toLocaleDateString(undefined, {
+                  dateStyle: "medium",
+                });
+                return (
+                  <li key={review.id} className="py-4 first:pt-0 last:pb-0">
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <span
+                              key={star}
+                              className={`material-symbols-outlined text-[18px] ${
+                                review.rating >= star ? "text-yellow-400" : "text-slate-300"
+                              }`}
+                              style={{ fontVariationSettings: review.rating >= star ? "'FILL' 1" : "'FILL' 0" }}
+                            >
+                              star
+                            </span>
+                          ))}
+                        </div>
+                        <span className="text-xs text-slate-500" title={reviewDate}>
+                          {reviewDate} &middot; {reviewYear}
                         </span>
-                      ))}
-                    </div>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                        review.status === "approved"
-                          ? "bg-secondary/20 text-secondary"
+                      </div>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                          review.status === "approved"
+                            ? "bg-secondary/20 text-secondary"
+                            : review.status === "rejected"
+                              ? "bg-red-100 text-red-700"
+                              : review.status === "needs_revision"
+                                ? "bg-orange-100 text-orange-700"
+                                : "bg-amber-100 text-amber-700"
+                        }`}
+                      >
+                        {review.status === "approved"
+                          ? "PUBLISHED"
                           : review.status === "rejected"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-amber-100 text-amber-700"
-                      }`}
-                    >
-                      {review.status === "approved"
-                        ? "PUBLISHED"
-                        : review.status === "rejected"
-                          ? "NOT PUBLISHED"
-                          : "PENDING REVIEW"}
-                    </span>
-                  </div>
-                  <p className="text-sm text-slate-600 whitespace-pre-wrap">{review.comment}</p>
-                </li>
-              ))}
+                            ? "NOT PUBLISHED"
+                            : review.status === "needs_revision"
+                              ? "NEEDS REVISION"
+                              : "PENDING REVIEW"}
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-600 whitespace-pre-wrap">{review.comment}</p>
+                    {review.status === "needs_revision" && review.adminNote && (
+                      <p className="mt-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-900">
+                        <span className="font-bold">Requested revision: </span>
+                        {review.adminNote}
+                      </p>
+                    )}
+                    {review.status === "rejected" && review.adminNote && (
+                      <p className="mt-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-800">
+                        <span className="font-bold">Not published: </span>
+                        {review.adminNote}
+                      </p>
+                    )}
+                    <div className="mt-2 flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => dispatchModal({ type: "OPEN_EDIT_REVIEW", reviewId: review.id })}
+                        className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-secondary/10 hover:text-secondary"
+                        title="Edit review"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">edit</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm("Are you sure you want to delete this review?")) {
+                            deleteReviewMutation.mutate(review.id);
+                          }
+                        }}
+                        className="p-2 text-slate-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
+                        title="Delete review"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>
@@ -754,8 +811,17 @@ export default function ExhibitorDashboardPage() {
         }
       />
       <ReviewModal
-        isOpen={modals.addReview}
-        onClose={() => dispatchModal({ type: "CLOSE_ADD_REVIEW" })}
+        isOpen={modals.addReview || modals.editReview !== null}
+        onClose={() =>
+          modals.addReview
+            ? dispatchModal({ type: "CLOSE_ADD_REVIEW" })
+            : dispatchModal({ type: "CLOSE_EDIT_REVIEW" })
+        }
+        review={
+          modals.editReview
+            ? reviews.find((r) => r.id === modals.editReview)
+            : null
+        }
       />
     </>
   );

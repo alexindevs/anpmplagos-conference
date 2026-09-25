@@ -192,7 +192,7 @@ export interface UpdateRepresentativeInput {
   phone?: string;
 }
 
-export type ReviewStatus = "pending" | "approved" | "rejected";
+export type ReviewStatus = "pending" | "approved" | "rejected" | "needs_revision";
 
 /** A company's review of the conference */
 export interface CompanyReview {
@@ -201,6 +201,8 @@ export interface CompanyReview {
   rating: number;
   comment: string;
   status: ReviewStatus;
+  /** Admin-provided reason, shown to the company (set on reject / request revision). */
+  adminNote?: string | null;
   createdAt: string;
   updatedAt?: string;
 }
@@ -218,6 +220,12 @@ export interface CompanyReviewWithCompany extends CompanyReview {
 export interface CreateReviewInput {
   rating: number;
   comment: string;
+}
+
+/** Edit an existing review */
+export interface UpdateReviewInput {
+  rating?: number;
+  comment?: string;
 }
 
 /** Create product */
@@ -315,6 +323,24 @@ export async function createExhibitorReview(input: CreateReviewInput): Promise<C
   return apiFetch<CompanyReview>("/api/companies/me/reviews", {
     method: "POST",
     body: JSON.stringify(input),
+  });
+}
+
+/** PATCH /api/companies/me/reviews/:id - editing resets the review to pending */
+export async function updateExhibitorReview(
+  id: string,
+  input: UpdateReviewInput
+): Promise<CompanyReview> {
+  return apiFetch<CompanyReview>(`/api/companies/me/reviews/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+/** DELETE /api/companies/me/reviews/:id */
+export async function deleteExhibitorReview(id: string): Promise<{ deleted: boolean }> {
+  return apiFetch<{ deleted: boolean }>(`/api/companies/me/reviews/${id}`, {
+    method: "DELETE",
   });
 }
 
@@ -941,11 +967,12 @@ export async function getAdminCompanyReviews(
 /** PATCH /api/admin/companies/reviews/:id/status - approve or reject a review */
 export async function updateAdminCompanyReviewStatus(
   id: string,
-  status: ReviewStatus
+  status: ReviewStatus,
+  note?: string
 ): Promise<CompanyReview> {
   return apiFetch<CompanyReview>(`/api/admin/companies/reviews/${id}/status`, {
     method: "PATCH",
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status, note }),
   });
 }
 

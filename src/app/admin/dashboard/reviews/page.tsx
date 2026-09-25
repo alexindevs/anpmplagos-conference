@@ -2,10 +2,17 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAdminCompanyReviews, updateAdminCompanyReviewStatus, type ReviewStatus } from "@/lib/api";
+import {
+  getAdminCompanyReviews,
+  updateAdminCompanyReviewStatus,
+  type CompanyReviewWithCompany,
+  type ReviewStatus,
+} from "@/lib/api";
+import { ReviewDetailModal } from "./components/ReviewDetailModal";
 
 const STATUS_TABS: { key: ReviewStatus | "all"; label: string }[] = [
   { key: "pending", label: "Pending" },
+  { key: "needs_revision", label: "Needs Revision" },
   { key: "approved", label: "Approved" },
   { key: "rejected", label: "Rejected" },
   { key: "all", label: "All" },
@@ -17,10 +24,12 @@ function StatusBadge({ status }: { status: ReviewStatus }) {
       ? "bg-secondary/15 text-secondary dark:bg-secondary/25"
       : status === "rejected"
         ? "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-200"
-        : "bg-amber-50 text-amber-900 dark:bg-amber-900/30 dark:text-amber-200";
+        : status === "needs_revision"
+          ? "bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-200"
+          : "bg-amber-50 text-amber-900 dark:bg-amber-900/30 dark:text-amber-200";
   return (
     <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold ${classes}`}>
-      {status.toUpperCase()}
+      {status.replace("_", " ").toUpperCase()}
     </span>
   );
 }
@@ -28,6 +37,7 @@ function StatusBadge({ status }: { status: ReviewStatus }) {
 export default function AdminReviewsPage() {
   const [tab, setTab] = useState<ReviewStatus | "all">("pending");
   const [page, setPage] = useState(1);
+  const [selectedReview, setSelectedReview] = useState<CompanyReviewWithCompany | null>(null);
   const pageSize = 20;
   const queryClient = useQueryClient();
 
@@ -162,6 +172,13 @@ export default function AdminReviewsPage() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="inline-flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedReview(review)}
+                          className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-bold text-slate-800 transition-colors hover:bg-slate-200 dark:bg-background-dark-softer dark:text-white"
+                        >
+                          View
+                        </button>
                         {review.status !== "approved" && (
                           <button
                             type="button"
@@ -170,16 +187,6 @@ export default function AdminReviewsPage() {
                             className="rounded-lg bg-secondary px-3 py-1 text-xs font-bold text-white transition-colors hover:brightness-110 disabled:opacity-50"
                           >
                             Approve
-                          </button>
-                        )}
-                        {review.status !== "rejected" && (
-                          <button
-                            type="button"
-                            disabled={statusMutation.isPending}
-                            onClick={() => statusMutation.mutate({ id: review.id, status: "rejected" })}
-                            className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-bold text-slate-800 transition-colors hover:bg-slate-200 disabled:opacity-50 dark:bg-background-dark-softer dark:text-white"
-                          >
-                            Reject
                           </button>
                         )}
                       </div>
@@ -217,6 +224,12 @@ export default function AdminReviewsPage() {
           )}
         </div>
       </div>
+
+      <ReviewDetailModal
+        isOpen={selectedReview !== null}
+        onClose={() => setSelectedReview(null)}
+        review={selectedReview}
+      />
     </>
   );
 }
