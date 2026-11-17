@@ -68,7 +68,7 @@ function EditCompanyModal({
         tagline: tagline.trim() || undefined,
         contactEmail: contactEmail.trim() || undefined,
         primaryContactName: primaryContactName.trim() || undefined,
-        primaryContactPhone: primaryContactPhone.trim() || undefined,
+        primaryContactPhone: primaryContactPhone.trim(),
         website: website.trim() || undefined,
         highestSponsorshipTier: sponsorshipTier || undefined,
       });
