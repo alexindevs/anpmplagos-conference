@@ -65,11 +65,11 @@ function EditCompanyModal({
     try {
       await patchAdminExhibitor(company.id, {
         companyName: companyName.trim() || undefined,
-        tagline: tagline.trim() || undefined,
+        tagline: tagline.trim(),
         contactEmail: contactEmail.trim() || undefined,
         primaryContactName: primaryContactName.trim() || undefined,
         primaryContactPhone: primaryContactPhone.trim(),
-        website: website.trim() || undefined,
+        website: website.trim(),
         highestSponsorshipTier: sponsorshipTier || undefined,
       });
 
