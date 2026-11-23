@@ -87,9 +87,11 @@ export default function Header() {
       <Link href="/speakers" className={linkClass("/speakers")}>
         Speakers
       </Link>
-      <Link href="/sponsors" className={linkClass("/sponsors")}>
-        Sponsors
-      </Link>
+      {user ? (
+        <Link href="/sponsors" className={linkClass("/sponsors")}>
+          Sponsors
+        </Link>
+      ) : null}
       <Link href="/gallery" className={linkClass("/gallery")}>
         Gallery
       </Link>
@@ -219,13 +221,15 @@ export default function Header() {
           >
             Speakers
           </Link>
-          <Link
-            href="/sponsors"
-            className={`py-3 px-3 rounded-lg ${linkClass("/sponsors")}`}
-            onClick={() => setMenuOpen(false)}
-          >
-            Sponsors
-          </Link>
+          {user ? (
+            <Link
+              href="/sponsors"
+              className={`py-3 px-3 rounded-lg ${linkClass("/sponsors")}`}
+              onClick={() => setMenuOpen(false)}
+            >
+              Sponsors
+            </Link>
+          ) : null}
           <Link
             href="/gallery"
             className={`py-3 px-3 rounded-lg ${linkClass("/gallery")}`}

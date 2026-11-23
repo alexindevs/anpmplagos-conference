@@ -1,32 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { companyLogoImageUrl } from "@/lib/company-branding";
-import { getPublicCompanies, type PublicCompany } from "@/lib/api";
+import FooterSponsors from "./FooterSponsors";
 
-const FOOTER_LOGO_SLOTS = 8;
-
-function companySlug(c: PublicCompany): string {
-  const s = c.slug?.trim();
-  if (s) return encodeURIComponent(s);
-  return encodeURIComponent(c.id);
-}
-
-function companyLogoUrl(c: PublicCompany): string {
-  return companyLogoImageUrl(c) || c.headerImage?.trim() || "";
-}
-
-export default async function Footer() {
-  let footerLogos: PublicCompany[] = [];
-  try {
-    // TEMP: caching disabled while debugging stale company data — remove `cache: "no-store"` after
-    const all = await getPublicCompanies({ cache: "no-store" });
-    footerLogos = all
-      .filter((c) => companyLogoUrl(c))
-      .slice(0, FOOTER_LOGO_SLOTS);
-  } catch {
-    footerLogos = [];
-  }
-
+export default function Footer() {
   return (
     <footer className="bg-deep-forest text-white py-20" id="contact">
       <div className="max-w-7xl mx-auto px-4">
@@ -133,35 +109,7 @@ export default async function Footer() {
             </div>
           </div>
         </div>
-        {footerLogos.length > 0 ? (
-          <div className="border-t border-white/20 pt-8 mt-8">
-            <p className="text-center text-white/60 text-sm mb-6">
-              Our Sponsors & Partners
-            </p>
-            <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-90">
-              {footerLogos.map((c) => {
-                const image = companyLogoUrl(c);
-                return (
-                  <Link
-                    key={c.id}
-                    href={`/company/${companySlug(c)}`}
-                    className="shrink-0 transition-opacity hover:opacity-100"
-                  >
-                    <div className="relative flex h-10 w-28 items-center justify-center">
-                      <Image
-                        src={image}
-                        alt={`${c.companyName} logo`}
-                        width={112}
-                        height={40}
-                        className="max-h-8 w-auto max-w-full object-contain object-center"
-                      />
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        ) : null}
+        <FooterSponsors />
         <div className="text-center mt-12 text-sm text-white/50 font-mono">
           © 2026 Association of Nigerian Private Medical Practitioners. All rights reserved.
         </div>

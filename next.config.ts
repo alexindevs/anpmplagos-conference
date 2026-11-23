@@ -74,6 +74,18 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Sponsors section is for signed-in users only — never index or follow.
+        source: "/sponsors/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive, noimageindex" }],
+      },
+      {
+        // Partner profiles are signed-in only. Already indexed in the past, so this is deliberately
+        // NOT disallowed in robots.ts yet — crawlers must be able to re-fetch and see the noindex.
+        // (The company portal lives under the same prefix; noindex there is harmless.)
+        source: "/company/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive, noimageindex" }],
+      },
+      {
         source: "/:path*",
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
