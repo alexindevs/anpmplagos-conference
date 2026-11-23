@@ -1,16 +1,23 @@
+import type { Metadata } from "next";
 import CompanyProfile from "./components/CompanyProfile";
 
-/** Generic on purpose: no company data may appear in server-rendered HTML or metadata. */
-export const metadata = {
-  title: "Partner - ANPMP Lagos Conference",
-};
+type Params = { params: Promise<{ slug: string }> };
+
+/**
+ * Generic on purpose: no company data may appear in server-rendered HTML or metadata.
+ * Only the slug (already in the URL) is used, for a self-referencing canonical — otherwise the
+ * root layout's canonical ("/") is inherited.
+ */
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const { slug } = await params;
+  return {
+    title: "Partner - ANPMP Lagos Conference",
+    alternates: { canonical: `/company/${encodeURIComponent(slug)}` },
+  };
+}
 
 /** Shell only — the profile is fetched client-side after sign-in (see ../layout.tsx). */
-export default async function PublicCompanyProfilePage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export default async function PublicCompanyProfilePage({ params }: Params) {
   const { slug } = await params;
   return <CompanyProfile slug={slug} />;
 }

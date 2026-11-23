@@ -2,6 +2,7 @@ import SponsorReviewsList from "../components/SponsorReviewsList";
 
 export const metadata = {
   title: "Sponsor Reviews - ANPMP Lagos Conference",
+  alternates: { canonical: "/sponsors/reviews" },
 };
 
 function pageNumber(searchParams: { [key: string]: string | string[] | undefined }): number {
